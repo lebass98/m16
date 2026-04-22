@@ -185,9 +185,24 @@ export default function SectionTable({ section, sectionIndex, latestDate }: Prop
       </Box>
 
       {/* 모바일: 카드 */}
-      <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', gap: '8px', p: '10px' }}>
+      <Box sx={{ 
+        display: { xs: 'flex', md: 'none' }, 
+        flexDirection: 'row', 
+        gap: '12px', 
+        p: '12px',
+        overflowX: 'auto',
+        scrollSnapType: 'x mandatory',
+        '&::-webkit-scrollbar': { display: 'none' },
+        scrollbarWidth: 'none',
+      }}>
         {section.data.map((item, j) => (
-          <Card key={j} variant="outlined" sx={{ borderRadius: '8px', overflow: 'hidden' }}>
+          <Card key={j} variant="outlined" sx={{ 
+            borderRadius: '8px', 
+            overflow: 'hidden',
+            flexShrink: 0,
+            width: '100%',
+            scrollSnapAlign: 'start',
+          }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px', p: '12px 14px', bgcolor: '#f4f4f4', borderBottom: '1px solid #e0e0e0' }}>
               <Box sx={{ flexShrink: 0, width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#333', color: '#fff', borderRadius: '50%', fontSize: 12, fontWeight: 700 }}>
                 {j + 1}
