@@ -166,10 +166,7 @@ export default function SectionTable({ section, sectionIndex, latestDate }: Prop
             '& .MuiDataGrid-columnSeparator': { display: 'none' },
             '& .MuiDataGrid-row:nth-of-type(even)': { bgcolor: '#f8f8f8' },
             '& .MuiDataGrid-row:hover': {
-              bgcolor: '#ff6969 !important',
-              color: '#fff',
-              '& a': { color: '#fff !important' },
-              '& .cell-emphasis': { color: '#fff !important' },
+              bgcolor: '#f0f0f0 !important',
             },
             '& .MuiDataGrid-cell': {
               borderColor: '#e0e0e0',
