@@ -1,3 +1,4 @@
+import { List, ListItem, Box, Typography } from '@mui/material';
 import type { LogItem } from '../types';
 
 interface Props {
@@ -7,16 +8,22 @@ interface Props {
 
 export default function LogList({ logs, latestDate }: Props) {
   return (
-    <ul className="index-log">
+    <List disablePadding>
       {logs.map((log, i) => (
-        <li
-          key={i}
-          className={`index-log__item${log.date === latestDate ? ' is-emphasis' : ''}`}
-        >
-          <div className="index-log__item__date">[{log.date}]</div>
-          <span dangerouslySetInnerHTML={{ __html: log.text }} />
-        </li>
+        <ListItem key={i} disableGutters sx={{ position: 'relative', minHeight: 18, pl: '55px', alignItems: 'flex-start' }}>
+          <Typography
+            component="span"
+            sx={{ position: 'absolute', top: 0, left: 0, fontSize: 13 }}
+          >
+            [{log.date}]
+          </Typography>
+          <Box
+            component="span"
+            sx={{ fontSize: 13, fontWeight: log.date === latestDate ? 700 : 400, color: log.date === latestDate ? '#ff706e' : 'inherit' }}
+            dangerouslySetInnerHTML={{ __html: log.text }}
+          />
+        </ListItem>
       ))}
-    </ul>
+    </List>
   );
 }
