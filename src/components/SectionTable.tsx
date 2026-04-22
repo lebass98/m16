@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Paper, Box, Typography, Card, CardContent } from '@mui/material';
+import { Paper, Box, Typography, Card } from '@mui/material';
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import type { TableSection } from '../types';
 import ProgressBar from './ProgressBar';
@@ -201,91 +201,101 @@ export default function SectionTable({ section, sectionIndex, latestDate }: Prop
             overflow: 'hidden',
             flexShrink: 0,
             width: '100%',
+            height: 'calc(100dvh - 160px)',
+            minHeight: '400px',
             scrollSnapAlign: 'start',
+            display: 'flex',
+            flexDirection: 'column'
           }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px', p: '12px 14px', bgcolor: '#f4f4f4', borderBottom: '1px solid #e0e0e0' }}>
-              <Box sx={{ flexShrink: 0, width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#333', color: '#fff', borderRadius: '50%', fontSize: 12, fontWeight: 700 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px', p: '8px 12px', bgcolor: '#f4f4f4', borderBottom: '1px solid #e0e0e0', flexShrink: 0 }}>
+              <Box sx={{ flexShrink: 0, width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#333', color: '#fff', borderRadius: '50%', fontSize: 11, fontWeight: 700 }}>
                 {j + 1}
               </Box>
-              <Typography sx={{ flex: 1, fontSize: 16, fontWeight: 600, color: '#111', wordBreak: 'break-all' }}>
+              <Typography sx={{ flex: 1, fontSize: 14, fontWeight: 600, color: '#111', wordBreak: 'break-all' }}>
                 {item.pageTitle || item.id}
               </Typography>
-              <Box sx={{ display: 'flex', gap: '12px' }}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                  <Typography sx={{ fontSize: 11, color: '#666', lineHeight: 1 }}>PC</Typography>
+              <Box sx={{ display: 'flex', gap: '8px' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                  <Typography sx={{ fontSize: 10, color: '#666', lineHeight: 1 }}>PC</Typography>
                   <ProgressBar value={item.progressPc} />
                 </Box>
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                  <Typography sx={{ fontSize: 11, color: '#666', lineHeight: 1 }}>MO</Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                  <Typography sx={{ fontSize: 10, color: '#666', lineHeight: 1 }}>MO</Typography>
                   <ProgressBar value={item.progressMobile} />
                 </Box>
               </Box>
             </Box>
-            <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
-              <Box sx={{ display: 'flex', flexDirection: 'row' }}>
-                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px', p: '12px 14px', minWidth: 0 }}>
-                  {item.id && (
-                    <Box sx={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-                      <Typography sx={{ flexShrink: 0, width: 56, color: '#888', fontSize: 14, pt: '1px' }}>ID</Typography>
-                      <Typography sx={{ flex: 1, color: '#222', wordBreak: 'break-all', fontSize: 16 }}>{item.id}</Typography>
-                    </Box>
-                  )}
-                  {(item.depth1 || item.depth2 || item.depth3) && (
-                    <Box sx={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-                      <Typography sx={{ flexShrink: 0, width: 56, color: '#888', fontSize: 14, pt: '1px' }}>메뉴</Typography>
-                      <Typography sx={{ flex: 1, color: '#222', wordBreak: 'break-all', fontSize: 16 }}>
-                        {[item.depth1, item.depth2, item.depth3].filter(Boolean).join(' > ')}
-                      </Typography>
-                    </Box>
-                  )}
-                  {item.path && (
-                    <Box sx={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-                      <Typography sx={{ flexShrink: 0, width: 56, color: '#888', fontSize: 14, pt: '1px' }}>경로</Typography>
-                      <Box component="a" href={item.path} target="_blank" rel="noreferrer" sx={{ flex: 1, color: '#066cb3', textDecoration: 'none', wordBreak: 'break-all', fontSize: 16 }}>
-                        {(() => { try { return new URL(item.path).pathname; } catch { return item.path; } })()}
-                      </Box>
-                    </Box>
-                  )}
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '8px 16px', pt: '4px' }}>
-                    {item.start && (
-                      <Box sx={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                        <Typography sx={{ flexShrink: 0, width: 56, color: '#888', fontSize: 14 }}>생성일</Typography>
-                        <Typography sx={{ fontSize: 16, ...(item.start === latestDate ? emphasisSx : { color: '#222' }) }}>{item.start}</Typography>
-                      </Box>
-                    )}
-                    {item.updatedAt && (
-                      <Box sx={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                        <Typography sx={{ flexShrink: 0, width: 56, color: '#888', fontSize: 14 }}>업데이트</Typography>
-                        <Typography sx={{ fontSize: 16, ...(item.updatedAt === latestDate ? emphasisSx : { color: '#222' }) }}>{item.updatedAt}</Typography>
-                      </Box>
-                    )}
-                    {item.end && (
-                      <Box sx={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                        <Typography sx={{ flexShrink: 0, width: 56, color: '#888', fontSize: 14 }}>완료일</Typography>
-                        <Typography sx={{ fontSize: 16, ...(item.end === latestDate ? emphasisSx : { color: '#222' }) }}>{item.end}</Typography>
-                      </Box>
-                    )}
+
+            <Box sx={{ flex: 1, position: 'relative', overflow: 'hidden', bgcolor: '#fff' }}>
+              {item.path ? (
+                <Box
+                  component="a"
+                  href={item.path}
+                  target="_blank"
+                  rel="noreferrer"
+                  sx={{ display: 'block', width: '100%', height: '100%' }}
+                >
+                  <PreviewFrame src={item.path} displayWidth="100%" fillHeight speed={2} iframeWidth={375} iframeHeight={667} />
+                </Box>
+              ) : (
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#999', fontSize: 13 }}>
+                  미리보기 없음
+                </Box>
+              )}
+            </Box>
+
+            <Box sx={{ flexShrink: 0, p: '10px 12px', bgcolor: '#fff', borderTop: '1px solid #e0e0e0' }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {item.id && (
+                  <Box sx={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
+                    <Typography sx={{ flexShrink: 0, width: 40, color: '#888', fontSize: 12 }}>ID</Typography>
+                    <Typography sx={{ flex: 1, color: '#222', wordBreak: 'break-all', fontSize: 13 }}>{item.id}</Typography>
                   </Box>
-                  {item.note && (
-                    <Box sx={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-                      <Typography sx={{ flexShrink: 0, width: 56, color: '#888', fontSize: 14, pt: '1px' }}>비고</Typography>
-                      <Typography sx={{ flex: 1, color: '#222', wordBreak: 'break-all', fontSize: 16 }}>{item.note}</Typography>
+                )}
+                {(item.depth1 || item.depth2 || item.depth3) && (
+                  <Box sx={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
+                    <Typography sx={{ flexShrink: 0, width: 40, color: '#888', fontSize: 12 }}>메뉴</Typography>
+                    <Typography sx={{ flex: 1, color: '#222', wordBreak: 'break-all', fontSize: 13 }}>
+                      {[item.depth1, item.depth2, item.depth3].filter(Boolean).join(' > ')}
+                    </Typography>
+                  </Box>
+                )}
+                {item.path && (
+                  <Box sx={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
+                    <Typography sx={{ flexShrink: 0, width: 40, color: '#888', fontSize: 12 }}>경로</Typography>
+                    <Box component="a" href={item.path} target="_blank" rel="noreferrer" sx={{ flex: 1, color: '#066cb3', textDecoration: 'none', wordBreak: 'break-all', fontSize: 13 }}>
+                      {(() => { try { return new URL(item.path).pathname; } catch { return item.path; } })()}
+                    </Box>
+                  </Box>
+                )}
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px', pt: '2px' }}>
+                  {item.start && (
+                    <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                      <Typography sx={{ flexShrink: 0, width: 40, color: '#888', fontSize: 12 }}>생성일</Typography>
+                      <Typography sx={{ fontSize: 13, ...(item.start === latestDate ? emphasisSx : { color: '#222' }) }}>{item.start}</Typography>
+                    </Box>
+                  )}
+                  {item.updatedAt && (
+                    <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                      <Typography sx={{ flexShrink: 0, width: 40, color: '#888', fontSize: 12 }}>업데이트</Typography>
+                      <Typography sx={{ fontSize: 13, ...(item.updatedAt === latestDate ? emphasisSx : { color: '#222' }) }}>{item.updatedAt}</Typography>
+                    </Box>
+                  )}
+                  {item.end && (
+                    <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                      <Typography sx={{ flexShrink: 0, width: 40, color: '#888', fontSize: 12 }}>완료일</Typography>
+                      <Typography sx={{ fontSize: 13, ...(item.end === latestDate ? emphasisSx : { color: '#222' }) }}>{item.end}</Typography>
                     </Box>
                   )}
                 </Box>
-                {item.path && (
-                  <Box
-                    component="a"
-                    href={item.path}
-                    target="_blank"
-                    rel="noreferrer"
-                    sx={{ flexShrink: 0, display: 'block', overflow: 'hidden', alignSelf: 'stretch', borderLeft: '1px solid #e0e0e0', borderRadius: '0 0 8px 0' }}
-                  >
-                    <PreviewFrame src={item.path} displayWidth={130} fillHeight speed={2} iframeWidth={375} iframeHeight={667} />
+                {item.note && (
+                  <Box sx={{ display: 'flex', gap: '6px', alignItems: 'flex-start', mt: '2px' }}>
+                    <Typography sx={{ flexShrink: 0, width: 40, color: '#888', fontSize: 12 }}>비고</Typography>
+                    <Typography sx={{ flex: 1, color: '#222', wordBreak: 'break-all', fontSize: 13 }}>{item.note}</Typography>
                   </Box>
                 )}
               </Box>
-            </CardContent>
+            </Box>
           </Card>
         ))}
       </Box>

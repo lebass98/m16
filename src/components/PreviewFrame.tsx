@@ -1,10 +1,10 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 
 const PAUSE_MS = 800;
 
 interface Props {
   src: string;
-  displayWidth: number;
+  displayWidth: number | string;
   animate?: boolean;
   fillHeight?: boolean;
   speed?: number;
@@ -13,7 +13,24 @@ interface Props {
 }
 
 export default function PreviewFrame({ src, displayWidth, animate = false, fillHeight = false, speed = 4, iframeWidth = 1920, iframeHeight = 1080 }: Props) {
-  const scale = displayWidth / iframeWidth;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [actualWidth, setActualWidth] = useState(typeof displayWidth === 'number' ? displayWidth : 375);
+
+  useEffect(() => {
+    if (typeof displayWidth === 'number') {
+      setActualWidth(displayWidth);
+      return;
+    }
+    const ob = new ResizeObserver((entries) => {
+      if (entries[0] && entries[0].contentRect.width > 0) {
+        setActualWidth(entries[0].contentRect.width);
+      }
+    });
+    if (containerRef.current) ob.observe(containerRef.current);
+    return () => ob.disconnect();
+  }, [displayWidth]);
+
+  const scale = actualWidth / iframeWidth;
   const displayHeight = Math.round(iframeHeight * scale);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -83,6 +100,7 @@ export default function PreviewFrame({ src, displayWidth, animate = false, fillH
 
   return (
     <div
+      ref={containerRef}
       style={{
         width: displayWidth,
         height: fillHeight ? '100%' : displayHeight,
