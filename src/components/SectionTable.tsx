@@ -132,7 +132,7 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
         boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
         display: 'flex',
         flexDirection: 'column',
-        height: { xs: '100%', md: 'auto' }
+        flex: { xs: 1, md: 'none' }
       }}
       className="index-section"
     >
@@ -254,7 +254,7 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
 
             <Box sx={{ flex: 1, position: 'relative', overflow: 'hidden', bgcolor: 'transparent' }}>
               {item.path ? (
-                <Box sx={{ display: 'block', width: '100%', height: '100%' }}>
+                <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
                   <PreviewFrame src={item.path} displayWidth="100%" fillHeight speed={2} iframeWidth={375} iframeHeight={667} allowScroll />
                 </Box>
               ) : (
