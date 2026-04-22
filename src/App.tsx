@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Box, Typography, Dialog, List, ListItem, ListItemButton, ListItemText } from '@mui/material';
 import { tableData } from './data/tableData';
 import SectionTable from './components/SectionTable';
@@ -13,6 +13,17 @@ function getLatestDate(data: typeof tableData): string {
 export default function App() {
   const [mobileActiveIndex, setMobileActiveIndex] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
+  const [hideUi, setHideUi] = useState(false);
+
+  useEffect(() => {
+    const handleDir = (e: any) => {
+      if (e.detail === 'down') setHideUi(true);
+      else if (e.detail === 'up') setHideUi(false);
+    };
+    window.addEventListener('preview-scroll-dir', handleDir);
+    return () => window.removeEventListener('preview-scroll-dir', handleDir);
+  }, []);
+
   const latestDate = useMemo(() => getLatestDate(tableData), []);
   const totalCount = useMemo(
     () => tableData.reduce((sum, s) => sum + s.data.length, 0),
@@ -21,22 +32,34 @@ export default function App() {
 
   return (
     <Box sx={{ boxSizing: 'border-box', p: { xs: 0, md: '20px' }, pb: { xs: 0, md: '110px' }, minHeight: '100vh', background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)' }}>
-      <Typography
-        variant="h1"
+      <Box
         sx={{
-          display: { xs: 'none', md: 'block' },
-          fontSize: { xs: 18, sm: 22, md: 30 },
-          lineHeight: { xs: '26px', sm: '30px', md: '40px' },
-          mb: { xs: '10px', sm: '12px', md: '20px' },
-          textAlign: 'center',
-          fontWeight: 700,
+          overflow: 'hidden',
+          transition: 'all 0.3s ease-in-out',
+          maxHeight: hideUi ? { xs: 0, md: 100 } : 100,
+          opacity: hideUi ? { xs: 0, md: 1 } : 1,
+          mb: hideUi ? { xs: 0, md: '20px' } : { xs: '10px', sm: '12px', md: '20px' },
+          pt: hideUi ? { xs: 0, md: 0 } : { xs: '10px', md: 0 },
         }}
       >
-        사이트제목
-        <Box component="span" sx={{ fontSize: '0.45em', fontWeight: 500, color: '#666', ml: 1, verticalAlign: 'middle' }}>
-          ({totalCount} pages)
-        </Box>
-      </Typography>
+        <Typography
+          variant="h1"
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'baseline',
+            fontSize: { xs: 18, sm: 22, md: 30 },
+            lineHeight: { xs: '26px', sm: '30px', md: '40px' },
+            textAlign: 'center',
+            fontWeight: 700,
+          }}
+        >
+          사이트제목
+          <Box component="span" sx={{ fontSize: '0.45em', fontWeight: 500, color: '#666', ml: 1, verticalAlign: 'middle' }}>
+            ({totalCount} pages)
+          </Box>
+        </Typography>
+      </Box>
 
 
 
@@ -57,12 +80,13 @@ export default function App() {
       </Box>
 
       {/* 모바일 뷰: 선택된 1개 섹션만 렌더링 */}
-      <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', height: '100dvh', overflow: 'hidden' }}>
+      <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
         <SectionTable
           section={tableData[mobileActiveIndex]}
           sectionIndex={mobileActiveIndex}
           latestDate={latestDate}
           onHeaderClick={() => setModalOpen(true)}
+          hideUi={hideUi}
         />
       </Box>
 
