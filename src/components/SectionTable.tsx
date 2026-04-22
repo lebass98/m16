@@ -266,7 +266,7 @@ export default function SectionTable({ section, sectionIndex, latestDate }: Prop
                     rel="noreferrer"
                     sx={{ flexShrink: 0, display: 'block', overflow: 'hidden', alignSelf: 'stretch', borderLeft: '1px solid #e0e0e0', borderRadius: '0 0 8px 0' }}
                   >
-                    <PreviewFrame src={item.path} displayWidth={130} fillHeight speed={2} />
+                    <PreviewFrame src={item.path} displayWidth={130} fillHeight speed={2} iframeWidth={375} iframeHeight={667} />
                   </Box>
                 )}
               </Box>
