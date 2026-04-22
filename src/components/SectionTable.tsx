@@ -11,11 +11,12 @@ interface Props {
   sectionIndex: number;
   latestDate: string;
   onHeaderClick?: () => void;
+  hideUi?: boolean;
 }
 
 const emphasisSx = { fontWeight: 700, color: '#ff706e' };
 
-export default function SectionTable({ section, sectionIndex, latestDate, onHeaderClick }: Props) {
+export default function SectionTable({ section, sectionIndex, latestDate, onHeaderClick, hideUi = false }: Props) {
   const hasDepth1 = section.data.some(item => item.depth1);
   const hasDepth2 = section.data.some(item => item.depth2);
   const hasDepth3 = section.data.some(item => item.depth3);
@@ -263,8 +264,16 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
               )}
             </Box>
 
-            <Box sx={{ flexShrink: 0, p: '10px 12px', bgcolor: 'rgba(255, 255, 255, 0.4)', borderTop: '1px solid rgba(255, 255, 255, 0.5)' }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <Box sx={{ 
+              flexShrink: 0, 
+              bgcolor: 'rgba(255, 255, 255, 0.4)', 
+              borderTop: hideUi ? 'none' : '1px solid rgba(255, 255, 255, 0.5)',
+              transition: 'all 0.3s ease-in-out',
+              maxHeight: hideUi ? 0 : 400,
+              opacity: hideUi ? 0 : 1,
+              overflow: 'hidden',
+            }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px', p: '10px 12px' }}>
                 {item.id && (
                   <Box sx={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
                     <Typography sx={{ flexShrink: 0, mr: '10px', color: '#888', fontSize: 12 }}>ID</Typography>

@@ -40,6 +40,33 @@ export default function PreviewFrame({ src, displayWidth, animate = false, fillH
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+
+    const handleLoad = () => {
+      try {
+        const win = iframe.contentWindow;
+        if (win) {
+          let lastY = win.scrollY;
+          win.addEventListener('scroll', () => {
+            const currentY = win.scrollY;
+            if (currentY > lastY + 5) {
+              window.dispatchEvent(new CustomEvent('preview-scroll-dir', { detail: 'down' }));
+              lastY = currentY;
+            } else if (currentY < lastY - 5) {
+              window.dispatchEvent(new CustomEvent('preview-scroll-dir', { detail: 'up' }));
+              lastY = currentY;
+            }
+          });
+        }
+      } catch (e) { /* ignore cross-origin */ }
+    };
+
+    iframe.addEventListener('load', handleLoad);
+    return () => iframe.removeEventListener('load', handleLoad);
+  }, [src]);
+
+  useEffect(() => {
     if (!animate) return;
 
     let y = 0;
