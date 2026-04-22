@@ -283,7 +283,7 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
                     </Box>
                   </Box>
                 )}
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px', pt: '2px' }}>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px', pt: '2px', justifyContent: 'flex-end' }}>
                   {item.start && (
                     <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                       <Typography sx={{ flexShrink: 0, width: 40, color: '#888', fontSize: 12 }}>생성일</Typography>
