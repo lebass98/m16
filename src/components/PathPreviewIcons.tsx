@@ -177,7 +177,7 @@ export default function PathPreviewIcons({ path }: Props) {
   const [clicked, setClicked] = useState<HoverType>(null);
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px', width: '100%', justifyContent: 'space-between' }}>
       <Box
         component="a"
         href={path}
