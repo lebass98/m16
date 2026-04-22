@@ -122,9 +122,13 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
       id={`section-${sectionIndex}`}
       elevation={0}
       sx={{ 
-        borderRadius: '5px', 
+        borderRadius: '12px', 
         overflow: 'hidden', 
-        bgcolor: '#fff',
+        bgcolor: 'rgba(255, 255, 255, 0.45)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        border: '1px solid rgba(255, 255, 255, 0.6)',
+        boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
         display: 'flex',
         flexDirection: 'column',
         height: { xs: '100%', md: 'auto' }
@@ -141,7 +145,8 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
           fontSize: 16,
           lineHeight: '15px',
           color: '#fff',
-          bgcolor: '#333',
+          bgcolor: 'rgba(51, 51, 51, 0.8)',
+          backdropFilter: 'blur(8px)',
           fontWeight: 500,
           textAlign: 'center',
           display: 'flex',
@@ -172,18 +177,18 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
             borderRadius: 0,
             fontSize: 13,
             '& .MuiDataGrid-columnHeader': {
-              bgcolor: '#e8e8e8',
+              bgcolor: 'rgba(255, 255, 255, 0.5)',
               fontWeight: 600,
-              '&:hover': { bgcolor: '#d8d8d8' },
+              '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.6)' },
             },
             '& .MuiDataGrid-sortIcon': { opacity: 1 },
             '& .MuiDataGrid-columnSeparator': { display: 'none' },
-            '& .MuiDataGrid-row:nth-of-type(even)': { bgcolor: '#f8f8f8' },
+            '& .MuiDataGrid-row:nth-of-type(even)': { bgcolor: 'rgba(255, 255, 255, 0.2)' },
             '& .MuiDataGrid-row:hover': {
-              bgcolor: '#f0f0f0 !important',
+              bgcolor: 'rgba(255, 255, 255, 0.5) !important',
             },
             '& .MuiDataGrid-cell': {
-              borderColor: '#e0e0e0',
+              borderColor: 'rgba(255, 255, 255, 0.3)',
               display: 'flex',
               alignItems: 'center',
             },
@@ -212,7 +217,7 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
       }}>
         {section.data.map((item, j) => (
           <Card key={j} variant="outlined" sx={{ 
-            borderRadius: '8px', 
+            borderRadius: '16px', 
             overflow: 'hidden',
             flexShrink: 0,
             width: '100%',
@@ -220,9 +225,14 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
             minHeight: 0,
             scrollSnapAlign: 'start',
             display: 'flex',
-            flexDirection: 'column'
+            flexDirection: 'column',
+            bgcolor: 'rgba(255, 255, 255, 0.45)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            border: '1px solid rgba(255, 255, 255, 0.6)',
+            boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
           }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px', p: '8px 12px', bgcolor: '#f4f4f4', borderBottom: '1px solid #e0e0e0', flexShrink: 0 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px', p: '8px 12px', bgcolor: 'rgba(255, 255, 255, 0.4)', borderBottom: '1px solid rgba(255, 255, 255, 0.5)', flexShrink: 0 }}>
               <Box sx={{ flexShrink: 0, width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#333', color: '#fff', borderRadius: '50%', fontSize: 11, fontWeight: 700 }}>
                 {j + 1}
               </Box>
@@ -241,7 +251,7 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
               </Box>
             </Box>
 
-            <Box sx={{ flex: 1, position: 'relative', overflow: 'hidden', bgcolor: '#fff' }}>
+            <Box sx={{ flex: 1, position: 'relative', overflow: 'hidden', bgcolor: 'transparent' }}>
               {item.path ? (
                 <Box sx={{ display: 'block', width: '100%', height: '100%' }}>
                   <PreviewFrame src={item.path} displayWidth="100%" fillHeight speed={2} iframeWidth={375} iframeHeight={667} allowScroll />
@@ -253,7 +263,7 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
               )}
             </Box>
 
-            <Box sx={{ flexShrink: 0, p: '10px 12px', bgcolor: '#fff', borderTop: '1px solid #e0e0e0' }}>
+            <Box sx={{ flexShrink: 0, p: '10px 12px', bgcolor: 'rgba(255, 255, 255, 0.4)', borderTop: '1px solid rgba(255, 255, 255, 0.5)' }}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {item.id && (
                   <Box sx={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
