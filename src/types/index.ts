@@ -1,4 +1,10 @@
 export type ProgressValue = 0 | 20 | 40 | 60 | 80 | 100;
+export type StatusType = 'ing' | 'end' | 'except' | 'moding' | 'stay' | 'pc' | '';
+
+export interface LogItem {
+  date: string;
+  text: string;
+}
 
 export interface TableItem {
   pageTitle: string;
