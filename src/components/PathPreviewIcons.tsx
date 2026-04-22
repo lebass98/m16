@@ -249,13 +249,15 @@ export default function PathPreviewIcons({ path }: Props) {
         open={!!clicked}
         onClose={() => setClicked(null)}
         maxWidth={false}
-        PaperProps={{
-          sx: {
-            borderRadius: clicked === 'mobile' ? '28px' : '12px',
-            border: clicked === 'mobile' ? '8px solid #222' : '1px solid #ccc',
-            overflow: 'hidden',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
-            m: 0,
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: clicked === 'mobile' ? '28px' : '12px',
+              border: clicked === 'mobile' ? '8px solid #222' : '1px solid #ccc',
+              overflow: 'hidden',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+              m: 0,
+            },
           },
         }}
       >
