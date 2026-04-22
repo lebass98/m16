@@ -189,7 +189,6 @@ export default function PathPreviewIcons({ path }: Props) {
       </Box>
 
       <Box sx={{ display: 'flex', gap: '5px', flexShrink: 0 }}>
-        <Tooltip title="PC 미리보기" placement="top">
           <Box
             component="span"
             sx={{
@@ -207,9 +206,7 @@ export default function PathPreviewIcons({ path }: Props) {
           >
             <MonitorIcon sx={{ fontSize: 18 }} /> PC
           </Box>
-        </Tooltip>
 
-        <Tooltip title="모바일 미리보기" placement="top">
           <Box
             component="span"
             sx={{
@@ -227,7 +224,6 @@ export default function PathPreviewIcons({ path }: Props) {
           >
             <SmartphoneIcon sx={{ fontSize: 15 }} /> 모바일
           </Box>
-        </Tooltip>
       </Box>
 
       {/* 호버 팝업 — DataGrid transform 클리핑 방지를 위해 body에 Portal로 렌더링 */}
