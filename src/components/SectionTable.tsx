@@ -243,14 +243,8 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
 
             <Box sx={{ flex: 1, position: 'relative', overflow: 'hidden', bgcolor: '#fff' }}>
               {item.path ? (
-                <Box
-                  component="a"
-                  href={item.path}
-                  target="_blank"
-                  rel="noreferrer"
-                  sx={{ display: 'block', width: '100%', height: '100%' }}
-                >
-                  <PreviewFrame src={item.path} displayWidth="100%" fillHeight speed={2} iframeWidth={375} iframeHeight={667} />
+                <Box sx={{ display: 'block', width: '100%', height: '100%' }}>
+                  <PreviewFrame src={item.path} displayWidth="100%" fillHeight speed={2} iframeWidth={375} iframeHeight={667} allowScroll />
                 </Box>
               ) : (
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#999', fontSize: 13 }}>

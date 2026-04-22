@@ -10,11 +10,13 @@ interface Props {
   speed?: number;
   iframeWidth?: number;
   iframeHeight?: number;
+  allowScroll?: boolean;
 }
 
-export default function PreviewFrame({ src, displayWidth, animate = false, fillHeight = false, speed = 4, iframeWidth = 1920, iframeHeight = 1080 }: Props) {
+export default function PreviewFrame({ src, displayWidth, animate = false, fillHeight = false, speed = 4, iframeWidth = 1920, iframeHeight = 1080, allowScroll = false }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [actualWidth, setActualWidth] = useState(typeof displayWidth === 'number' ? displayWidth : 375);
+  const [actualHeight, setActualHeight] = useState(0);
 
   useEffect(() => {
     if (typeof displayWidth === 'number') {
@@ -24,6 +26,7 @@ export default function PreviewFrame({ src, displayWidth, animate = false, fillH
     const ob = new ResizeObserver((entries) => {
       if (entries[0] && entries[0].contentRect.width > 0) {
         setActualWidth(entries[0].contentRect.width);
+        setActualHeight(entries[0].contentRect.height);
       }
     });
     if (containerRef.current) ob.observe(containerRef.current);
@@ -32,6 +35,7 @@ export default function PreviewFrame({ src, displayWidth, animate = false, fillH
 
   const scale = actualWidth / iframeWidth;
   const displayHeight = Math.round(iframeHeight * scale);
+  const dynamicIframeHeight = fillHeight && actualHeight > 0 ? actualHeight / scale : iframeHeight;
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -117,7 +121,7 @@ export default function PreviewFrame({ src, displayWidth, animate = false, fillH
           top: 0,
           left: 0,
           width: iframeWidth,
-          height: iframeHeight, // onload 후 동적으로 변경됨
+          height: animate ? iframeHeight : dynamicIframeHeight,
           transform: `scale(${scale})`,
           transformOrigin: 'top left',
         }}
@@ -129,9 +133,9 @@ export default function PreviewFrame({ src, displayWidth, animate = false, fillH
           style={{
             display: 'block',
             width: iframeWidth,
-            height: iframeHeight, // onload 후 동적으로 변경됨
+            height: animate ? iframeHeight : dynamicIframeHeight,
             border: 'none',
-            pointerEvents: 'none',
+            pointerEvents: allowScroll ? 'auto' : 'none',
           }}
           tabIndex={-1}
         />
