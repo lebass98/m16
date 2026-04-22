@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { Box, Typography } from '@mui/material';
+import { useMemo, useState } from 'react';
+import { Box, Typography, Dialog, List, ListItem, ListItemButton, ListItemText } from '@mui/material';
 import { tableData } from './data/tableData';
 import SectionTable from './components/SectionTable';
 import BottomNav from './components/BottomNav';
@@ -11,6 +11,8 @@ function getLatestDate(data: typeof tableData): string {
 }
 
 export default function App() {
+  const [mobileActiveIndex, setMobileActiveIndex] = useState(0);
+  const [modalOpen, setModalOpen] = useState(false);
   const latestDate = useMemo(() => getLatestDate(tableData), []);
   const totalCount = useMemo(
     () => tableData.reduce((sum, s) => sum + s.data.length, 0),
@@ -18,10 +20,11 @@ export default function App() {
   );
 
   return (
-    <Box sx={{ boxSizing: 'border-box', p: { xs: '10px', sm: '15px', md: '20px' }, pb: { xs: '90px', sm: '100px', md: '110px' } }}>
+    <Box sx={{ boxSizing: 'border-box', p: { xs: 0, md: '20px' }, pb: { xs: 0, md: '110px' } }}>
       <Typography
         variant="h1"
         sx={{
+          display: { xs: 'none', md: 'block' },
           fontSize: { xs: 18, sm: 22, md: 30 },
           lineHeight: { xs: '26px', sm: '30px', md: '40px' },
           mb: { xs: '10px', sm: '12px', md: '20px' },
@@ -34,9 +37,12 @@ export default function App() {
 
 
 
-      <BottomNav sections={tableData} />
+      <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+        <BottomNav sections={tableData} />
+      </Box>
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      {/* 데스크탑 뷰: 전체 섹션 렌더링 */}
+      <Box sx={{ display: { xs: 'none', md: 'flex' }, flexDirection: 'column', gap: '10px' }}>
         {tableData.map((section, i) => (
           <SectionTable
             key={i}
@@ -46,6 +52,48 @@ export default function App() {
           />
         ))}
       </Box>
+
+      {/* 모바일 뷰: 선택된 1개 섹션만 렌더링 */}
+      <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', height: '100dvh', overflow: 'hidden' }}>
+        <SectionTable
+          section={tableData[mobileActiveIndex]}
+          sectionIndex={mobileActiveIndex}
+          latestDate={latestDate}
+          onHeaderClick={() => setModalOpen(true)}
+        />
+      </Box>
+
+      {/* 모바일 섹션 선택 모달 */}
+      <Dialog open={modalOpen} onClose={() => setModalOpen(false)} fullWidth maxWidth="xs">
+        <Box sx={{ p: 2, bgcolor: '#f4f4f4', borderBottom: '1px solid #ddd' }}>
+          <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 700, textAlign: 'center' }}>메뉴 선택</Typography>
+        </Box>
+        <List sx={{ pt: 0, pb: 0 }}>
+          {tableData.map((section, i) => (
+            <ListItem key={i} disablePadding>
+              <ListItemButton 
+                onClick={() => {
+                  setMobileActiveIndex(i);
+                  setModalOpen(false);
+                }}
+                selected={mobileActiveIndex === i}
+                sx={{
+                  borderBottom: '1px solid #eee',
+                  '&.Mui-selected': { bgcolor: '#e3f2fd' }
+                }}
+              >
+                <ListItemText 
+                  primary={
+                    <Typography sx={{ fontSize: 15, fontWeight: mobileActiveIndex === i ? 700 : 400 }}>
+                      {`${section.depth1} (${section.data.length})`}
+                    </Typography>
+                  } 
+                />
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+      </Dialog>
     </Box>
   );
 }
