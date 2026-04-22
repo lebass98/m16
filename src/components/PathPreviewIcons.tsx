@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Box, Dialog, IconButton, Tooltip } from '@mui/material';
+import { Box, Dialog, IconButton } from '@mui/material';
 import MonitorIcon from '@mui/icons-material/Monitor';
 import SmartphoneIcon from '@mui/icons-material/Smartphone';
 import CloseIcon from '@mui/icons-material/Close';
