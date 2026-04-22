@@ -10,11 +10,12 @@ interface Props {
   section: TableSection;
   sectionIndex: number;
   latestDate: string;
+  onHeaderClick?: () => void;
 }
 
 const emphasisSx = { fontWeight: 700, color: '#ff706e' };
 
-export default function SectionTable({ section, sectionIndex, latestDate }: Props) {
+export default function SectionTable({ section, sectionIndex, latestDate, onHeaderClick }: Props) {
   const hasDepth1 = section.data.some(item => item.depth1);
   const hasDepth2 = section.data.some(item => item.depth2);
   const hasDepth3 = section.data.some(item => item.depth3);
@@ -125,6 +126,7 @@ export default function SectionTable({ section, sectionIndex, latestDate }: Prop
     >
       <Typography
         component="h2"
+        onClick={onHeaderClick}
         sx={{
           m: 0,
           py: '12px',
@@ -135,10 +137,15 @@ export default function SectionTable({ section, sectionIndex, latestDate }: Prop
           bgcolor: '#333',
           fontWeight: 500,
           textAlign: 'center',
-          display: 'block',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '6px',
+          cursor: { xs: 'pointer', md: 'default' }
         }}
       >
         {section.depth1} ({section.data.length})
+        <Box component="span" sx={{ display: { xs: 'inline-block', md: 'none' }, fontSize: 12, opacity: 0.7 }}>▼</Box>
       </Typography>
 
       {/* 데스크탑: DataGrid */}
@@ -194,6 +201,7 @@ export default function SectionTable({ section, sectionIndex, latestDate }: Prop
         scrollSnapType: 'x mandatory',
         '&::-webkit-scrollbar': { display: 'none' },
         scrollbarWidth: 'none',
+        flex: 1,
       }}>
         {section.data.map((item, j) => (
           <Card key={j} variant="outlined" sx={{ 
@@ -201,8 +209,8 @@ export default function SectionTable({ section, sectionIndex, latestDate }: Prop
             overflow: 'hidden',
             flexShrink: 0,
             width: '100%',
-            height: 'calc(100dvh - 160px)',
-            minHeight: '400px',
+            height: '100%',
+            minHeight: 0,
             scrollSnapAlign: 'start',
             display: 'flex',
             flexDirection: 'column'
