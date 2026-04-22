@@ -171,8 +171,8 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
           disableRowSelectionOnClick
           disableColumnMenu
           hideFooter
-          rowHeight={36}
-          columnHeaderHeight={42}
+          rowHeight={48}
+          columnHeaderHeight={48}
           sx={{
             border: 'none',
             borderRadius: 0,
@@ -187,9 +187,10 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
             '& .MuiDataGrid-row:nth-of-type(even)': { bgcolor: 'rgba(255, 255, 255, 0.2)' },
             '& .MuiDataGrid-row:hover': {
               bgcolor: 'rgba(255, 255, 255, 0.5) !important',
+              borderBottom: '1px solid #e2e2e2 !important',
             },
             '& .MuiDataGrid-cell': {
-              borderColor: 'rgba(255, 255, 255, 0.3)',
+              borderColor: '#e2e2e2',
               display: 'flex',
               alignItems: 'center',
             },
