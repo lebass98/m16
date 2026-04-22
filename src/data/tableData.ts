@@ -10,7 +10,7 @@ export const tableData: TableSection[] = [
                 depth1: '',
                 depth2: '',
                 depth3: '',
-                path: 'http://m16.co.kr/bigData//dist/LPZA101m03.html',
+                path: 'http://m16.co.kr/bigData//dist/LPZA101m01.html',
                 progressPc: 40, progressMobile: 40,
                 start: '2024.06.14',
                 updatedAt: '2024.06.20',
