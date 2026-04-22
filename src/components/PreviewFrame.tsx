@@ -1,7 +1,5 @@
 import { useRef, useEffect } from 'react';
 
-const IFRAME_W = 1920;
-const IFRAME_H = 1080;
 const PAUSE_MS = 800;
 
 interface Props {
@@ -10,11 +8,13 @@ interface Props {
   animate?: boolean;
   fillHeight?: boolean;
   speed?: number;
+  iframeWidth?: number;
+  iframeHeight?: number;
 }
 
-export default function PreviewFrame({ src, displayWidth, animate = false, fillHeight = false, speed = 4 }: Props) {
-  const scale = displayWidth / IFRAME_W;
-  const displayHeight = Math.round(IFRAME_H * scale);
+export default function PreviewFrame({ src, displayWidth, animate = false, fillHeight = false, speed = 4, iframeWidth = 1920, iframeHeight = 1080 }: Props) {
+  const scale = displayWidth / iframeWidth;
+  const displayHeight = Math.round(iframeHeight * scale);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -61,17 +61,17 @@ export default function PreviewFrame({ src, displayWidth, animate = false, fillH
 
     iframe.onload = () => {
       // 실제 콘텐츠 높이 측정 (same-origin만 가능)
-      let contentH = IFRAME_H * 5; // cross-origin 기본값
+      let contentH = iframeHeight * 5; // cross-origin 기본값
       try {
         const sh = iframe.contentDocument?.documentElement?.scrollHeight ?? 0;
-        if (sh > IFRAME_H) contentH = sh;
+        if (sh > iframeHeight) contentH = sh;
       } catch { /* cross-origin */ }
 
       // iframe과 스케일 래퍼를 실제 높이로 조정
       iframe.style.height = `${contentH}px`;
       if (wrapperRef.current) wrapperRef.current.style.height = `${contentH}px`;
 
-      maxScroll = Math.max(contentH - IFRAME_H, 0);
+      maxScroll = Math.max(contentH - iframeHeight, 0);
       rafId = requestAnimationFrame(tick);
     };
 
@@ -98,8 +98,8 @@ export default function PreviewFrame({ src, displayWidth, animate = false, fillH
           position: 'absolute',
           top: 0,
           left: 0,
-          width: IFRAME_W,
-          height: IFRAME_H, // onload 후 동적으로 변경됨
+          width: iframeWidth,
+          height: iframeHeight, // onload 후 동적으로 변경됨
           transform: `scale(${scale})`,
           transformOrigin: 'top left',
         }}
@@ -110,8 +110,8 @@ export default function PreviewFrame({ src, displayWidth, animate = false, fillH
           title="preview"
           style={{
             display: 'block',
-            width: IFRAME_W,
-            height: IFRAME_H, // onload 후 동적으로 변경됨
+            width: iframeWidth,
+            height: iframeHeight, // onload 후 동적으로 변경됨
             border: 'none',
             pointerEvents: 'none',
           }}
