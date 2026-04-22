@@ -283,9 +283,9 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
                     </Box>
                   </Box>
                 )}
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px', pt: '2px', justifyContent: 'flex-end' }}>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px', pt: '2px' }}>
                   {item.start && (
-                    <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center', mr: 'auto' }}>
                       <Typography sx={{ flexShrink: 0, width: 40, color: '#888', fontSize: 12 }}>생성일</Typography>
                       <Typography sx={{ fontSize: 13, ...(item.start === latestDate ? emphasisSx : { color: '#222' }) }}>{item.start}</Typography>
                     </Box>
