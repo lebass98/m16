@@ -184,13 +184,13 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
             },
             '& .MuiDataGrid-sortIcon': { opacity: 1 },
             '& .MuiDataGrid-columnSeparator': { display: 'none' },
+            '& .MuiDataGrid-row': { borderBottom: '1px solid #eee' },
             '& .MuiDataGrid-row:nth-of-type(even)': { bgcolor: 'rgba(255, 255, 255, 0.2)' },
             '& .MuiDataGrid-row:hover': {
               bgcolor: 'rgba(255, 255, 255, 0.5) !important',
-              borderBottom: '1px solid #e2e2e2 !important',
             },
             '& .MuiDataGrid-cell': {
-              borderColor: '#e2e2e2',
+              borderBottom: 'none',
               display: 'flex',
               alignItems: 'center',
             },
