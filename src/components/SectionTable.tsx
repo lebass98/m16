@@ -177,6 +177,9 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
             border: 'none',
             borderRadius: 0,
             fontSize: 13,
+            '& .MuiDataGrid-columnHeaders': {
+              borderBottom: '1px solid #ccc',
+            },
             '& .MuiDataGrid-columnHeader': {
               bgcolor: 'rgba(255, 255, 255, 0.5)',
               fontWeight: 600,
