@@ -32,7 +32,10 @@ export default function App() {
           fontWeight: 700,
         }}
       >
-        {`사이트제목 (${totalCount})`}
+        사이트제목
+        <Box component="span" sx={{ fontSize: '0.45em', fontWeight: 500, color: '#666', ml: 1, verticalAlign: 'middle' }}>
+          ({totalCount} pages)
+        </Box>
       </Typography>
 
 
