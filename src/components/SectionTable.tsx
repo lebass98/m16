@@ -1,4 +1,6 @@
-import { useRef } from 'react';
+import { useMemo } from 'react';
+import { Paper, Box, Typography, Card, CardContent } from '@mui/material';
+import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import type { TableSection } from '../types';
 import ProgressBar from './ProgressBar';
 import PathPreviewIcons from './PathPreviewIcons';
@@ -10,185 +12,254 @@ interface Props {
   latestDate: string;
 }
 
+const emphasisSx = { fontWeight: 700, color: '#ff706e' };
+
 export default function SectionTable({ section, sectionIndex, latestDate }: Props) {
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  function getDisplayValue(
-    items: TableSection['data'],
-    index: number,
-    key: keyof TableSection['data'][0],
-    secondKey?: keyof TableSection['data'][0]
-  ): string {
-    const val = String(items[index][key] || '');
-    if (index === 0) return val;
-    const prev = items[index - 1];
-    const isPrevSameVal = String(prev[key]) === String(items[index][key]);
-
-    if (secondKey) {
-      if (!items[index].depthOnly) {
-        const isPrevSameSecond = String(prev[secondKey]) === String(items[index][secondKey]);
-        if (isPrevSameVal && isPrevSameSecond) return '';
-        return val;
-      }
-    }
-    if (isPrevSameVal) return '';
-    return val;
-  }
-
   const hasDepth1 = section.data.some(item => item.depth1);
   const hasDepth2 = section.data.some(item => item.depth2);
   const hasDepth3 = section.data.some(item => item.depth3);
 
-  return (
-    <div className="index-section" id={`section-${sectionIndex}`} ref={sectionRef}>
-      <h2 className="index-section__title">
-        {section.depth1} ({section.data.length})
-      </h2>
+  const rows = useMemo(
+    () => section.data.map((item, j) => ({ ...item, _rowId: j, _no: j + 1 })),
+    [section.data]
+  );
 
-      {/* 데스크탑: 테이블 */}
-      <div className="index-table">
-        <table>
-          <colgroup>
-            <col style={{ width: 40 }} />
-            <col style={{ width: 150 }} />
-            <col style={{ width: 80 }} />
-            {hasDepth1 && <col style={{ width: 120 }} />}
-            {hasDepth2 && <col style={{ width: 120 }} />}
-            {hasDepth3 && <col style={{ width: 120 }} />}
-            <col style={{ width: 200 }} />
-            <col style={{ width: 70 }} />
-            <col style={{ width: 80 }} />
-            <col style={{ width: 80 }} />
-            <col style={{ width: 80 }} />
-            <col style={{ width: 120 }} />
-          </colgroup>
-          <thead>
-            <tr>
-              <th>No</th>
-              <th>페이지제목</th>
-              <th>ID</th>
-              {hasDepth1 && <th>depth1</th>}
-              {hasDepth2 && <th>depth2</th>}
-              {hasDepth3 && <th>depth3</th>}
-              <th>경로</th>
-              <th>진행도</th>
-              <th>생성일</th>
-              <th>최근 업데이트</th>
-              <th>완료일</th>
-              <th>비고</th>
-            </tr>
-          </thead>
-          <tbody>
-            {section.data.map((item, j) => (
-              <tr key={j}>
-                <td>{j + 1}</td>
-                <td>{item.pageTitle}</td>
-                <td>{getDisplayValue(section.data, j, 'id')}</td>
-                {hasDepth1 && <td>{getDisplayValue(section.data, j, 'depth1', 'depth2')}</td>}
-                {hasDepth2 && <td>{getDisplayValue(section.data, j, 'depth2', 'depth3')}</td>}
-                {hasDepth3 && <td>{getDisplayValue(section.data, j, 'depth3')}</td>}
-                <td>
-                  {item.path ? <PathPreviewIcons path={item.path} /> : null}
-                </td>
-                <td>
-                  <ProgressBar value={item.progress} />
-                </td>
-                <td className={item.start === latestDate ? 'is-emphasis' : ''}>
-                  {item.start}
-                </td>
-                <td className={item.updatedAt === latestDate ? 'is-emphasis' : ''}>
-                  {item.updatedAt}
-                </td>
-                <td className={item.end === latestDate ? 'is-emphasis' : ''}>
-                  {item.end}
-                </td>
-                <td>{item.note}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+  const columns = useMemo<GridColDef[]>(() => [
+    {
+      field: '_no',
+      headerName: 'No',
+      width: 55,
+      align: 'center',
+      headerAlign: 'center',
+      sortable: false,
+    },
+    {
+      field: 'pageTitle',
+      headerName: '페이지제목',
+      width: 160,
+    },
+    {
+      field: 'id',
+      headerName: 'ID',
+      width: 120,
+      align: 'center',
+      headerAlign: 'center',
+    },
+    ...(hasDepth1 ? [{
+      field: 'depth1',
+      headerName: 'depth1',
+      width: 120,
+      align: 'center' as const,
+      headerAlign: 'center' as const,
+    }] : []),
+    ...(hasDepth2 ? [{
+      field: 'depth2',
+      headerName: 'depth2',
+      width: 120,
+      align: 'center' as const,
+      headerAlign: 'center' as const,
+    }] : []),
+    ...(hasDepth3 ? [{
+      field: 'depth3',
+      headerName: 'depth3',
+      width: 120,
+      align: 'center' as const,
+      headerAlign: 'center' as const,
+    }] : []),
+    {
+      field: 'path',
+      headerName: '경로',
+      flex: 1,
+      minWidth: 200,
+      sortable: false,
+      renderCell: (params) =>
+        params.value ? <PathPreviewIcons path={params.value} /> : null,
+    },
+    {
+      field: 'progress',
+      headerName: '진행도',
+      width: 90,
+      align: 'center',
+      headerAlign: 'center',
+      renderCell: (params) => <ProgressBar value={params.value} />,
+    },
+    {
+      field: 'start',
+      headerName: '생성일',
+      width: 110,
+      cellClassName: (params) => params.value === latestDate ? 'cell-emphasis' : '',
+    },
+    {
+      field: 'updatedAt',
+      headerName: '최근 업데이트',
+      width: 130,
+      cellClassName: (params) => params.value === latestDate ? 'cell-emphasis' : '',
+    },
+    {
+      field: 'end',
+      headerName: '완료일',
+      width: 110,
+      cellClassName: (params) => params.value === latestDate ? 'cell-emphasis' : '',
+    },
+    {
+      field: 'note',
+      headerName: '비고',
+      width: 130,
+    },
+  ], [hasDepth1, hasDepth2, hasDepth3, latestDate]);
+
+  return (
+    <Paper
+      id={`section-${sectionIndex}`}
+      elevation={0}
+      sx={{ borderRadius: '5px', overflow: 'hidden', bgcolor: '#fff' }}
+      className="index-section"
+    >
+      <Typography
+        component="h2"
+        sx={{
+          m: 0,
+          py: '12px',
+          px: '15px',
+          fontSize: 16,
+          lineHeight: '15px',
+          color: '#fff',
+          bgcolor: '#333',
+          fontWeight: 500,
+          textAlign: 'center',
+          display: 'block',
+        }}
+      >
+        {section.depth1} ({section.data.length})
+      </Typography>
+
+      {/* 데스크탑: DataGrid */}
+      <Box sx={{ display: { xs: 'none', md: 'block' }, width: '100%' }}>
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          getRowId={(row) => row._rowId}
+          autoHeight
+          disableRowSelectionOnClick
+          disableColumnMenu
+          hideFooter
+          rowHeight={36}
+          columnHeaderHeight={42}
+          sx={{
+            border: 'none',
+            borderRadius: 0,
+            fontSize: 13,
+            '& .MuiDataGrid-columnHeader': {
+              bgcolor: '#e8e8e8',
+              fontWeight: 600,
+              '&:hover': { bgcolor: '#d8d8d8' },
+            },
+            '& .MuiDataGrid-sortIcon': { opacity: 1 },
+            '& .MuiDataGrid-columnSeparator': { display: 'none' },
+            '& .MuiDataGrid-row:nth-of-type(even)': { bgcolor: '#f8f8f8' },
+            '& .MuiDataGrid-row:hover': {
+              bgcolor: '#ff6969 !important',
+              color: '#fff',
+              '& a': { color: '#fff !important' },
+              '& .cell-emphasis': { color: '#fff !important' },
+            },
+            '& .MuiDataGrid-cell': {
+              borderColor: '#e0e0e0',
+              display: 'flex',
+              alignItems: 'center',
+            },
+            '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within': {
+              outline: 'none',
+            },
+            '& .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within': {
+              outline: 'none',
+            },
+            '& .cell-emphasis': emphasisSx,
+          }}
+        />
+      </Box>
 
       {/* 모바일: 카드 */}
-      <div className="index-cards">
+      <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', gap: '8px', p: '10px' }}>
         {section.data.map((item, j) => (
-          <div className="index-card" key={j}>
-            <div className="index-card__header">
-              <span className="index-card__num">{j + 1}</span>
-              <span className="index-card__title">{item.pageTitle || item.id}</span>
+          <Card key={j} variant="outlined" sx={{ borderRadius: '8px', overflow: 'hidden' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px', p: '12px 14px', bgcolor: '#f4f4f4', borderBottom: '1px solid #e0e0e0' }}>
+              <Box sx={{ flexShrink: 0, width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#333', color: '#fff', borderRadius: '50%', fontSize: 12, fontWeight: 700 }}>
+                {j + 1}
+              </Box>
+              <Typography sx={{ flex: 1, fontSize: 16, fontWeight: 600, color: '#111', wordBreak: 'break-all' }}>
+                {item.pageTitle || item.id}
+              </Typography>
               <ProgressBar value={item.progress} />
-            </div>
-            <div className="index-card__body">
-              <div className="index-card__info">
-                {item.id && (
-                  <div className="index-card__row">
-                    <span className="index-card__label">ID</span>
-                    <span className="index-card__value">{item.id}</span>
-                  </div>
-                )}
-                {(item.depth1 || item.depth2 || item.depth3) && (
-                  <div className="index-card__row">
-                    <span className="index-card__label">메뉴</span>
-                    <span className="index-card__value">
-                      {[item.depth1, item.depth2, item.depth3].filter(Boolean).join(' > ')}
-                    </span>
-                  </div>
-                )}
+            </Box>
+            <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
+              <Box sx={{ display: 'flex', flexDirection: 'row' }}>
+                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px', p: '12px 14px', minWidth: 0 }}>
+                  {item.id && (
+                    <Box sx={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                      <Typography sx={{ flexShrink: 0, width: 56, color: '#888', fontSize: 14, pt: '1px' }}>ID</Typography>
+                      <Typography sx={{ flex: 1, color: '#222', wordBreak: 'break-all', fontSize: 16 }}>{item.id}</Typography>
+                    </Box>
+                  )}
+                  {(item.depth1 || item.depth2 || item.depth3) && (
+                    <Box sx={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                      <Typography sx={{ flexShrink: 0, width: 56, color: '#888', fontSize: 14, pt: '1px' }}>메뉴</Typography>
+                      <Typography sx={{ flex: 1, color: '#222', wordBreak: 'break-all', fontSize: 16 }}>
+                        {[item.depth1, item.depth2, item.depth3].filter(Boolean).join(' > ')}
+                      </Typography>
+                    </Box>
+                  )}
+                  {item.path && (
+                    <Box sx={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                      <Typography sx={{ flexShrink: 0, width: 56, color: '#888', fontSize: 14, pt: '1px' }}>경로</Typography>
+                      <Box component="a" href={item.path} target="_blank" rel="noreferrer" sx={{ flex: 1, color: '#066cb3', textDecoration: 'none', wordBreak: 'break-all', fontSize: 16 }}>
+                        {(() => { try { return new URL(item.path).pathname; } catch { return item.path; } })()}
+                      </Box>
+                    </Box>
+                  )}
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '8px 16px', pt: '4px' }}>
+                    {item.start && (
+                      <Box sx={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        <Typography sx={{ flexShrink: 0, width: 56, color: '#888', fontSize: 14 }}>생성일</Typography>
+                        <Typography sx={{ fontSize: 16, ...(item.start === latestDate ? emphasisSx : { color: '#222' }) }}>{item.start}</Typography>
+                      </Box>
+                    )}
+                    {item.updatedAt && (
+                      <Box sx={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        <Typography sx={{ flexShrink: 0, width: 56, color: '#888', fontSize: 14 }}>업데이트</Typography>
+                        <Typography sx={{ fontSize: 16, ...(item.updatedAt === latestDate ? emphasisSx : { color: '#222' }) }}>{item.updatedAt}</Typography>
+                      </Box>
+                    )}
+                    {item.end && (
+                      <Box sx={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        <Typography sx={{ flexShrink: 0, width: 56, color: '#888', fontSize: 14 }}>완료일</Typography>
+                        <Typography sx={{ fontSize: 16, ...(item.end === latestDate ? emphasisSx : { color: '#222' }) }}>{item.end}</Typography>
+                      </Box>
+                    )}
+                  </Box>
+                  {item.note && (
+                    <Box sx={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                      <Typography sx={{ flexShrink: 0, width: 56, color: '#888', fontSize: 14, pt: '1px' }}>비고</Typography>
+                      <Typography sx={{ flex: 1, color: '#222', wordBreak: 'break-all', fontSize: 16 }}>{item.note}</Typography>
+                    </Box>
+                  )}
+                </Box>
                 {item.path && (
-                  <div className="index-card__row">
-                    <span className="index-card__label">경로</span>
-                    <a className="index-card__value" href={item.path} target="_blank" rel="noreferrer">
-                      {(() => { try { return new URL(item.path).pathname; } catch { return item.path; } })()}
-                    </a>
-                  </div>
+                  <Box
+                    component="a"
+                    href={item.path}
+                    target="_blank"
+                    rel="noreferrer"
+                    sx={{ flexShrink: 0, display: 'block', overflow: 'hidden', alignSelf: 'stretch', borderLeft: '1px solid #e0e0e0', borderRadius: '0 0 8px 0' }}
+                  >
+                    <PreviewFrame src={item.path} displayWidth={130} fillHeight speed={2} />
+                  </Box>
                 )}
-                <div className="index-card__dates">
-                  {item.start && (
-                    <div className="index-card__date">
-                      <span className="index-card__label">생성일</span>
-                      <span className={`index-card__value${item.start === latestDate ? ' is-emphasis' : ''}`}>
-                        {item.start}
-                      </span>
-                    </div>
-                  )}
-                  {item.updatedAt && (
-                    <div className="index-card__date">
-                      <span className="index-card__label">업데이트</span>
-                      <span className={`index-card__value${item.updatedAt === latestDate ? ' is-emphasis' : ''}`}>
-                        {item.updatedAt}
-                      </span>
-                    </div>
-                  )}
-                  {item.end && (
-                    <div className="index-card__date">
-                      <span className="index-card__label">완료일</span>
-                      <span className={`index-card__value${item.end === latestDate ? ' is-emphasis' : ''}`}>
-                        {item.end}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                {item.note && (
-                  <div className="index-card__row">
-                    <span className="index-card__label">비고</span>
-                    <span className="index-card__value">{item.note}</span>
-                  </div>
-                )}
-              </div>
-              {item.path && (
-                <a
-                  className="index-card__thumb"
-                  href={item.path}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <PreviewFrame src={item.path} displayWidth={130} animate fillHeight speed={2} />
-                </a>
-              )}
-            </div>
-          </div>
+              </Box>
+            </CardContent>
+          </Card>
         ))}
-      </div>
-    </div>
+      </Box>
+    </Paper>
   );
 }
