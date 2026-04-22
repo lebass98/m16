@@ -76,8 +76,16 @@ export default function SectionTable({ section, sectionIndex, latestDate }: Prop
         params.value ? <PathPreviewIcons path={params.value} /> : null,
     },
     {
-      field: 'progress',
-      headerName: '진행도',
+      field: 'progressPc',
+      headerName: 'PC 진행도',
+      width: 90,
+      align: 'center',
+      headerAlign: 'center',
+      renderCell: (params) => <ProgressBar value={params.value} />,
+    },
+    {
+      field: 'progressMobile',
+      headerName: 'MO 진행도',
       width: 90,
       align: 'center',
       headerAlign: 'center',
@@ -190,7 +198,16 @@ export default function SectionTable({ section, sectionIndex, latestDate }: Prop
               <Typography sx={{ flex: 1, fontSize: 16, fontWeight: 600, color: '#111', wordBreak: 'break-all' }}>
                 {item.pageTitle || item.id}
               </Typography>
-              <ProgressBar value={item.progress} />
+              <Box sx={{ display: 'flex', gap: '12px' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                  <Typography sx={{ fontSize: 11, color: '#666', lineHeight: 1 }}>PC</Typography>
+                  <ProgressBar value={item.progressPc} />
+                </Box>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                  <Typography sx={{ fontSize: 11, color: '#666', lineHeight: 1 }}>MO</Typography>
+                  <ProgressBar value={item.progressMobile} />
+                </Box>
+              </Box>
             </Box>
             <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
               <Box sx={{ display: 'flex', flexDirection: 'row' }}>

@@ -13,7 +13,8 @@ export interface TableItem {
   depth2: string;
   depth3: string;
   path: string;
-  progress: ProgressValue;
+  progressPc: ProgressValue;
+  progressMobile: ProgressValue;
   start: string;
   updatedAt: string;
   end: string;
