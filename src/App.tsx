@@ -32,28 +32,7 @@ export default function App() {
         {`사이트제목 (${totalCount})`}
       </Typography>
 
-      <Box sx={{ mb: { xs: '10px', md: '20px' } }}>
-        <Box
-          component="a"
-          href="guide-component.html"
-          target="_blank"
-          rel="noreferrer"
-          sx={{
-            display: 'inline-block',
-            px: '14px',
-            py: '7px',
-            fontSize: 16,
-            color: '#fff',
-            textDecoration: 'none',
-            borderRadius: '5px',
-            bgcolor: '#666',
-            whiteSpace: 'nowrap',
-            '&:hover': { bgcolor: '#333' },
-          }}
-        >
-          컴포넌트 가이드
-        </Box>
-      </Box>
+
 
       <BottomNav sections={tableData} />
 
