@@ -185,6 +185,7 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
             '& .MuiDataGrid-sortIcon': { opacity: 1 },
             '& .MuiDataGrid-columnSeparator': { display: 'none' },
             '& .MuiDataGrid-row': { borderBottom: '1px solid #eee' },
+            '& .MuiDataGrid-row:last-child': { borderBottom: 'none' },
             '& .MuiDataGrid-row:nth-of-type(even)': { bgcolor: 'rgba(255, 255, 255, 0.2)' },
             '& .MuiDataGrid-row:hover': {
               bgcolor: 'rgba(255, 255, 255, 0.5) !important',
