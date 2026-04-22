@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { Box, Typography } from '@mui/material';
 import { tableData } from './data/tableData';
 import SectionTable from './components/SectionTable';
 import BottomNav from './components/BottomNav';
@@ -17,20 +18,46 @@ export default function App() {
   );
 
   return (
-    <div className="index-wrap">
-      <h1 className="index-title">{`사이트제목 (${totalCount})`}</h1>
+    <Box sx={{ boxSizing: 'border-box', p: { xs: '10px', sm: '15px', md: '20px' }, pb: { xs: '90px', sm: '100px', md: '110px' } }}>
+      <Typography
+        variant="h1"
+        sx={{
+          fontSize: { xs: 18, sm: 22, md: 30 },
+          lineHeight: { xs: '26px', sm: '30px', md: '40px' },
+          mb: { xs: '10px', sm: '12px', md: '20px' },
+          textAlign: 'center',
+          fontWeight: 700,
+        }}
+      >
+        {`사이트제목 (${totalCount})`}
+      </Typography>
 
-      <div className="index-gnb">
-        <div className="index-links">
-          <a href="guide-component.html" target="_blank" rel="noreferrer">
-            컴포넌트 가이드
-          </a>
-        </div>
-      </div>
+      <Box sx={{ mb: { xs: '10px', md: '20px' } }}>
+        <Box
+          component="a"
+          href="guide-component.html"
+          target="_blank"
+          rel="noreferrer"
+          sx={{
+            display: 'inline-block',
+            px: '14px',
+            py: '7px',
+            fontSize: 16,
+            color: '#fff',
+            textDecoration: 'none',
+            borderRadius: '5px',
+            bgcolor: '#666',
+            whiteSpace: 'nowrap',
+            '&:hover': { bgcolor: '#333' },
+          }}
+        >
+          컴포넌트 가이드
+        </Box>
+      </Box>
 
       <BottomNav sections={tableData} />
 
-      <div className="index-datas">
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {tableData.map((section, i) => (
           <SectionTable
             key={i}
@@ -39,7 +66,7 @@ export default function App() {
             latestDate={latestDate}
           />
         ))}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }
