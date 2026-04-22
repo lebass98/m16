@@ -110,7 +110,7 @@ export default function PreviewFrame({ src, displayWidth, animate = false, fillH
         height: fillHeight ? '100%' : displayHeight,
         overflow: 'hidden',
         flexShrink: 0,
-        background: '#fff',
+        background: 'transparent',
         position: 'relative',
       }}
     >
