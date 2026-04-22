@@ -194,7 +194,7 @@ export default function PathPreviewIcons({ path }: Props) {
             sx={{
               display: 'inline-flex', alignItems: 'center', gap: '3px',
               px: '8px', py: '3px', fontSize: 12, borderRadius: '4px',
-              bgcolor: hovered === 'pc' ? '#066cb3' : '#eee',
+              bgcolor: hovered === 'pc' ? '#066cb3' : '#fff',
               color: hovered === 'pc' ? '#fff' : '#555',
               cursor: 'pointer', userSelect: 'none',
               transition: 'background 0.15s, color 0.15s',
@@ -212,7 +212,7 @@ export default function PathPreviewIcons({ path }: Props) {
             sx={{
               display: 'inline-flex', alignItems: 'center', gap: '3px',
               px: '8px', py: '3px', fontSize: 12, borderRadius: '4px',
-              bgcolor: hovered === 'mobile' ? '#066cb3' : '#eee',
+              bgcolor: hovered === 'mobile' ? '#066cb3' : '#fff',
               color: hovered === 'mobile' ? '#fff' : '#555',
               cursor: 'pointer', userSelect: 'none',
               transition: 'background 0.15s, color 0.15s',
