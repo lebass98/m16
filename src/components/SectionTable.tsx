@@ -121,7 +121,14 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
     <Paper
       id={`section-${sectionIndex}`}
       elevation={0}
-      sx={{ borderRadius: '5px', overflow: 'hidden', bgcolor: '#fff' }}
+      sx={{ 
+        borderRadius: '5px', 
+        overflow: 'hidden', 
+        bgcolor: '#fff',
+        display: 'flex',
+        flexDirection: 'column',
+        height: { xs: '100%', md: 'auto' }
+      }}
       className="index-section"
     >
       <Typography
