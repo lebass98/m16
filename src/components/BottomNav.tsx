@@ -25,7 +25,7 @@ export default function BottomNav({ sections }: Props) {
         width: '100%',
         boxSizing: 'border-box',
         p: { xs: '8px 10px', md: '10px 20px' },
-        bgcolor: 'rgba(30, 30, 30, 0.92)',
+        bgcolor: 'rgba(255, 255, 255, 0.3)',
         backdropFilter: 'blur(6px)',
         WebkitBackdropFilter: 'blur(6px)',
         borderRadius: 0,
