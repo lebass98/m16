@@ -76,7 +76,7 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
       minWidth: 200,
       sortable: false,
       renderCell: (params) =>
-        params.value ? <PathPreviewIcons path={params.value} /> : null,
+        params.value ? <PathPreviewIcons path={params.value} previewEnabled={previewEnabled} /> : null,
     },
     {
       field: 'progressPc',
@@ -117,7 +117,7 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
       headerName: '비고',
       width: 130,
     },
-  ], [hasDepth1, hasDepth2, hasDepth3, latestDate]);
+  ], [hasDepth1, hasDepth2, hasDepth3, latestDate, previewEnabled]);
 
   return (
     <Paper

@@ -169,9 +169,10 @@ function MobileModalContent({ src }: { src: string }) {
 
 interface Props {
   path: string;
+  previewEnabled?: boolean;
 }
 
-export default function PathPreviewIcons({ path }: Props) {
+export default function PathPreviewIcons({ path, previewEnabled = true }: Props) {
   const [hovered, setHovered] = useState<HoverType>(null);
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const [clicked, setClicked] = useState<HoverType>(null);
@@ -188,46 +189,48 @@ export default function PathPreviewIcons({ path }: Props) {
         {displayPath(path)}
       </Box>
 
-      <Box sx={{ display: 'flex', gap: '5px', flexShrink: 0 }}>
-          <Box
-            component="span"
-            sx={{
-              display: 'inline-flex', alignItems: 'center', gap: '3px',
-              px: '8px', py: '3px', fontSize: 12, borderRadius: '4px',
-              bgcolor: hovered === 'pc' ? '#066cb3' : '#fff',
-              color: hovered === 'pc' ? '#fff' : '#555',
-              cursor: 'pointer', userSelect: 'none',
-              transition: 'background 0.15s, color 0.15s',
-            }}
-            onMouseEnter={(e) => { setHovered('pc'); setPos(calcPos(e, PC_W, PC_H)); }}
-            onMouseLeave={() => setHovered(null)}
-            onMouseMove={(e) => setPos(calcPos(e, PC_W, PC_H))}
-            onClick={(e) => { e.stopPropagation(); setClicked('pc'); setHovered(null); }}
-          >
-            <MonitorIcon sx={{ fontSize: 18 }} /> PC
-          </Box>
+      {previewEnabled && (
+        <Box sx={{ display: 'flex', gap: '5px', flexShrink: 0 }}>
+            <Box
+              component="span"
+              sx={{
+                display: 'inline-flex', alignItems: 'center', gap: '3px',
+                px: '8px', py: '3px', fontSize: 12, borderRadius: '4px',
+                bgcolor: hovered === 'pc' ? '#066cb3' : '#fff',
+                color: hovered === 'pc' ? '#fff' : '#555',
+                cursor: 'pointer', userSelect: 'none',
+                transition: 'background 0.15s, color 0.15s',
+              }}
+              onMouseEnter={(e) => { setHovered('pc'); setPos(calcPos(e, PC_W, PC_H)); }}
+              onMouseLeave={() => setHovered(null)}
+              onMouseMove={(e) => setPos(calcPos(e, PC_W, PC_H))}
+              onClick={(e) => { e.stopPropagation(); setClicked('pc'); setHovered(null); }}
+            >
+              <MonitorIcon sx={{ fontSize: 18 }} /> PC
+            </Box>
 
-          <Box
-            component="span"
-            sx={{
-              display: 'inline-flex', alignItems: 'center', gap: '3px',
-              px: '8px', py: '3px', fontSize: 12, borderRadius: '4px',
-              bgcolor: hovered === 'mobile' ? '#066cb3' : '#fff',
-              color: hovered === 'mobile' ? '#fff' : '#555',
-              cursor: 'pointer', userSelect: 'none',
-              transition: 'background 0.15s, color 0.15s',
-            }}
-            onMouseEnter={(e) => { setHovered('mobile'); setPos(calcPos(e, MOBILE_W, MOBILE_H)); }}
-            onMouseLeave={() => setHovered(null)}
-            onMouseMove={(e) => setPos(calcPos(e, MOBILE_W, MOBILE_H))}
-            onClick={(e) => { e.stopPropagation(); setClicked('mobile'); setHovered(null); }}
-          >
-            <SmartphoneIcon sx={{ fontSize: 15 }} /> 모바일
-          </Box>
-      </Box>
+            <Box
+              component="span"
+              sx={{
+                display: 'inline-flex', alignItems: 'center', gap: '3px',
+                px: '8px', py: '3px', fontSize: 12, borderRadius: '4px',
+                bgcolor: hovered === 'mobile' ? '#066cb3' : '#fff',
+                color: hovered === 'mobile' ? '#fff' : '#555',
+                cursor: 'pointer', userSelect: 'none',
+                transition: 'background 0.15s, color 0.15s',
+              }}
+              onMouseEnter={(e) => { setHovered('mobile'); setPos(calcPos(e, MOBILE_W, MOBILE_H)); }}
+              onMouseLeave={() => setHovered(null)}
+              onMouseMove={(e) => setPos(calcPos(e, MOBILE_W, MOBILE_H))}
+              onClick={(e) => { e.stopPropagation(); setClicked('mobile'); setHovered(null); }}
+            >
+              <SmartphoneIcon sx={{ fontSize: 15 }} /> 모바일
+            </Box>
+        </Box>
+      )}
 
       {/* 호버 팝업 — DataGrid transform 클리핑 방지를 위해 body에 Portal로 렌더링 */}
-      {hovered === 'pc' && createPortal(
+      {previewEnabled && hovered === 'pc' && createPortal(
         <Box sx={{ position: 'fixed', zIndex: 9999, left: pos.x, top: pos.y, borderRadius: '8px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.25)', border: '1px solid #ddd', pointerEvents: 'none' }}>
           <PreviewFrame src={path} displayWidth={PC_W} animate />
         </Box>,

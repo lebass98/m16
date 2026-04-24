@@ -206,7 +206,7 @@ export default function App() {
 
   return (
     <Box sx={{ boxSizing: 'border-box', p: { xs: 0, md: '20px' }, pb: { xs: 0, md: '110px' }, height: { xs: '100dvh', md: 'auto' }, minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)' }}>
-      <Box sx={{ overflow: 'hidden', transition: 'all 0.3s ease-in-out', maxHeight: hideUi ? { xs: 0, md: 100 } : 100, opacity: hideUi ? { xs: 0, md: 1 } : 1, mb: hideUi ? { xs: 0, md: '20px' } : { xs: '10px', sm: '12px', md: '20px' }, pt: hideUi ? { xs: 0, md: 0 } : { xs: '10px', md: 0 } }}>
+      <Box sx={{ overflow: 'hidden', transition: 'all 0.3s ease-in-out', maxHeight: hideUi ? { xs: 0, md: 100 } : 100, opacity: hideUi ? { xs: 0, md: 1 } : 1, mb: hideUi ? { xs: 0, md: '20px' } : { xs: '10px', sm: '12px', md: '20px' }, pt: hideUi ? { xs: 0, md: 0 } : { xs: '10px', md: 0 }, flexShrink: 0 }}>
         <Typography
           variant="h1"
           onClick={() => setSiteModalOpen(true)}
@@ -218,26 +218,26 @@ export default function App() {
         </Typography>
       </Box>
 
-      <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-        <BottomNav sections={tableData} />
-      </Box>
-
-      {/* 데스크탑 */}
-      <Box sx={{ display: { xs: 'none', md: 'flex' }, flexDirection: 'column', gap: '10px' }}>
-        {tableData.map((section, i) => (
-          <SectionTable key={i} section={section} sectionIndex={i} latestDate={latestDate} />
-        ))}
-      </Box>
-
-      {/* 모바일 미리보기 토글 */}
-      <Box sx={{ display: { xs: 'flex', md: 'none' }, position: 'fixed', top: 6, right: 10, zIndex: 1200, alignItems: 'center', gap: '4px', bgcolor: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(8px)', borderRadius: '20px', px: '8px', py: '2px', border: '1px solid rgba(0,0,0,0.1)', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-        <Typography sx={{ fontSize: 11, color: '#555', lineHeight: 1, userSelect: 'none' }}>미리보기</Typography>
+      {/* 미리보기 토글 (공통) */}
+      <Box sx={{ display: 'flex', position: 'fixed', top: { xs: 6, md: 12 }, right: { xs: 10, md: 20 }, zIndex: 1200, alignItems: 'center', gap: '4px', bgcolor: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(8px)', borderRadius: '20px', px: '8px', py: '2px', border: '1px solid rgba(0,0,0,0.1)', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+        <Typography sx={{ fontSize: { xs: 11, md: 13 }, color: '#555', lineHeight: 1, userSelect: 'none' }}>미리보기</Typography>
         <Switch
           checked={previewEnabled}
           onChange={(e) => setPreviewEnabled(e.target.checked)}
           size="small"
           sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: '#333' }, '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: '#555' } }}
         />
+      </Box>
+
+      <Box sx={{ display: { xs: 'none', md: 'block' }, flexShrink: 0 }}>
+        <BottomNav sections={tableData} />
+      </Box>
+
+      {/* 데스크탑 리스트 (항상 표출, 미리보기 아이콘만 토글됨) */}
+      <Box sx={{ display: { xs: 'none', md: 'flex' }, flexDirection: 'column', gap: '10px' }}>
+        {tableData.map((section, i) => (
+          <SectionTable key={i} section={section} sectionIndex={i} latestDate={latestDate} previewEnabled={previewEnabled} />
+        ))}
       </Box>
 
       {/* 모바일 뷰 */}
