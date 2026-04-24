@@ -1,21 +1,26 @@
 import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { Box, Typography, Dialog, List, ListItem, ListItemButton, ListItemText, Switch } from '@mui/material';
-import { tableData } from './data/tableData';
+import { sites } from './data/sites';
 import SectionTable from './components/SectionTable';
 import BottomNav from './components/BottomNav';
 import './App.css';
 
-function getLatestDate(data: typeof tableData): string {
+function getLatestDate(data: typeof sites[0]['data']): string {
   const dates = data.flatMap((s) => s.data.map((item) => item.start)).filter(Boolean);
   return [...new Set(dates)].sort().at(-1) ?? '';
 }
 
 export default function App() {
+  const [siteIndex, setSiteIndex] = useState(0);
+  const [siteModalOpen, setSiteModalOpen] = useState(false);
   const [mobileActiveIndex, setMobileActiveIndex] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [hideUi, setHideUi] = useState(false);
   const [previewEnabled, setPreviewEnabled] = useState(true);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const site = sites[siteIndex];
+  const tableData = site.data;
 
   const scrollToSection = useCallback((index: number) => {
     const container = scrollContainerRef.current;
@@ -44,11 +49,17 @@ export default function App() {
     return () => container.removeEventListener('scroll', handleScroll);
   }, [previewEnabled]);
 
-  const latestDate = useMemo(() => getLatestDate(tableData), []);
-  const totalCount = useMemo(
-    () => tableData.reduce((sum, s) => sum + s.data.length, 0),
-    []
-  );
+  // 사이트 전환 시 초기화
+  const handleSiteChange = (next: number) => {
+    setSiteIndex(next);
+    setMobileActiveIndex(0);
+    setTimeout(() => {
+      scrollContainerRef.current?.scrollTo({ left: 0, behavior: 'instant' });
+    }, 0);
+  };
+
+  const latestDate = useMemo(() => getLatestDate(tableData), [tableData]);
+  const totalCount = useMemo(() => tableData.reduce((sum, s) => sum + s.data.length, 0), [tableData]);
 
   return (
     <Box sx={{ boxSizing: 'border-box', p: { xs: 0, md: '20px' }, pb: { xs: 0, md: '110px' }, height: { xs: '100dvh', md: 'auto' }, minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)' }}>
@@ -64,6 +75,7 @@ export default function App() {
       >
         <Typography
           variant="h1"
+          onClick={() => setSiteModalOpen(true)}
           sx={{
             display: 'flex',
             justifyContent: 'center',
@@ -72,16 +84,19 @@ export default function App() {
             lineHeight: { xs: '26px', sm: '30px', md: '40px' },
             textAlign: 'center',
             fontWeight: 700,
+            cursor: 'pointer',
+            userSelect: 'none',
+            '&:hover': { opacity: 0.75 },
+            transition: 'opacity 0.15s',
           }}
         >
-          한국건강가정진흥원
+          {site.title}
           <Box component="span" sx={{ fontSize: '0.45em', fontWeight: 500, color: '#666', ml: 1, verticalAlign: 'middle' }}>
             ({totalCount} pages)
           </Box>
+          <Box component="span" sx={{ fontSize: '0.4em', color: '#aaa', ml: '6px', verticalAlign: 'middle' }}>▾</Box>
         </Typography>
       </Box>
-
-
 
       <Box sx={{ display: { xs: 'none', md: 'block' } }}>
         <BottomNav sections={tableData} />
@@ -143,7 +158,7 @@ export default function App() {
               scrollbarWidth: 'none',
             }}
           >
-            {tableData.map((section, i) => (
+            {tableData.length > 0 ? tableData.map((section, i) => (
               <Box key={i} sx={{ flexShrink: 0, width: '100%', height: '100%', scrollSnapAlign: 'start', display: 'flex', flexDirection: 'column' }}>
                 <SectionTable
                   section={section}
@@ -154,11 +169,15 @@ export default function App() {
                   previewEnabled={previewEnabled}
                 />
               </Box>
-            ))}
+            )) : (
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, color: '#999', fontSize: 14 }}>
+                데이터가 없습니다
+              </Box>
+            )}
           </Box>
         ) : (
           <Box sx={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', p: '10px', '&::-webkit-scrollbar': { display: 'none' }, scrollbarWidth: 'none' }}>
-            {tableData.map((section, i) => (
+            {tableData.length > 0 ? tableData.map((section, i) => (
               <SectionTable
                 key={i}
                 section={section}
@@ -167,10 +186,44 @@ export default function App() {
                 hideUi={hideUi}
                 previewEnabled={previewEnabled}
               />
-            ))}
+            )) : (
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, color: '#999', fontSize: 14 }}>
+                데이터가 없습니다
+              </Box>
+            )}
           </Box>
         )}
       </Box>
+
+      {/* 사이트 선택 모달 */}
+      <Dialog open={siteModalOpen} onClose={() => setSiteModalOpen(false)} fullWidth maxWidth="xs">
+        <Box sx={{ p: 2, bgcolor: '#f4f4f4', borderBottom: '1px solid #ddd' }}>
+          <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 700, textAlign: 'center' }}>사이트 선택</Typography>
+        </Box>
+        <List sx={{ pt: 0, pb: 0 }}>
+          {sites.map((s, i) => (
+            <ListItem key={i} disablePadding>
+              <ListItemButton
+                onClick={() => {
+                  handleSiteChange(i);
+                  setSiteModalOpen(false);
+                }}
+                selected={siteIndex === i}
+                sx={{ borderBottom: '1px solid #eee', '&.Mui-selected': { bgcolor: '#e3f2fd' } }}
+              >
+                <ListItemText
+                  primary={
+                    <Typography sx={{ fontSize: 15, fontWeight: siteIndex === i ? 700 : 400 }}>
+                      {s.title}
+                      <Box component="span" sx={{ ml: 1, fontSize: 12, color: '#999' }}>({s.data.reduce((n, sec) => n + sec.data.length, 0)} pages)</Box>
+                    </Typography>
+                  }
+                />
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+      </Dialog>
 
       {/* 모바일 섹션 선택 모달 */}
       <Dialog open={modalOpen} onClose={() => setModalOpen(false)} fullWidth maxWidth="xs">
@@ -180,7 +233,7 @@ export default function App() {
         <List sx={{ pt: 0, pb: 0 }}>
           {tableData.map((section, i) => (
             <ListItem key={i} disablePadding>
-              <ListItemButton 
+              <ListItemButton
                 onClick={() => {
                   setMobileActiveIndex(i);
                   scrollToSection(i);
@@ -192,12 +245,12 @@ export default function App() {
                   '&.Mui-selected': { bgcolor: '#e3f2fd' }
                 }}
               >
-                <ListItemText 
+                <ListItemText
                   primary={
                     <Typography sx={{ fontSize: 15, fontWeight: mobileActiveIndex === i ? 700 : 400 }}>
                       {`${section.depth1} (${section.data.length})`}
                     </Typography>
-                  } 
+                  }
                 />
               </ListItemButton>
             </ListItem>
