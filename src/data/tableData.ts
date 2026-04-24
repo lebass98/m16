@@ -10,7 +10,7 @@ export const tableData: TableSection[] = [
                 depth1: '메인',
                 depth2: '',
                 depth3: '',
-                path: 'http://m16.co.kr/familynet/index.html',
+                path: 'https://lebass98.github.io/familynet/',
                 progressPc: 100, progressMobile: 100,
                 start: '2024.06.14',
                 updatedAt: '2024.06.20',
