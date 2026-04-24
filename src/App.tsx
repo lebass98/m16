@@ -80,7 +80,7 @@ export default function App() {
     });
   }, [previewEnabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 터치 슬라이드: 항상 한 장씩만 이동
+  // 터치 및 마우스 슬라이드: 항상 한 장씩만 이동
   useEffect(() => {
     if (!previewEnabled) return;
     const container = scrollContainerRef.current;
@@ -90,6 +90,7 @@ export default function App() {
     let startY = 0;
     let startScrollLeft = 0;
     let isHorizontal: boolean | null = null;
+    let isDragging = false;
 
     const onTouchStart = (e: TouchEvent) => {
       startX = e.touches[0].clientX;
@@ -120,13 +121,72 @@ export default function App() {
       container.scrollTo({ left: targetIdx * width, behavior: 'smooth' });
     };
 
+    const onMouseDown = (e: MouseEvent) => {
+      isDragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      startScrollLeft = container.scrollLeft;
+      isHorizontal = null;
+      container.style.cursor = 'grabbing';
+      // 링크, 이미지 등 기본 드래그 방지
+      // (단, e.preventDefault() 호출 시 내부 요소 클릭이 안 될 수 있으므로, 
+      //  클릭 이벤트를 막지 않는 선에서 처리)
+    };
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+      const dx = startX - e.clientX;
+      const dy = startY - e.clientY;
+      if (isHorizontal === null) isHorizontal = Math.abs(dx) > Math.abs(dy);
+      if (!isHorizontal) return;
+      e.preventDefault();
+      container.scrollLeft = startScrollLeft + dx;
+    };
+
+    const onMouseUp = (e: MouseEvent) => {
+      if (!isDragging) return;
+      isDragging = false;
+      container.style.cursor = 'grab';
+      if (!isHorizontal) return;
+      const dx = startX - e.clientX;
+      const width = container.clientWidth;
+      const currentIdx = Math.round(startScrollLeft / width);
+      const maxIdx = flatLengthRef.current - 1;
+      let targetIdx = currentIdx;
+      if (dx > 30 && currentIdx < maxIdx) targetIdx = currentIdx + 1;
+      else if (dx < -30 && currentIdx > 0) targetIdx = currentIdx - 1;
+      setFlatIndex(targetIdx);
+      container.scrollTo({ left: targetIdx * width, behavior: 'smooth' });
+    };
+
+    const onMouseLeave = (e: MouseEvent) => {
+      if (isDragging) {
+        onMouseUp(e);
+      }
+    };
+
+    container.style.cursor = 'grab';
+
     container.addEventListener('touchstart', onTouchStart, { passive: true });
     container.addEventListener('touchmove', onTouchMove, { passive: false });
     container.addEventListener('touchend', onTouchEnd, { passive: true });
+
+    container.addEventListener('mousedown', onMouseDown, { passive: true });
+    container.addEventListener('mousemove', onMouseMove, { passive: false });
+    container.addEventListener('mouseup', onMouseUp, { passive: true });
+    container.addEventListener('mouseleave', onMouseLeave, { passive: true });
+
     return () => {
       container.removeEventListener('touchstart', onTouchStart);
       container.removeEventListener('touchmove', onTouchMove);
       container.removeEventListener('touchend', onTouchEnd);
+
+      container.removeEventListener('mousedown', onMouseDown);
+      container.removeEventListener('mousemove', onMouseMove);
+      container.removeEventListener('mouseup', onMouseUp);
+      container.removeEventListener('mouseleave', onMouseLeave);
+      
+      container.style.cursor = '';
     };
   }, [previewEnabled]);
 
