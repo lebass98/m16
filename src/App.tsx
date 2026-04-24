@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
-import { Box, Typography, Dialog, List, ListItem, ListItemButton, ListItemText } from '@mui/material';
+import { Box, Typography, Dialog, List, ListItem, ListItemButton, ListItemText, Switch, FormControlLabel } from '@mui/material';
 import { tableData } from './data/tableData';
 import SectionTable from './components/SectionTable';
 import BottomNav from './components/BottomNav';
@@ -14,6 +14,7 @@ export default function App() {
   const [mobileActiveIndex, setMobileActiveIndex] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [hideUi, setHideUi] = useState(false);
+  const [previewEnabled, setPreviewEnabled] = useState(true);
 
   useEffect(() => {
     const handleDir = (e: any) => {
@@ -79,15 +80,60 @@ export default function App() {
         ))}
       </Box>
 
-      {/* 모바일 뷰: 선택된 1개 섹션만 렌더링 */}
-      <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
-        <SectionTable
-          section={tableData[mobileActiveIndex]}
-          sectionIndex={mobileActiveIndex}
-          latestDate={latestDate}
-          onHeaderClick={() => setModalOpen(true)}
-          hideUi={hideUi}
+      {/* 모바일 미리보기 토글 */}
+      <Box sx={{
+        display: { xs: 'flex', md: 'none' },
+        position: 'fixed',
+        top: 6,
+        right: 10,
+        zIndex: 1200,
+        alignItems: 'center',
+        gap: '4px',
+        bgcolor: 'rgba(255,255,255,0.75)',
+        backdropFilter: 'blur(8px)',
+        borderRadius: '20px',
+        px: '8px',
+        py: '2px',
+        border: '1px solid rgba(0,0,0,0.1)',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+      }}>
+        <Typography sx={{ fontSize: 11, color: '#555', lineHeight: 1, userSelect: 'none' }}>미리보기</Typography>
+        <Switch
+          checked={previewEnabled}
+          onChange={(e) => setPreviewEnabled(e.target.checked)}
+          size="small"
+          sx={{
+            '& .MuiSwitch-switchBase.Mui-checked': { color: '#333' },
+            '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: '#555' },
+          }}
         />
+      </Box>
+
+      {/* 모바일 뷰 */}
+      <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+        {previewEnabled ? (
+          <SectionTable
+            section={tableData[mobileActiveIndex]}
+            sectionIndex={mobileActiveIndex}
+            latestDate={latestDate}
+            onHeaderClick={() => setModalOpen(true)}
+            hideUi={hideUi}
+            previewEnabled={previewEnabled}
+          />
+        ) : (
+          <Box sx={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', p: '10px', '&::-webkit-scrollbar': { display: 'none' }, scrollbarWidth: 'none' }}>
+            {tableData.map((section, i) => (
+              <SectionTable
+                key={i}
+                section={section}
+                sectionIndex={i}
+                latestDate={latestDate}
+                hideUi={hideUi}
+                previewEnabled={previewEnabled}
+              />
+            ))}
+          </Box>
+        )}
       </Box>
 
       {/* 모바일 섹션 선택 모달 */}
