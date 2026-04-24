@@ -1,5 +1,5 @@
-import { useMemo, useState, useEffect } from 'react';
-import { Box, Typography, Dialog, List, ListItem, ListItemButton, ListItemText, Switch, FormControlLabel } from '@mui/material';
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
+import { Box, Typography, Dialog, List, ListItem, ListItemButton, ListItemText, Switch } from '@mui/material';
 import { tableData } from './data/tableData';
 import SectionTable from './components/SectionTable';
 import BottomNav from './components/BottomNav';
@@ -15,6 +15,13 @@ export default function App() {
   const [modalOpen, setModalOpen] = useState(false);
   const [hideUi, setHideUi] = useState(false);
   const [previewEnabled, setPreviewEnabled] = useState(true);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const scrollToSection = useCallback((index: number) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    container.scrollTo({ left: index * container.clientWidth, behavior: 'smooth' });
+  }, []);
 
   useEffect(() => {
     const handleDir = (e: any) => {
@@ -24,6 +31,18 @@ export default function App() {
     window.addEventListener('preview-scroll-dir', handleDir);
     return () => window.removeEventListener('preview-scroll-dir', handleDir);
   }, []);
+
+  useEffect(() => {
+    if (!previewEnabled) return;
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const handleScroll = () => {
+      const idx = Math.round(container.scrollLeft / container.clientWidth);
+      setMobileActiveIndex(idx);
+    };
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [previewEnabled]);
 
   const latestDate = useMemo(() => getLatestDate(tableData), []);
   const totalCount = useMemo(
@@ -112,14 +131,31 @@ export default function App() {
       {/* 모바일 뷰 */}
       <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
         {previewEnabled ? (
-          <SectionTable
-            section={tableData[mobileActiveIndex]}
-            sectionIndex={mobileActiveIndex}
-            latestDate={latestDate}
-            onHeaderClick={() => setModalOpen(true)}
-            hideUi={hideUi}
-            previewEnabled={previewEnabled}
-          />
+          <Box
+            ref={scrollContainerRef}
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              flex: 1,
+              overflowX: 'auto',
+              scrollSnapType: 'x mandatory',
+              '&::-webkit-scrollbar': { display: 'none' },
+              scrollbarWidth: 'none',
+            }}
+          >
+            {tableData.map((section, i) => (
+              <Box key={i} sx={{ flexShrink: 0, width: '100%', height: '100%', scrollSnapAlign: 'start', display: 'flex', flexDirection: 'column' }}>
+                <SectionTable
+                  section={section}
+                  sectionIndex={i}
+                  latestDate={latestDate}
+                  onHeaderClick={() => setModalOpen(true)}
+                  hideUi={hideUi}
+                  previewEnabled={previewEnabled}
+                />
+              </Box>
+            ))}
+          </Box>
         ) : (
           <Box sx={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', p: '10px', '&::-webkit-scrollbar': { display: 'none' }, scrollbarWidth: 'none' }}>
             {tableData.map((section, i) => (
@@ -147,6 +183,7 @@ export default function App() {
               <ListItemButton 
                 onClick={() => {
                   setMobileActiveIndex(i);
+                  scrollToSection(i);
                   setModalOpen(false);
                 }}
                 selected={mobileActiveIndex === i}
