@@ -1,8 +1,9 @@
 import { useRef, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Box, Dialog, IconButton } from '@mui/material';
-import MonitorIcon from '@mui/icons-material/Monitor';
-import SmartphoneIcon from '@mui/icons-material/Smartphone';
+import { Box, Dialog, IconButton, Tooltip } from '@mui/material';
+import pcIcon from '../assets/pc-svgrepo-com.svg';
+import mobileIcon from '../assets/mobile-svgrepo-com.svg';
+import copyIcon from '../assets/copy-success-svgrepo-com.svg';
 import CloseIcon from '@mui/icons-material/Close';
 import PreviewFrame from './PreviewFrame';
 
@@ -22,9 +23,7 @@ const MODAL_PC_W = 800;
 const MODAL_MOBILE_OUTER_W = 400;
 const MODAL_MOBILE_INNER_W = 375;
 
-function displayPath(path: string) {
-  try { return new URL(path).pathname; } catch { return path; }
-}
+
 
 function calcPos(e: React.MouseEvent, w: number, h: number) {
   const vw = window.innerWidth;
@@ -176,58 +175,74 @@ export default function PathPreviewIcons({ path, previewEnabled = true }: Props)
   const [hovered, setHovered] = useState<HoverType>(null);
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const [clicked, setClicked] = useState<HoverType>(null);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(path);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px', width: '100%', justifyContent: 'space-between' }}>
-      <Box
-        component="a"
-        href={path}
-        target="_blank"
-        rel="noreferrer"
-        sx={{ flex: 1, wordBreak: 'break-all', color: 'inherit', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
-      >
-        {displayPath(path)}
-      </Box>
+    <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px', width: '100%', justifyContent: 'center' }}>
 
-      {previewEnabled && (
-        <Box sx={{ display: 'flex', gap: '5px', flexShrink: 0 }}>
+      <Box sx={{ display: 'flex', gap: '5px', flexShrink: 0, alignItems: 'center' }}>
+        <Tooltip title={copied ? 'url 복사됨' : 'url 복사하기'} placement="top" arrow>
+          <Box
+            component="span"
+            onClick={handleCopy}
+            onMouseLeave={() => setTimeout(() => setCopied(false), 200)}
+            sx={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              p: '4px', borderRadius: '4px',
+              cursor: 'pointer', userSelect: 'none',
+              transition: 'background 0.15s',
+              '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' }
+            }}
+          >
+            <Box component="img" src={copyIcon} alt="Copy URL" sx={{ width: 16, height: 16 }} />
+          </Box>
+        </Tooltip>
+
+        {previewEnabled && (
+          <>
             <Box
               component="span"
               sx={{
-                display: 'inline-flex', alignItems: 'center', gap: '3px',
-                px: '8px', py: '3px', fontSize: 12, borderRadius: '4px',
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                p: '4px', borderRadius: '4px',
                 bgcolor: hovered === 'pc' ? '#066cb3' : 'transparent',
-                color: hovered === 'pc' ? '#fff' : '#555',
                 cursor: 'pointer', userSelect: 'none',
-                transition: 'background 0.15s, color 0.15s',
+                transition: 'background 0.15s',
               }}
               onMouseEnter={(e) => { setHovered('pc'); setPos(calcPos(e, PC_W, PC_H)); }}
               onMouseLeave={() => setHovered(null)}
               onMouseMove={(e) => setPos(calcPos(e, PC_W, PC_H))}
               onClick={(e) => { e.stopPropagation(); setClicked('pc'); setHovered(null); }}
             >
-              <MonitorIcon sx={{ fontSize: 18 }} /> PC
+              <Box component="img" src={pcIcon} alt="PC" sx={{ width: 18, height: 18, filter: hovered === 'pc' ? 'brightness(0) invert(1)' : 'none', transition: 'filter 0.15s' }} />
             </Box>
 
             <Box
               component="span"
               sx={{
-                display: 'inline-flex', alignItems: 'center', gap: '3px',
-                px: '8px', py: '3px', fontSize: 12, borderRadius: '4px',
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                p: '4px', borderRadius: '4px',
                 bgcolor: hovered === 'mobile' ? '#066cb3' : 'transparent',
-                color: hovered === 'mobile' ? '#fff' : '#555',
                 cursor: 'pointer', userSelect: 'none',
-                transition: 'background 0.15s, color 0.15s',
+                transition: 'background 0.15s',
               }}
               onMouseEnter={(e) => { setHovered('mobile'); setPos(calcPos(e, MOBILE_W, MOBILE_H)); }}
               onMouseLeave={() => setHovered(null)}
               onMouseMove={(e) => setPos(calcPos(e, MOBILE_W, MOBILE_H))}
               onClick={(e) => { e.stopPropagation(); setClicked('mobile'); setHovered(null); }}
             >
-              <SmartphoneIcon sx={{ fontSize: 15 }} /> 모바일
+              <Box component="img" src={mobileIcon} alt="Mobile" sx={{ width: 18, height: 18, filter: hovered === 'mobile' ? 'brightness(0) invert(1)' : 'none', transition: 'filter 0.15s' }} />
             </Box>
-        </Box>
-      )}
+          </>
+        )}
+      </Box>
 
       {/* 호버 팝업 — DataGrid transform 클리핑 방지를 위해 body에 Portal로 렌더링 */}
       {hovered === 'pc' && createPortal(

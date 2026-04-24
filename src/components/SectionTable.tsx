@@ -73,10 +73,34 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
       field: 'path',
       headerName: '경로',
       flex: 1,
-      minWidth: 200,
+      minWidth: 150,
+      sortable: false,
+      renderCell: (params) => {
+        if (!params.value) return null;
+        let p = params.value as string;
+        try { p = new URL(p).pathname; } catch {}
+        return (
+          <Box
+            component="a"
+            href={params.value as string}
+            target="_blank"
+            rel="noreferrer"
+            sx={{ flex: 1, wordBreak: 'break-all', color: 'inherit', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
+          >
+            {p}
+          </Box>
+        );
+      }
+    },
+    {
+      field: '_preview',
+      headerName: '미리보기',
+      width: 100,
+      align: 'center',
+      headerAlign: 'center',
       sortable: false,
       renderCell: (params) =>
-        params.value ? <PathPreviewIcons path={params.value} previewEnabled={previewEnabled} /> : null,
+        params.row.path ? <PathPreviewIcons path={params.row.path} previewEnabled={previewEnabled} /> : null,
     },
     {
       field: 'progressPc',
