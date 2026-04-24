@@ -18,9 +18,11 @@ export default function App() {
   const [hideUi, setHideUi] = useState(false);
   const [previewEnabled, setPreviewEnabled] = useState(true);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const tableLengthRef = useRef(0);
 
   const site = sites[siteIndex];
   const tableData = site.data;
+  tableLengthRef.current = tableData.length;
 
   const scrollToSection = useCallback((index: number) => {
     const container = scrollContainerRef.current;
@@ -37,16 +39,54 @@ export default function App() {
     return () => window.removeEventListener('preview-scroll-dir', handleDir);
   }, []);
 
+  // 터치 슬라이드: 강도와 무관하게 항상 한 칸씩만 이동
   useEffect(() => {
     if (!previewEnabled) return;
     const container = scrollContainerRef.current;
     if (!container) return;
-    const handleScroll = () => {
-      const idx = Math.round(container.scrollLeft / container.clientWidth);
-      setMobileActiveIndex(idx);
+
+    let startX = 0;
+    let startY = 0;
+    let startScrollLeft = 0;
+    let isHorizontal: boolean | null = null;
+
+    const onTouchStart = (e: TouchEvent) => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      startScrollLeft = container.scrollLeft;
+      isHorizontal = null;
     };
-    container.addEventListener('scroll', handleScroll, { passive: true });
-    return () => container.removeEventListener('scroll', handleScroll);
+
+    const onTouchMove = (e: TouchEvent) => {
+      const dx = startX - e.touches[0].clientX;
+      const dy = startY - e.touches[0].clientY;
+      if (isHorizontal === null) isHorizontal = Math.abs(dx) > Math.abs(dy);
+      if (!isHorizontal) return;
+      e.preventDefault();
+      container.scrollLeft = startScrollLeft + dx;
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      if (!isHorizontal) return;
+      const dx = startX - e.changedTouches[0].clientX;
+      const width = container.clientWidth;
+      const currentIdx = Math.round(startScrollLeft / width);
+      const maxIdx = tableLengthRef.current - 1;
+      let targetIdx = currentIdx;
+      if (dx > 30 && currentIdx < maxIdx) targetIdx = currentIdx + 1;
+      else if (dx < -30 && currentIdx > 0) targetIdx = currentIdx - 1;
+      setMobileActiveIndex(targetIdx);
+      container.scrollTo({ left: targetIdx * width, behavior: 'smooth' });
+    };
+
+    container.addEventListener('touchstart', onTouchStart, { passive: true });
+    container.addEventListener('touchmove', onTouchMove, { passive: false });
+    container.addEventListener('touchend', onTouchEnd, { passive: true });
+    return () => {
+      container.removeEventListener('touchstart', onTouchStart);
+      container.removeEventListener('touchmove', onTouchMove);
+      container.removeEventListener('touchend', onTouchEnd);
+    };
   }, [previewEnabled]);
 
   // 사이트 전환 시 초기화
@@ -153,13 +193,12 @@ export default function App() {
               flexDirection: 'row',
               flex: 1,
               overflowX: 'auto',
-              scrollSnapType: 'x mandatory',
               '&::-webkit-scrollbar': { display: 'none' },
               scrollbarWidth: 'none',
             }}
           >
             {tableData.length > 0 ? tableData.map((section, i) => (
-              <Box key={i} sx={{ flexShrink: 0, width: '100%', height: '100%', scrollSnapAlign: 'start', display: 'flex', flexDirection: 'column' }}>
+              <Box key={i} sx={{ flexShrink: 0, width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <SectionTable
                   section={section}
                   sectionIndex={i}
