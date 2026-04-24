@@ -6,6 +6,8 @@ import MobileCard from './components/MobileCard';
 import BottomNav from './components/BottomNav';
 import './App.css';
 
+import arrowDownIcon from './assets/arrow-down-circle-svgrepo-com.svg';
+
 function getLatestDate(data: typeof sites[0]['data']): string {
   const dates = data.flatMap((s) => s.data.map((item) => item.start)).filter(Boolean);
   return [...new Set(dates)].sort().at(-1) ?? '';
@@ -208,11 +210,11 @@ export default function App() {
         <Typography
           variant="h1"
           onClick={() => setSiteModalOpen(true)}
-          sx={{ display: 'flex', justifyContent: 'center', alignItems: 'baseline', fontSize: { xs: 18, sm: 22, md: 30 }, lineHeight: { xs: '26px', sm: '30px', md: '40px' }, textAlign: 'center', fontWeight: 700, cursor: 'pointer', userSelect: 'none', '&:hover': { opacity: 0.75 }, transition: 'opacity 0.15s' }}
+          sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: { xs: 18, sm: 22, md: 30 }, lineHeight: { xs: '26px', sm: '30px', md: '40px' }, textAlign: 'center', fontWeight: 700, cursor: 'pointer', userSelect: 'none', '&:hover': { opacity: 0.75 }, transition: 'opacity 0.15s' }}
         >
           {site.title}
-          <Box component="span" sx={{ fontSize: '0.45em', fontWeight: 500, color: '#666', ml: 1, verticalAlign: 'middle' }}>({totalCount} pages)</Box>
-          <Box component="span" sx={{ fontSize: '0.4em', color: '#aaa', ml: '6px', verticalAlign: 'middle' }}>▾</Box>
+          <Box component="img" src={arrowDownIcon} alt="select site" sx={{ width: { xs: 18, sm: 22, md: 28 }, height: { xs: 18, sm: 22, md: 28 }, mx: 1, opacity: 0.7 }} />
+          <Box component="span" sx={{ fontSize: '0.45em', fontWeight: 500, color: '#666' }}>({totalCount} pages)</Box>
         </Typography>
       </Box>
 
