@@ -12,7 +12,11 @@ function getLatestDate(data: typeof sites[0]['data']): string {
 }
 
 export default function App() {
-  const [siteIndex, setSiteIndex] = useState(0);
+  const [siteIndex, setSiteIndex] = useState(() => {
+    const key = new URLSearchParams(window.location.search).get('site');
+    if (key) { const i = sites.findIndex(s => s.key === key); if (i !== -1) return i; }
+    return 0;
+  });
   const [siteModalOpen, setSiteModalOpen] = useState(false);
   const [flatIndex, setFlatIndex] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
@@ -129,6 +133,7 @@ export default function App() {
   const handleSiteChange = (next: number) => {
     setSiteIndex(next);
     setFlatIndex(0);
+    history.replaceState(null, '', `?site=${sites[next].key}`);
     setTimeout(() => {
       scrollContainerRef.current?.scrollTo({ left: 0, behavior: 'instant' });
     }, 0);
