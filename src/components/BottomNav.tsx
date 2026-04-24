@@ -1,4 +1,4 @@
-import { Paper, Box, Button } from '@mui/material';
+import { Box, Button } from '@mui/material';
 import type { TableSection } from '../types';
 
 interface Props {
