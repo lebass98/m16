@@ -196,7 +196,7 @@ export default function PathPreviewIcons({ path, previewEnabled = true }: Props)
               sx={{
                 display: 'inline-flex', alignItems: 'center', gap: '3px',
                 px: '8px', py: '3px', fontSize: 12, borderRadius: '4px',
-                bgcolor: hovered === 'pc' ? '#066cb3' : '#fff',
+                bgcolor: hovered === 'pc' ? '#066cb3' : 'transparent',
                 color: hovered === 'pc' ? '#fff' : '#555',
                 cursor: 'pointer', userSelect: 'none',
                 transition: 'background 0.15s, color 0.15s',
@@ -214,7 +214,7 @@ export default function PathPreviewIcons({ path, previewEnabled = true }: Props)
               sx={{
                 display: 'inline-flex', alignItems: 'center', gap: '3px',
                 px: '8px', py: '3px', fontSize: 12, borderRadius: '4px',
-                bgcolor: hovered === 'mobile' ? '#066cb3' : '#fff',
+                bgcolor: hovered === 'mobile' ? '#066cb3' : 'transparent',
                 color: hovered === 'mobile' ? '#fff' : '#555',
                 cursor: 'pointer', userSelect: 'none',
                 transition: 'background 0.15s, color 0.15s',
@@ -230,7 +230,7 @@ export default function PathPreviewIcons({ path, previewEnabled = true }: Props)
       )}
 
       {/* 호버 팝업 — DataGrid transform 클리핑 방지를 위해 body에 Portal로 렌더링 */}
-      {previewEnabled && hovered === 'pc' && createPortal(
+      {hovered === 'pc' && createPortal(
         <Box sx={{ position: 'fixed', zIndex: 9999, left: pos.x, top: pos.y, borderRadius: '8px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.25)', border: '1px solid #ddd', pointerEvents: 'none' }}>
           <PreviewFrame src={path} displayWidth={PC_W} animate />
         </Box>,

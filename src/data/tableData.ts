@@ -33,7 +33,7 @@ export const tableData: TableSection[] = [
         ],
     },
     {
-        depth1: '평가시스템',
+        depth1: '가족센터 평가시스템 기능개발',
         data: [
             {
                 pageTitle: '메인화면',
