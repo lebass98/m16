@@ -157,7 +157,12 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
         boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
         display: 'flex',
         flexDirection: 'column',
-        flex: { xs: previewEnabled ? 1 : 'none', md: 'none' }
+        flex: { xs: previewEnabled ? 1 : 'none', md: 'none' },
+        transition: 'transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease',
+        '&:hover': {
+          transform: { md: 'translateY(-3px)' },
+          boxShadow: { md: '0 16px 48px 0 rgba(31, 38, 135, 0.13)' },
+        },
       }}
       className="index-section"
     >

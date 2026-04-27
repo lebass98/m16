@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
+import '../App.css';
 
 const PAUSE_MS = 800;
 
@@ -18,8 +19,20 @@ export default function PreviewFrame({ src, displayWidth, animate = false, fillH
   const [actualWidth, setActualWidth] = useState(typeof displayWidth === 'number' ? displayWidth : 375);
   const [actualHeight, setActualHeight] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasEnteredView, setHasEnteredView] = useState(false);
 
   useEffect(() => { setIsLoading(true); }, [src]);
+
+  useEffect(() => {
+    const ob = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setHasEnteredView(true);
+        ob.disconnect();
+      }
+    }, { rootMargin: '300px' });
+    if (containerRef.current) ob.observe(containerRef.current);
+    return () => ob.disconnect();
+  }, []);
 
   useEffect(() => {
     if (typeof displayWidth === 'number') {
@@ -44,7 +57,7 @@ export default function PreviewFrame({ src, displayWidth, animate = false, fillH
 
   useEffect(() => {
     const iframe = iframeRef.current;
-    if (!iframe) return;
+    if (!iframe || !hasEnteredView) return;
 
     const handleLoad = () => {
       setIsLoading(false);
@@ -68,10 +81,10 @@ export default function PreviewFrame({ src, displayWidth, animate = false, fillH
 
     iframe.addEventListener('load', handleLoad);
     return () => iframe.removeEventListener('load', handleLoad);
-  }, [src]);
+  }, [src, hasEnteredView]);
 
   useEffect(() => {
-    if (!animate) return;
+    if (!animate || !hasEnteredView) return;
 
     let y = 0;
     let dir = 1;
@@ -177,8 +190,13 @@ export default function PreviewFrame({ src, displayWidth, animate = false, fillH
       }}
     >
       {isLoading && (
-        <div style={{ position: 'absolute', inset: 0, background: '#f0f2f5', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ width: 20, height: 20, border: '2px solid #ddd', borderTopColor: '#4a7ab5', borderRadius: '50%', animation: 'previewSpin 0.7s linear infinite' }} />
+        <div style={{ position: 'absolute', inset: 0, zIndex: 10, overflow: 'hidden', background: '#f0f2f5' }}>
+          <div className="skeleton-shimmer" style={{ width: '100%', height: '38%' }} />
+          <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div className="skeleton-shimmer" style={{ height: 12, borderRadius: 6, width: '70%' }} />
+            <div className="skeleton-shimmer" style={{ height: 10, borderRadius: 6, width: '90%' }} />
+            <div className="skeleton-shimmer" style={{ height: 10, borderRadius: 6, width: '55%' }} />
+          </div>
         </div>
       )}
       <div
@@ -195,7 +213,7 @@ export default function PreviewFrame({ src, displayWidth, animate = false, fillH
       >
         <iframe
           ref={iframeRef}
-          src={src}
+          src={hasEnteredView ? src : undefined}
           title="preview"
           style={{
             display: 'block',
@@ -203,6 +221,8 @@ export default function PreviewFrame({ src, displayWidth, animate = false, fillH
             height: animate ? iframeHeight : dynamicIframeHeight,
             border: 'none',
             pointerEvents: allowScroll ? 'auto' : 'none',
+            opacity: isLoading ? 0 : 1,
+            transition: 'opacity 0.45s ease',
           }}
           tabIndex={-1}
         />
