@@ -380,7 +380,7 @@ export default function App() {
         </Dialog>
 
         {/* 검색 모달 */}
-        <Dialog open={searchOpen} onClose={() => { setSearchOpen(false); setSearchQuery(''); }} fullWidth maxWidth="xs" PaperProps={{ sx: { m: 2, maxHeight: '80vh' } }}>
+        <Dialog open={searchOpen} onClose={() => { setSearchOpen(false); setSearchQuery(''); }} fullWidth maxWidth="xs" slotProps={{ paper: { sx: { m: 2, maxHeight: '80vh' } } }}>
           <Box sx={{ p: '12px 16px', borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
             <TextField
               autoFocus
@@ -389,8 +389,10 @@ export default function App() {
               placeholder="페이지명, 메뉴, 메모 검색..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              InputProps={{
-                startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 18, color: 'text.secondary' }} /></InputAdornment>,
+              slotProps={{
+                input: {
+                  startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 18, color: 'text.secondary' }} /></InputAdornment>,
+                }
               }}
               sx={{ '& .MuiOutlinedInput-root': { borderRadius: '20px' } }}
             />
@@ -425,7 +427,7 @@ export default function App() {
         </Dialog>
 
         {/* 완성도 대시보드 모달 */}
-        <Dialog open={dashboardOpen} onClose={() => setDashboardOpen(false)} fullWidth maxWidth="xs" PaperProps={{ sx: { m: 2, maxHeight: '85vh' } }}>
+        <Dialog open={dashboardOpen} onClose={() => setDashboardOpen(false)} fullWidth maxWidth="xs" slotProps={{ paper: { sx: { m: 2, maxHeight: '85vh' } } }}>
           <Box sx={{ p: '14px 16px', borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Typography sx={{ fontSize: 16, fontWeight: 700 }}>완성도 요약</Typography>
             <IconButton size="small" onClick={() => setDashboardOpen(false)}><CloseIcon sx={{ fontSize: 18 }} /></IconButton>
