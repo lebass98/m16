@@ -175,7 +175,7 @@ export default function PreviewFrame({ src, displayWidth, animate = false, fillH
       cancelAnimationFrame(rafId);
       if (iframe) iframe.onload = null;
     };
-  }, [animate, src, speed]);
+  }, [animate, src, speed, hasEnteredView]);
 
   return (
     <div
