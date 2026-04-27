@@ -1,5 +1,38 @@
 @keyframes previewSpin { to { transform: rotate(360deg); } }
 
+/* 스켈레톤 shimmer */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #e8eaed 25%, #f5f6f8 50%, #e8eaed 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+}
+
+.skeleton-shimmer-dark {
+  background: linear-gradient(90deg, #2a2d3a 25%, #35394a 50%, #2a2d3a 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+}
+
+/* 카드 진입 애니메이션 */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.card-enter {
+  animation: fadeSlideUp 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* 섹션 테이블 진입 */
+.index-section {
+  animation: fadeSlideUp 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 .is-emphasis {
   font-weight: 700;
   color: #ff706e;
@@ -15,4 +48,10 @@
   30%  { background-color: rgba(255, 202, 222, 1); }
   70%  { background-color: rgba(255, 202, 222, 1); }
   100% { background-color: rgba(255, 255, 255, 1); }
+}
+
+/* 인디케이터 dot pulse */
+@keyframes dotPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.5); }
+  50%       { box-shadow: 0 0 0 4px rgba(255,255,255,0); }
 }

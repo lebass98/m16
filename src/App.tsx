@@ -128,92 +128,18 @@ export default function App() {
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    let startX = 0;
-    let startY = 0;
-    let startScrollLeft = 0;
-    let isHorizontal: boolean | null = null;
-    let isDragging = false;
-
-    const onTouchStart = (e: TouchEvent) => {
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-      startScrollLeft = container.scrollLeft;
-      isHorizontal = null;
-    };
-    const onTouchMove = (e: TouchEvent) => {
-      const dx = startX - e.touches[0].clientX;
-      const dy = startY - e.touches[0].clientY;
-      if (isHorizontal === null) isHorizontal = Math.abs(dx) > Math.abs(dy);
-      if (!isHorizontal) return;
-      e.preventDefault();
-      container.scrollLeft = startScrollLeft + dx;
-    };
-    const onTouchEnd = (e: TouchEvent) => {
-      if (!isHorizontal) return;
-      const dx = startX - e.changedTouches[0].clientX;
-      const width = container.clientWidth;
-      const currentIdx = Math.round(startScrollLeft / width);
-      const maxIdx = flatLengthRef.current - 1;
-      let targetIdx = currentIdx;
-      if (dx > 30 && currentIdx < maxIdx) targetIdx = currentIdx + 1;
-      else if (dx < -30 && currentIdx > 0) targetIdx = currentIdx - 1;
-      setFlatIndex(targetIdx);
-      container.scrollTo({ left: targetIdx * width, behavior: 'smooth' });
-    };
-    const onMouseDown = (e: MouseEvent) => {
-      isDragging = true;
-      startX = e.clientX;
-      startY = e.clientY;
-      startScrollLeft = container.scrollLeft;
-      isHorizontal = null;
-      container.style.cursor = 'grabbing';
-      document.body.style.userSelect = 'none';
-    };
-    const onMouseMove = (e: MouseEvent) => {
-      if (!isDragging) return;
-      const dx = startX - e.clientX;
-      const dy = startY - e.clientY;
-      if (isHorizontal === null) isHorizontal = Math.abs(dx) > Math.abs(dy);
-      if (!isHorizontal) return;
-      e.preventDefault();
-      container.scrollLeft = startScrollLeft + dx;
-    };
-    const onMouseUp = (e: MouseEvent) => {
-      if (!isDragging) return;
-      isDragging = false;
-      container.style.cursor = 'grab';
-      document.body.style.userSelect = '';
-      if (!isHorizontal) return;
-      const dx = startX - e.clientX;
-      const width = container.clientWidth;
-      const currentIdx = Math.round(startScrollLeft / width);
-      const maxIdx = flatLengthRef.current - 1;
-      let targetIdx = currentIdx;
-      if (dx > 30 && currentIdx < maxIdx) targetIdx = currentIdx + 1;
-      else if (dx < -30 && currentIdx > 0) targetIdx = currentIdx - 1;
-      setFlatIndex(targetIdx);
-      container.scrollTo({ left: targetIdx * width, behavior: 'smooth' });
+    let isScrolling: any;
+    const handleScroll = () => {
+      clearTimeout(isScrolling);
+      isScrolling = setTimeout(() => {
+        const idx = Math.round(container.scrollLeft / container.clientWidth);
+        if (idx !== flatIndex) setFlatIndex(idx);
+      }, 60);
     };
 
-    container.style.cursor = 'grab';
-    container.addEventListener('touchstart', onTouchStart, { passive: true });
-    container.addEventListener('touchmove', onTouchMove, { passive: false });
-    container.addEventListener('touchend', onTouchEnd, { passive: true });
-    container.addEventListener('mousedown', onMouseDown, { passive: true });
-    window.addEventListener('mousemove', onMouseMove, { passive: false });
-    window.addEventListener('mouseup', onMouseUp, { passive: true });
-
-    return () => {
-      container.removeEventListener('touchstart', onTouchStart);
-      container.removeEventListener('touchmove', onTouchMove);
-      container.removeEventListener('touchend', onTouchEnd);
-      container.removeEventListener('mousedown', onMouseDown);
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-      container.style.cursor = '';
-      document.body.style.userSelect = '';
-    };
-  }, [previewEnabled]);
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [previewEnabled, flatIndex]);
 
   const handleSiteChange = (next: number) => {
     setSiteIndex(next);
@@ -304,20 +230,40 @@ export default function App() {
                 <Box component="span" sx={{ fontSize: 12, opacity: 0.7 }}>{(currentCard?.cardIdx ?? 0) + 1} / {currentCard?.sectionTotal}</Box>
                 <Box component="span" sx={{ fontSize: 12, opacity: 0.7 }}>▼</Box>
               </Typography>
-              {/* 섹션 인디케이터 */}
-              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '5px', py: '6px', bgcolor: darkMode ? 'rgba(10,10,30,0.85)' : 'rgba(20,20,50,0.75)', flexShrink: 0 }}>
-                {tableData.map((_, i) => (
-                  <Box
-                    key={i}
-                    onClick={() => { const t = sectionStartIndices[i]; setFlatIndex(t); scrollToFlat(t); }}
-                    sx={{ width: currentSectionIdx === i ? 20 : 6, height: 6, borderRadius: '3px', bgcolor: currentSectionIdx === i ? siteColor : 'rgba(255,255,255,0.3)', transition: 'width 0.25s ease, background-color 0.25s ease', cursor: 'pointer', '&:hover': { bgcolor: currentSectionIdx === i ? siteColor : 'rgba(255,255,255,0.55)' } }}
-                  />
-                ))}
+              {/* 섹션 + 카드 인디케이터 */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', py: '6px', px: '10px', bgcolor: darkMode ? 'rgba(10,10,30,0.85)' : 'rgba(20,20,50,0.75)', flexShrink: 0 }}>
+                {/* 섹션 dots */}
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '5px' }}>
+                  {tableData.map((_, i) => (
+                    <Box
+                      key={i}
+                      onClick={() => { const t = sectionStartIndices[i]; setFlatIndex(t); scrollToFlat(t); }}
+                      sx={{
+                        width: currentSectionIdx === i ? 22 : 6,
+                        height: 6,
+                        borderRadius: '3px',
+                        bgcolor: currentSectionIdx === i ? siteColor : 'rgba(255,255,255,0.3)',
+                        transition: 'width 0.3s cubic-bezier(0.34,1.56,0.64,1), background-color 0.25s ease',
+                        cursor: 'pointer',
+                        animation: currentSectionIdx === i ? 'dotPulse 1.8s ease-in-out infinite' : 'none',
+                        '&:hover': { bgcolor: currentSectionIdx === i ? siteColor : 'rgba(255,255,255,0.6)', transform: 'scale(1.3)' },
+                      }}
+                    />
+                  ))}
+                </Box>
+                {/* 카드 x/n 미니 라벨 */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <Box component="span" sx={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.04em' }}>
+                    {(currentCard?.cardIdx ?? 0) + 1} / {currentCard?.sectionTotal ?? 0}
+                  </Box>
+                  <Box component="span" sx={{ fontSize: 10, color: 'rgba(255,255,255,0.25)' }}>·</Box>
+                  <Box component="span" sx={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.02em' }}>← 스와이프 →</Box>
+                </Box>
               </Box>
               {flatCards.length > 0 ? (
-                <Box ref={scrollContainerRef} sx={{ display: 'flex', flexDirection: 'row', flex: 1, overflowX: 'auto', '&::-webkit-scrollbar': { display: 'none' }, scrollbarWidth: 'none' }}>
+                <Box ref={scrollContainerRef} sx={{ display: 'flex', flexDirection: 'row', flex: 1, overflowX: 'auto', '&::-webkit-scrollbar': { display: 'none' }, scrollbarWidth: 'none', scrollSnapType: 'x mandatory' }}>
                   {flatCards.map((card, i) => (
-                    <Box key={i} sx={{ flexShrink: 0, width: '100%', height: '100%', p: '12px', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
+                    <Box key={i} className="card-enter" sx={{ flexShrink: 0, width: '100%', height: '100%', p: '12px', display: 'flex', flexDirection: 'column', boxSizing: 'border-box', scrollSnapAlign: 'center', animationDelay: `${i * 0.05}s` }}>
                       <MobileCard item={card.item} cardNumber={card.cardIdx + 1} latestDate={latestDate} hideUi={hideUi} />
                     </Box>
                   ))}

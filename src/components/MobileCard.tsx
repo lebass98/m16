@@ -31,6 +31,11 @@ export default function MobileCard({ item, cardNumber, latestDate, hideUi }: Pro
       WebkitBackdropFilter: 'blur(16px)',
       border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(255, 255, 255, 0.6)',
       boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+      transition: 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease',
+      '&:hover': {
+        transform: 'translateY(-4px) scale(1.005)',
+        boxShadow: isDark ? '0 16px 48px 0 rgba(0,0,0,0.5)' : '0 16px 48px 0 rgba(31, 38, 135, 0.15)',
+      }
     }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px', p: '8px 12px', bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255, 255, 255, 0.4)', borderBottom: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(255, 255, 255, 0.5)', flexShrink: 0 }}>
         <Box sx={{ flexShrink: 0, width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: isDark ? '#4a7ab5' : '#333', color: '#fff', borderRadius: '50%', fontSize: 11, fontWeight: 700 }}>
