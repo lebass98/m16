@@ -13,7 +13,6 @@ const PC_W = 650;
 const PC_H = Math.round(1080 * (PC_W / 1920));
 const MOBILE_W = 375;
 const MOBILE_H = 667;
-const MOBILE_TALL = 4000;
 const MOBILE_SPEED = 2;
 
 const IFRAME_W = 1920;
