@@ -86,18 +86,47 @@ export default function PreviewFrame({ src, displayWidth, animate = false, fillH
 
     function tick() {
       if (paused) return;
+
+      const iframe = iframeRef.current;
+      if (iframe) {
+        try {
+          const doc = iframe.contentDocument;
+          if (doc) {
+            const sh = Math.max(doc.documentElement?.scrollHeight || 0, doc.body?.scrollHeight || 0);
+            if (sh > iframeHeight) {
+              const currentH = parseInt(iframe.style.height) || 0;
+              if (sh !== currentH) {
+                iframe.style.height = `${sh}px`;
+                if (wrapperRef.current) wrapperRef.current.style.height = `${sh}px`;
+                maxScroll = Math.max(sh - iframeHeight, 0);
+              }
+            } else if (sh > 0 && sh <= iframeHeight) {
+              maxScroll = 0;
+            }
+          }
+        } catch { /* ignore cross-origin */ }
+      }
+
       y += speed * dir;
 
       if (y >= maxScroll) {
         y = maxScroll;
         applyY();
-        pause(() => { dir = -1; rafId = requestAnimationFrame(tick); });
+        if (maxScroll > 0) {
+          pause(() => { dir = -1; rafId = requestAnimationFrame(tick); });
+        } else {
+          rafId = requestAnimationFrame(tick);
+        }
         return;
       }
       if (y <= 0) {
         y = 0;
         applyY();
-        pause(() => { dir = 1; rafId = requestAnimationFrame(tick); });
+        if (maxScroll > 0) {
+          pause(() => { dir = 1; rafId = requestAnimationFrame(tick); });
+        } else {
+          rafId = requestAnimationFrame(tick);
+        }
         return;
       }
       applyY();
@@ -108,11 +137,13 @@ export default function PreviewFrame({ src, displayWidth, animate = false, fillH
     if (!iframe) return;
 
     iframe.onload = () => {
-      // 실제 콘텐츠 높이 측정 (same-origin만 가능)
-      let contentH = iframeHeight * 5; // cross-origin 기본값
+      let contentH = iframeHeight * 2.5; // cross-origin 기본값 (너무 길지 않게 수정)
       try {
-        const sh = iframe.contentDocument?.documentElement?.scrollHeight ?? 0;
-        if (sh > iframeHeight) contentH = sh;
+        const doc = iframe.contentDocument;
+        const sh = Math.max(doc?.documentElement?.scrollHeight || 0, doc?.body?.scrollHeight || 0);
+        if (sh > 0) {
+          contentH = Math.max(sh, iframeHeight);
+        }
       } catch { /* cross-origin */ }
 
       // iframe과 스케일 래퍼를 실제 높이로 조정

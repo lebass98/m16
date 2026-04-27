@@ -56,9 +56,47 @@ function MobilePreviewFrame({ src }: { src: string }) {
     }
     function tick() {
       if (paused) return;
+
+      const iframe = iframeRef.current;
+      if (iframe) {
+        try {
+          const doc = iframe.contentDocument;
+          if (doc) {
+            const sh = Math.max(doc.documentElement?.scrollHeight || 0, doc.body?.scrollHeight || 0);
+            if (sh > MOBILE_H) {
+              const currentH = parseInt(iframe.style.height) || 0;
+              if (sh !== currentH) {
+                iframe.style.height = `${sh}px`;
+                maxScroll = Math.max(sh - MOBILE_H, 0);
+              }
+            } else if (sh > 0 && sh <= MOBILE_H) {
+              maxScroll = 0;
+            }
+          }
+        } catch { /* cross-origin */ }
+      }
+
       y += MOBILE_SPEED * dir;
-      if (y >= maxScroll) { y = maxScroll; applyY(); pause(() => { dir = -1; rafId = requestAnimationFrame(tick); }); return; }
-      if (y <= 0) { y = 0; applyY(); pause(() => { dir = 1; rafId = requestAnimationFrame(tick); }); return; }
+      if (y >= maxScroll) {
+        y = maxScroll;
+        applyY();
+        if (maxScroll > 0) {
+          pause(() => { dir = -1; rafId = requestAnimationFrame(tick); });
+        } else {
+          rafId = requestAnimationFrame(tick);
+        }
+        return;
+      }
+      if (y <= 0) {
+        y = 0;
+        applyY();
+        if (maxScroll > 0) {
+          pause(() => { dir = 1; rafId = requestAnimationFrame(tick); });
+        } else {
+          rafId = requestAnimationFrame(tick);
+        }
+        return;
+      }
       applyY();
       rafId = requestAnimationFrame(tick);
     }
@@ -66,10 +104,13 @@ function MobilePreviewFrame({ src }: { src: string }) {
     const iframe = iframeRef.current;
     if (!iframe) return;
     iframe.onload = () => {
-      let contentH = MOBILE_TALL;
+      let contentH = MOBILE_H * 3; // cross-origin 기본값 (너무 길지 않게 수정)
       try {
-        const sh = iframe.contentDocument?.documentElement?.scrollHeight ?? 0;
-        if (sh > MOBILE_H) contentH = sh;
+        const doc = iframe.contentDocument;
+        const sh = Math.max(doc?.documentElement?.scrollHeight || 0, doc?.body?.scrollHeight || 0);
+        if (sh > 0) {
+          contentH = Math.max(sh, MOBILE_H);
+        }
       } catch { /* cross-origin */ }
       iframe.style.height = `${contentH}px`;
       maxScroll = Math.max(contentH - MOBILE_H, 0);
