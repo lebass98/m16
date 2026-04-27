@@ -1,3 +1,5 @@
+@keyframes previewSpin { to { transform: rotate(360deg); } }
+
 .is-emphasis {
   font-weight: 700;
   color: #ff706e;

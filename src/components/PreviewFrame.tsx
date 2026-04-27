@@ -17,6 +17,9 @@ export default function PreviewFrame({ src, displayWidth, animate = false, fillH
   const containerRef = useRef<HTMLDivElement>(null);
   const [actualWidth, setActualWidth] = useState(typeof displayWidth === 'number' ? displayWidth : 375);
   const [actualHeight, setActualHeight] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => { setIsLoading(true); }, [src]);
 
   useEffect(() => {
     if (typeof displayWidth === 'number') {
@@ -44,6 +47,7 @@ export default function PreviewFrame({ src, displayWidth, animate = false, fillH
     if (!iframe) return;
 
     const handleLoad = () => {
+      setIsLoading(false);
       try {
         const win = iframe.contentWindow;
         if (win) {
@@ -172,6 +176,11 @@ export default function PreviewFrame({ src, displayWidth, animate = false, fillH
         position: 'relative',
       }}
     >
+      {isLoading && (
+        <div style={{ position: 'absolute', inset: 0, background: '#f0f2f5', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 20, height: 20, border: '2px solid #ddd', borderTopColor: '#4a7ab5', borderRadius: '50%', animation: 'previewSpin 0.7s linear infinite' }} />
+        </div>
+      )}
       <div
         ref={wrapperRef}
         style={{

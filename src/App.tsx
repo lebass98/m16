@@ -42,6 +42,7 @@ export default function App() {
   const theme = useMemo(() => createTheme({ palette: { mode: darkMode ? 'dark' : 'light' } }), [darkMode]);
 
   const site = sites[siteIndex];
+  const siteColor = site.color ?? '#4a7ab5';
   const tableData = site.data;
 
   const flatCards = useMemo(() =>
@@ -297,12 +298,22 @@ export default function App() {
               <Typography
                 component="h2"
                 onClick={() => setModalOpen(true)}
-                sx={{ m: 0, py: '12px', px: '15px', fontSize: 16, lineHeight: '15px', color: '#fff', bgcolor: darkMode ? 'rgba(20,20,40,0.9)' : 'rgba(51,51,51,0.8)', backdropFilter: 'blur(8px)', fontWeight: 500, textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px', cursor: 'pointer', flexShrink: 0 }}
+                sx={{ m: 0, py: '10px', px: '15px', fontSize: 16, lineHeight: '15px', color: '#fff', bgcolor: siteColor, backdropFilter: 'blur(8px)', fontWeight: 500, textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px', cursor: 'pointer', flexShrink: 0 }}
               >
                 {currentCard?.sectionTitle}
-                <Box component="span" sx={{ fontSize: 12, opacity: 0.6 }}>{(currentCard?.cardIdx ?? 0) + 1} / {currentCard?.sectionTotal}</Box>
-                <Box component="span" sx={{ fontSize: 12, opacity: 0.6 }}>▼</Box>
+                <Box component="span" sx={{ fontSize: 12, opacity: 0.7 }}>{(currentCard?.cardIdx ?? 0) + 1} / {currentCard?.sectionTotal}</Box>
+                <Box component="span" sx={{ fontSize: 12, opacity: 0.7 }}>▼</Box>
               </Typography>
+              {/* 섹션 인디케이터 */}
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '5px', py: '6px', bgcolor: darkMode ? 'rgba(10,10,30,0.85)' : 'rgba(20,20,50,0.75)', flexShrink: 0 }}>
+                {tableData.map((_, i) => (
+                  <Box
+                    key={i}
+                    onClick={() => { const t = sectionStartIndices[i]; setFlatIndex(t); scrollToFlat(t); }}
+                    sx={{ width: currentSectionIdx === i ? 20 : 6, height: 6, borderRadius: '3px', bgcolor: currentSectionIdx === i ? siteColor : 'rgba(255,255,255,0.3)', transition: 'width 0.25s ease, background-color 0.25s ease', cursor: 'pointer', '&:hover': { bgcolor: currentSectionIdx === i ? siteColor : 'rgba(255,255,255,0.55)' } }}
+                  />
+                ))}
+              </Box>
               {flatCards.length > 0 ? (
                 <Box ref={scrollContainerRef} sx={{ display: 'flex', flexDirection: 'row', flex: 1, overflowX: 'auto', '&::-webkit-scrollbar': { display: 'none' }, scrollbarWidth: 'none' }}>
                   {flatCards.map((card, i) => (
@@ -331,13 +342,17 @@ export default function App() {
           <List sx={{ pt: 0, pb: 0 }}>
             {sites.map((s, i) => (
               <ListItem key={i} disablePadding>
-                <ListItemButton onClick={() => { handleSiteChange(i); setSiteModalOpen(false); }} selected={siteIndex === i}>
-                  <ListItemText primary={
-                    <Typography sx={{ fontSize: 15, fontWeight: siteIndex === i ? 700 : 400 }}>
-                      {s.title}
-                      <Box component="span" sx={{ ml: 1, fontSize: 12, color: 'text.secondary' }}>({s.data.reduce((n, sec) => n + sec.data.length, 0)} pages)</Box>
-                    </Typography>
-                  } />
+                <ListItemButton onClick={() => { handleSiteChange(i); setSiteModalOpen(false); }} selected={siteIndex === i} sx={{ gap: 1.5 }}>
+                  <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: s.color ?? '#4a7ab5', flexShrink: 0 }} />
+                  <ListItemText
+                    primary={
+                      <Typography sx={{ fontSize: 15, fontWeight: siteIndex === i ? 700 : 400 }}>
+                        {s.title}
+                        <Box component="span" sx={{ ml: 1, fontSize: 12, color: 'text.secondary' }}>({s.data.reduce((n, sec) => n + sec.data.length, 0)} pages)</Box>
+                      </Typography>
+                    }
+                    secondary={s.description}
+                  />
                 </ListItemButton>
               </ListItem>
             ))}
