@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Q&A 게시글 상세 영역(사이트관리자)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; background: #f5f6f8; color: #222; min-height: 100vh; }
+  .header { background: #fff; border-bottom: 1px solid #e8eaed; position: sticky; top: 0; z-index: 100; }
+  .gnb { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; height: 56px; padding: 0 24px; gap: 4px; }
+  .logo { font-size: 16px; font-weight: 700; color: #5a9e6a; margin-right: 24px; white-space: nowrap; }
+  .sub-nav { background: #fff; border-bottom: 1px solid #e8eaed; }
+  .sub-nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; gap: 2px; }
+  .breadcrumb { max-width: 1200px; margin: 0 auto; padding: 12px 24px; font-size: 13px; }
+  .content { max-width: 1200px; margin: 0 auto; padding: 24px; }
+  .page-header { background: #fff; border-radius: 8px; padding: 24px; margin-bottom: 20px; border: 1px solid #e8eaed; }
+  .page-title { font-size: 20px; font-weight: 700; color: #111; margin-bottom: 6px; }
+  .screen-id { font-size: 12px; color: #999; font-family: monospace; }
+  .badge { display: inline-block; background: #5a9e6a22; color: #5a9e6a; border: 1px solid #5a9e6a44; border-radius: 4px; padding: 2px 8px; font-size: 11px; font-weight: 600; margin-bottom: 8px; }
+  .content-area { background: #fff; border-radius: 8px; border: 1px solid #e8eaed; min-height: 400px; padding: 24px; }
+  .placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 300px; gap: 12px; color: #aaa; }
+  .placeholder-icon { font-size: 48px; opacity: 0.3; }
+  .placeholder-text { font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="gnb">
+    <div class="logo">가족센터 평가시스템</div>
+    <span style="padding:10px 18px;cursor:pointer;font-size:14px;font-weight:500;color:#666;background:transparent;border-radius:4px;transition:all 0.2s;">자체평가</span>
+<span style="padding:10px 18px;cursor:pointer;font-size:14px;font-weight:500;color:#666;background:transparent;border-radius:4px;transition:all 0.2s;">평가 관리</span>
+<span style="padding:10px 18px;cursor:pointer;font-size:14px;font-weight:700;color:#fff;background:#5a9e6a;border-radius:4px;transition:all 0.2s;">알림마당</span>
+<span style="padding:10px 18px;cursor:pointer;font-size:14px;font-weight:500;color:#666;background:transparent;border-radius:4px;transition:all 0.2s;">마이페이지</span>
+
+  </div>
+  <div class="sub-nav">
+    <div class="sub-nav-inner">
+      <span style="padding:8px 14px;cursor:pointer;font-size:13px;font-weight:400;color:#555;border-bottom:2px solid transparent;transition:all 0.2s;">공지사항</span>
+<span style="padding:8px 14px;cursor:pointer;font-size:13px;font-weight:400;color:#555;border-bottom:2px solid transparent;transition:all 0.2s;">자료실</span>
+<span style="padding:8px 14px;cursor:pointer;font-size:13px;font-weight:400;color:#555;border-bottom:2px solid transparent;transition:all 0.2s;">FAQ</span>
+<span style="padding:8px 14px;cursor:pointer;font-size:13px;font-weight:600;color:#5a9e6a;border-bottom:2px solid #5a9e6a;transition:all 0.2s;">Q&A</span>
+
+    </div>
+  </div>
+</div>
+
+<div class="breadcrumb"><span style="color:#555;">사용자 페이지</span> <span style="color:#aaa;margin:0 4px">›</span> <span style="color:#555;">알림마당</span> <span style="color:#aaa;margin:0 4px">›</span> <span style="color:#555;">Q&A</span> <span style="color:#aaa;margin:0 4px">›</span> <span style="color:#5a9e6a;font-weight:600">상세</span></div>
+
+<div class="content">
+  <div class="page-header">
+    <div class="badge">FE_NT_0012</div>
+    <div class="page-title">Q&A 게시글 상세 영역(사이트관리자)</div>
+    <div class="screen-id">사용자 페이지 > 알림마당 > Q&A > 상세</div>
+  </div>
+  <div class="content-area">
+    <div class="placeholder">
+      <div class="placeholder-icon">📋</div>
+      <div class="placeholder-text">화면 개발 예정 영역</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
