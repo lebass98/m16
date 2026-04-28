@@ -1,63 +1,297 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>평가결과 페이지</title>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; background: #f5f6f8; color: #222; min-height: 100vh; }
-  .header { background: #fff; border-bottom: 1px solid #e8eaed; position: sticky; top: 0; z-index: 100; }
-  .gnb { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; height: 56px; padding: 0 24px; gap: 4px; }
-  .logo { font-size: 16px; font-weight: 700; color: #4a7ab5; margin-right: 24px; white-space: nowrap; }
-  .sub-nav { background: #fff; border-bottom: 1px solid #e8eaed; }
-  .sub-nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; gap: 2px; }
-  .breadcrumb { max-width: 1200px; margin: 0 auto; padding: 12px 24px; font-size: 13px; }
-  .content { max-width: 1200px; margin: 0 auto; padding: 24px; }
-  .page-header { background: #fff; border-radius: 8px; padding: 24px; margin-bottom: 20px; border: 1px solid #e8eaed; }
-  .page-title { font-size: 20px; font-weight: 700; color: #111; margin-bottom: 6px; }
-  .screen-id { font-size: 12px; color: #999; font-family: monospace; }
-  .badge { display: inline-block; background: #4a7ab522; color: #4a7ab5; border: 1px solid #4a7ab544; border-radius: 4px; padding: 2px 8px; font-size: 11px; font-weight: 600; margin-bottom: 8px; }
-  .content-area { background: #fff; border-radius: 8px; border: 1px solid #e8eaed; min-height: 400px; padding: 24px; }
-  .placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 300px; gap: 12px; color: #aaa; }
-  .placeholder-icon { font-size: 48px; opacity: 0.3; }
-  .placeholder-text { font-size: 14px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>한국건강가정진흥원 평가시스템</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-gov-dynamic-subset.min.css" />
+    <link href="../css/krds.min.css" type="text/css" rel="stylesheet" />
+    <link href="../css/base.css" type="text/css" rel="stylesheet" />
+    <link href="../css/layout.css" type="text/css" rel="stylesheet" />
+    <link href="../css/ui.css" type="text/css" rel="stylesheet" />
+    <link href="../css/contents.css" type="text/css" rel="stylesheet" />
+    <script defer src="../js/ui.js"></script>
 </head>
 <body>
-<div class="header">
-  <div class="gnb">
-    <div class="logo">가족센터 평가시스템</div>
-    <span style="padding:10px 18px;cursor:pointer;font-size:14px;font-weight:700;color:#fff;background:#4a7ab5;border-radius:4px;transition:all 0.2s;">자체평가</span>
-<span style="padding:10px 18px;cursor:pointer;font-size:14px;font-weight:500;color:#666;background:transparent;border-radius:4px;transition:all 0.2s;">평가 관리</span>
-<span style="padding:10px 18px;cursor:pointer;font-size:14px;font-weight:500;color:#666;background:transparent;border-radius:4px;transition:all 0.2s;">알림마당</span>
-<span style="padding:10px 18px;cursor:pointer;font-size:14px;font-weight:500;color:#666;background:transparent;border-radius:4px;transition:all 0.2s;">마이페이지</span>
+    <header id="krds-header">
+        <div class="header-in">
+            <div class="header-container">
+                <div class="inner">
+                    <div class="header-utility"></div>
+                    <div class="header-branding">
+                        <h2 class="logo">
+                            <a href="#">
+                                <span class="sr-only">가족센터 평가시스템 기능개발</span>
+                            </a>
+                        </h2>
+                        <div class="header-actions">
+                            <a href="#" class="btn-navi login">로그인</a>
+                            <button type="button" class="btn-navi join">회원가입</button>
+                            <div class="krds-drop-wrap my-drop">
+                                <button type="button" class="btn-navi my drop-btn">나의 GOV</button>
+                                <div class="drop-menu">
+                                    <div class="drop-in">
+                                        <div class="drop-top">
+                                            <p class="my-name">홍길동님</p>
+                                            <dl class="my-time">
+                                                <dt>로그아웃까지 남은 시간</dt>
+                                                <dd>
+                                                    <span class="time">12:00</span>
+                                                    <button type="button" class="krds-btn medium text">시간 연장</button>
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                        <ul class="drop-list">
+                                            <li><a href="#" class="item-link">나의 GOV 홈</a></li>
+                                            <li><a href="#" class="item-link">나의 신청내역</a></li>
+                                            <li><a href="#" class="item-link">나의 생활정보</a></li>
+                                            <li><a href="#" class="item-link">나의 정보관리</a></li>
+                                        </ul>
+                                        <div class="drop-bottom">
+                                            <button type="button" class="krds-btn medium text">
+                                                <i class="svg-icon ico-logout"></i> 로그아웃
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-navi all" aria-controls="mobile-nav">전체메뉴</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-  </div>
-  <div class="sub-nav">
-    <div class="sub-nav-inner">
-      <span style="padding:8px 14px;cursor:pointer;font-size:13px;font-weight:400;color:#555;border-bottom:2px solid transparent;transition:all 0.2s;">평가하기</span>
-<span style="padding:8px 14px;cursor:pointer;font-size:13px;font-weight:600;color:#4a7ab5;border-bottom:2px solid #4a7ab5;transition:all 0.2s;">평가 결과</span>
-<span style="padding:8px 14px;cursor:pointer;font-size:13px;font-weight:400;color:#555;border-bottom:2px solid transparent;transition:all 0.2s;">이의 신청</span>
+            <nav class="krds-main-menu">
+                <div class="inner">
+                    <ul class="gnb-menu">
+                        <li>
+                            <button type="button" class="gnb-main-trigger" data-trigger="gnb">자체평가</button>
+                            <div class="gnb-toggle-wrap">
+                                <div class="gnb-main-list">
+                                    <div class="gnb-sub-list single-list between">
+                                        <div class="gnb-sub-content">
+                                            <h2 class="sub-title"><span>자체평가</span> <a href="#" class="btn-link">바로가기</a></h2>
+                                            <ul>
+                                                <li><a href="#">평가하기</a></li>
+                                                <li><a href="#">평가결과</a></li>
+                                                <li><a href="#">이의신청</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <button type="button" class="gnb-main-trigger" data-trigger="gnb">평가관리</button>
+                            <div class="gnb-toggle-wrap">
+                                <div class="gnb-main-list">
+                                    <div class="gnb-sub-list single-list between">
+                                        <div class="gnb-sub-content">
+                                            <h2 class="sub-title"><span>평가관리</span> <a href="#" class="btn-link">바로가기</a></h2>
+                                            <ul>
+                                                <li><a href="#">Last depth</a></li>
+                                                <li><a href="#">Last depth</a></li>
+                                                <li><a href="#">Last depth</a></li>
+                                                <li><a href="#">Last depth</a></li>
+                                                <li><a href="#">Last depth</a></li>
+                                                <li><a href="#">Last depth</a></li>
+                                                <li><a href="#">Last depth</a></li>
+                                                <li><a href="#">Last depth</a></li>
+                                                <li><a href="#">Last depth</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <button type="button" class="gnb-main-trigger" data-trigger="gnb">알림마당</button>
+                            <div class="gnb-toggle-wrap">
+                                <div class="gnb-main-list">
+                                    <div class="gnb-sub-list single-list between">
+                                        <div class="gnb-sub-content">
+                                            <h2 class="sub-title"><span>알림마당</span> <a href="#" class="btn-link">바로가기</a></h2>
+                                            <ul>
+                                                <li><a href="#">Last depth</a></li>
+                                                <li><a href="#">Last depth</a></li>
+                                                <li><a href="#">Last depth</a></li>
+                                                <li><a href="#">Last depth</a></li>
+                                                <li><a href="#">Last depth</a></li>
+                                                <li><a href="#">Last depth</a></li>
+                                                <li><a href="#">Last depth</a></li>
+                                                <li><a href="#">Last depth</a></li>
+                                                <li><a href="#">Last depth</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <button type="button" class="gnb-main-trigger" data-trigger="gnb">마이페이지</button>
+                            <div class="gnb-toggle-wrap">
+                                <div class="gnb-main-list">
+                                    <div class="gnb-sub-list single-list between">
+                                        <div class="gnb-sub-content">
+                                            <h2 class="sub-title"><span>마이페이지</span> <a href="#" class="btn-link">바로가기</a></h2>
+                                            <ul>
+                                                <li><a href="#">Last depth</a></li>
+                                                <li><a href="#">Last depth</a></li>
+                                                <li><a href="#">Last depth</a></li>
+                                                <li><a href="#">Last depth</a></li>
+                                                <li><a href="#">Last depth</a></li>
+                                                <li><a href="#">Last depth</a></li>
+                                                <li><a href="#">Last depth</a></li>
+                                                <li><a href="#">Last depth</a></li>
+                                                <li><a href="#">Last depth</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
 
-    </div>
-  </div>
-</div>
+        <div id="mobile-nav" class="krds-main-menu-mobile">
+            <div class="gnb-wrap">
+                <div class="gnb-header">
+                    <div class="gnb-utils">
+                        <ul class="utility-list">
+                            <li><button type="button" class="krds-btn xsmall text">메뉴명</button></li>
+                            <li><button type="button" class="krds-btn xsmall text">메뉴명</button></li>
+                        </ul>
+                    </div>
+                    <div class="gnb-login">
+                        <button type="button" class="krds-btn large text"><i class="svg-icon ico-log"></i> 로그인을 해주세요</button>
+                    </div>
+                    <div class="gnb-service-menu">
+                        <a href="#" class="link">메뉴명</a>
+                        <a href="#" class="link">메뉴명</a>
+                        <a href="#" class="link">메뉴명</a>
+                        <a href="#" class="link">메뉴명</a>
+                    </div>
+                    <div class="sch-input">
+                        <input type="text" class="krds-input" placeholder="찾고자 하는 메뉴명을 입력해 주세요" title="찾고자 하는 메뉴명 입력" />
+                        <button type="button" class="krds-btn medium icon ico-search">
+                            <span class="sr-only">검색</span>
+                            <i class="svg-icon ico-sch"></i>
+                        </button>
+                    </div>
+                </div>
 
-<div class="breadcrumb"><span style="color:#555;">사용자 페이지</span> <span style="color:#aaa;margin:0 4px">›</span> <span style="color:#555;">자체평가</span> <span style="color:#aaa;margin:0 4px">›</span> <span style="color:#555;">평가 결과</span> <span style="color:#aaa;margin:0 4px">›</span> <span style="color:#4a7ab5;font-weight:600">목록</span></div>
+                <div class="gnb-body">
+                    <div class="gnb-menu">
+                        <div class="menu-wrap">
+                            <ul>
+                                <li><a href="#mGnb-anchor1" class="gnb-main-trigger">1Depth</a></li>
+                                <li><a href="#mGnb-anchor2" class="gnb-main-trigger">1Depth</a></li>
+                                <li><a href="#mGnb-anchor3" class="gnb-main-trigger">1Depth</a></li>
+                                <li><a href="#mGnb-anchor4" class="gnb-main-trigger">1Depth</a></li>
+                                <li><a href="#mGnb-anchor5" class="gnb-main-trigger">1Depth</a></li>
+                            </ul>
+                        </div>
+                        <div class="submenu-wrap">
+                            <div class="gnb-sub-list" id="mGnb-anchor1">
+                                <h2 class="sub-title">1Depth</h2>
+                                <ul>
+                                    <li><a href="#" class="gnb-sub-trigger">2Depth</a></li>
+                                    <li><a href="#" class="gnb-sub-trigger">2Depth</a></li>
+                                    <li><a href="#" class="gnb-sub-trigger">2Depth</a></li>
+                                </ul>
+                            </div>
+                            <div class="gnb-sub-list" id="mGnb-anchor2">
+                                <h2 class="sub-title">1Depth</h2>
+                                <ul>
+                                    <li><a href="#" class="gnb-sub-trigger">2Depth</a></li>
+                                    <li><a href="#" class="gnb-sub-trigger">2Depth</a></li>
+                                    <li><a href="#" class="gnb-sub-trigger">2Depth</a></li>
+                                </ul>
+                            </div>
+                            <div class="gnb-sub-list" id="mGnb-anchor3">
+                                <h2 class="sub-title">1Depth</h2>
+                                <ul>
+                                    <li><a href="#" class="gnb-sub-trigger">2Depth</a></li>
+                                    <li><a href="#" class="gnb-sub-trigger">2Depth</a></li>
+                                    <li><a href="#" class="gnb-sub-trigger">2Depth</a></li>
+                                    <li>
+                                        <a href="#" class="gnb-sub-trigger has-depth3">2Depth</a>
+                                        <div class="depth3-wrap">
+                                            <ul>
+                                                <li>
+                                                    <a href="#" class="depth3-trigger has-depth4">3Depth</a>
+                                                    <div class="depth4-wrap">
+                                                        <div class="depth4-head">
+                                                            <button type="button" class="krds-btn icon trigger-prev">
+                                                                <span class="sr-only">이전화면</span>
+                                                                <i class="svg-icon ico-angle left"></i>
+                                                            </button>
+                                                            <button type="button" class="krds-btn icon trigger-close">
+                                                                <span class="sr-only">전체메뉴 닫기</span>
+                                                                <i class="svg-icon ico-popup-close"></i>
+                                                            </button>
+                                                        </div>
+                                                        <ul class="depth4-body">
+                                                            <h4 class="sub-title">4Depth title</h4>
+                                                            <ul class="depth4-ul">
+                                                                <li><a href="#">depth title</a></li>
+                                                                <li><a href="#">depth title</a></li>
+                                                                <li><a href="#">depth title</a></li>
+                                                                <li><a href="#">depth title</a></li>
+                                                            </ul>
+                                                        </ul>
+                                                    </div>
+                                                </li>
+                                                <li><a href="#" class="depth3-trigger">3Depth</a></li>
+                                                <li><a href="#" class="depth3-trigger">3Depth</a></li>
+                                            </ul>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="gnb-sub-list" id="mGnb-anchor4">
+                                <h2 class="sub-title">1Depth</h2>
+                                <ul>
+                                    <li><a href="#" class="gnb-sub-trigger">2Depth</a></li>
+                                    <li><a href="#" class="gnb-sub-trigger">2Depth</a></li>
+                                    <li><a href="#" class="gnb-sub-trigger">2Depth</a></li>
+                                </ul>
+                            </div>
+                            <div class="gnb-sub-list" id="mGnb-anchor5">
+                                <h2 class="sub-title">1Depth</h2>
+                                <ul>
+                                    <li><a href="#" class="gnb-sub-trigger">2Depth</a></li>
+                                    <li><a href="#" class="gnb-sub-trigger">2Depth</a></li>
+                                    <li><a href="#" class="gnb-sub-trigger">2Depth</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="gnb-bottom">
+                        <a href="#" class="krds-btn medium text">메뉴명 <i class="svg-icon ico-angle right"></i></a>
+                        <a href="#" class="krds-btn medium text" target="_blank" title="새 창 열기"> 메뉴명 <i class="svg-icon ico-go"></i></a>
+                    </div>
+                </div>
 
-<div class="content">
-  <div class="page-header">
-    <div class="badge">FE_SE_0019</div>
-    <div class="page-title">평가결과 페이지</div>
-    <div class="screen-id">사용자 페이지 > 자체평가 > 평가 결과 > 목록</div>
-  </div>
-  <div class="content-area">
-    <div class="placeholder">
-      <div class="placeholder-icon">📋</div>
-      <div class="placeholder-text">화면 개발 예정 영역</div>
-    </div>
-  </div>
-</div>
+                <button type="button" class="krds-btn medium icon" id="close-nav">
+                    <span class="sr-only">전체메뉴 닫기</span>
+                    <i class="svg-icon ico-popup-close"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main id="sub-contents">
+        
+    </main>
+
+
+    <footer id="footer">
+        <div class="inner">
+            <p>© KOREA INSTITUTE FOR HEALTHY FAMILY. All Rights Reserved.</p>
+        </div>
+    </footer>
 </body>
 </html>
