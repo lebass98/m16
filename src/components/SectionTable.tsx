@@ -3,7 +3,7 @@ import { Paper, Box, Typography, Card } from '@mui/material';
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import type { TableSection } from '../types';
 import ProgressBar from './ProgressBar';
-import PathPreviewIcons from './PathPreviewIcons';
+import PathPreviewIcons, { CopyPathButton } from './PathPreviewIcons';
 import PreviewFrame from './PreviewFrame';
 
 interface Props {
@@ -80,14 +80,17 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
         let p = params.value as string;
         try { p = new URL(p).pathname; } catch {}
         return (
-          <Box
-            component="a"
-            href={params.value as string}
-            target="_blank"
-            rel="noreferrer"
-            sx={{ flex: 1, wordBreak: 'break-all', color: 'inherit', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
-          >
-            {p}
+          <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: '8px' }}>
+            <Box
+              component="a"
+              href={params.value as string}
+              target="_blank"
+              rel="noreferrer"
+              sx={{ flex: 1, wordBreak: 'break-all', color: 'inherit', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
+            >
+              {p}
+            </Box>
+            <CopyPathButton path={params.value as string} />
           </Box>
         );
       }
@@ -328,11 +331,12 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
                     </Box>
                   )}
                   {item.path && (
-                    <Box sx={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
+                    <Box sx={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                       <Typography sx={{ flexShrink: 0, mr: '10px', color: '#888', fontSize: 12 }}>경로</Typography>
                       <Box component="a" href={item.path} target="_blank" rel="noreferrer" sx={{ flex: 1, color: '#066cb3', textDecoration: 'none', wordBreak: 'break-all', fontSize: 13 }}>
                         {(() => { try { return new URL(item.path).pathname; } catch { return item.path; } })()}
                       </Box>
+                      <CopyPathButton path={item.path} />
                     </Box>
                   )}
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px', pt: '2px' }}>
