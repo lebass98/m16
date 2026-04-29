@@ -252,6 +252,35 @@ function MobileModalContent({ src }: { src: string }) {
   );
 }
 
+export function CopyPathButton({ path }: { path: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(path);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <Tooltip title={copied ? 'url 복사됨' : 'url 복사하기'} placement="top" arrow>
+      <Box
+        component="span"
+        onClick={handleCopy}
+        onMouseLeave={() => setTimeout(() => setCopied(false), 200)}
+        sx={{
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          p: '4px', borderRadius: '4px',
+          cursor: 'pointer', userSelect: 'none',
+          transition: 'background 0.15s',
+          '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' }
+        }}
+      >
+        <Box component="img" src={copyIcon} alt="Copy URL" sx={{ width: 16, height: 16 }} />
+      </Box>
+    </Tooltip>
+  );
+}
+
 interface Props {
   path: string;
   previewEnabled?: boolean;
@@ -261,36 +290,11 @@ export default function PathPreviewIcons({ path, previewEnabled = true }: Props)
   const [hovered, setHovered] = useState<HoverType>(null);
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const [clicked, setClicked] = useState<HoverType>(null);
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(path);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px', width: '100%', justifyContent: 'center' }}>
 
       <Box sx={{ display: 'flex', gap: '5px', flexShrink: 0, alignItems: 'center' }}>
-        <Tooltip title={copied ? 'url 복사됨' : 'url 복사하기'} placement="top" arrow>
-          <Box
-            component="span"
-            onClick={handleCopy}
-            onMouseLeave={() => setTimeout(() => setCopied(false), 200)}
-            sx={{
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              p: '4px', borderRadius: '4px',
-              cursor: 'pointer', userSelect: 'none',
-              transition: 'background 0.15s',
-              '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' }
-            }}
-          >
-            <Box component="img" src={copyIcon} alt="Copy URL" sx={{ width: 16, height: 16 }} />
-          </Box>
-        </Tooltip>
-
         {previewEnabled && (
           <>
             <Box
