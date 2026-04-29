@@ -2,15 +2,18 @@ import { useRef, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Box, Dialog, IconButton, Tooltip } from '@mui/material';
 import pcIcon from '../assets/pc-svgrepo-com.svg';
+import tabletIcon from '../assets/ipad-svgrepo-com.svg';
 import mobileIcon from '../assets/mobile-svgrepo-com.svg';
 import copyIcon from '../assets/copy-success-svgrepo-com.svg';
 import CloseIcon from '@mui/icons-material/Close';
 import PreviewFrame from './PreviewFrame';
 
-type HoverType = 'pc' | 'mobile' | null;
+type HoverType = 'pc' | 'tablet' | 'mobile' | null;
 
-const PC_W = 650;
+const PC_W = 1024;
 const PC_H = Math.round(1080 * (PC_W / 1920));
+const TABLET_W = 500;
+const TABLET_H = Math.round(1024 * (TABLET_W / 768));
 const MOBILE_W = 375;
 const MOBILE_H = 667;
 const MOBILE_SPEED = 2;
@@ -18,7 +21,8 @@ const MOBILE_SPEED = 2;
 const IFRAME_W = 1920;
 const IFRAME_H = 1080;
 
-const MODAL_PC_W = 800;
+const MODAL_PC_W = 1024;
+const MODAL_TABLET_W = 768;
 const MODAL_MOBILE_OUTER_W = 400;
 const MODAL_MOBILE_INNER_W = 375;
 
@@ -171,6 +175,48 @@ function PCModalContent({ src }: { src: string }) {
   );
 }
 
+function TabletModalContent({ src }: { src: string }) {
+  const scale = MODAL_TABLET_W / 768;
+  const IFRAME_W = 768;
+  const IFRAME_H = 1024;
+  const FALLBACK_H = IFRAME_H * 5;
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+    iframe.onload = () => {
+      let contentH = FALLBACK_H;
+      try {
+        const sh = iframe.contentDocument?.documentElement?.scrollHeight ?? 0;
+        if (sh > IFRAME_H) contentH = sh;
+      } catch { /* cross-origin */ }
+      iframe.style.height = `${contentH}px`;
+      if (wrapperRef.current) wrapperRef.current.style.height = `${contentH}px`;
+      if (containerRef.current) containerRef.current.style.height = `${Math.round(contentH * scale)}px`;
+    };
+    return () => { if (iframe) iframe.onload = null; };
+  }, [src, scale]);
+
+  return (
+    <div style={{ width: MODAL_TABLET_W, maxHeight: '80vh', overflowY: 'auto', background: '#fff' }}>
+      <div ref={containerRef} style={{ width: MODAL_TABLET_W, height: Math.round(FALLBACK_H * scale), position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
+        <div ref={wrapperRef} style={{ position: 'absolute', top: 0, left: 0, width: IFRAME_W, height: FALLBACK_H, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+          <iframe
+            ref={iframeRef}
+            src={src}
+            title="Tablet modal preview"
+            style={{ display: 'block', width: IFRAME_W, height: FALLBACK_H, border: 'none', pointerEvents: 'none' }}
+            tabIndex={-1}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function MobileModalContent({ src }: { src: string }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const outerRef = useRef<HTMLDivElement>(null);
@@ -269,6 +315,23 @@ export default function PathPreviewIcons({ path, previewEnabled = true }: Props)
               sx={{
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 p: '4px', borderRadius: '4px',
+                bgcolor: hovered === 'tablet' ? '#066cb3' : 'transparent',
+                cursor: 'pointer', userSelect: 'none',
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={(e) => { setHovered('tablet'); setPos(calcPos(e, TABLET_W, TABLET_H)); }}
+              onMouseLeave={() => setHovered(null)}
+              onMouseMove={(e) => setPos(calcPos(e, TABLET_W, TABLET_H))}
+              onClick={(e) => { e.stopPropagation(); setClicked('tablet'); setHovered(null); }}
+            >
+              <Box component="img" src={tabletIcon} alt="Tablet" sx={{ width: 18, height: 18, filter: hovered === 'tablet' ? 'brightness(0) invert(1)' : 'none', transition: 'filter 0.15s' }} />
+            </Box>
+
+            <Box
+              component="span"
+              sx={{
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                p: '4px', borderRadius: '4px',
                 bgcolor: hovered === 'mobile' ? '#066cb3' : 'transparent',
                 cursor: 'pointer', userSelect: 'none',
                 transition: 'background 0.15s',
@@ -288,6 +351,12 @@ export default function PathPreviewIcons({ path, previewEnabled = true }: Props)
       {hovered === 'pc' && createPortal(
         <Box sx={{ position: 'fixed', zIndex: 9999, left: pos.x, top: pos.y, borderRadius: '8px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.25)', border: '1px solid #ddd', pointerEvents: 'none' }}>
           <PreviewFrame src={path} displayWidth={PC_W} animate />
+        </Box>,
+        document.body
+      )}
+      {hovered === 'tablet' && createPortal(
+        <Box sx={{ position: 'fixed', zIndex: 9999, left: pos.x, top: pos.y, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.3)', border: '1px solid #ddd', pointerEvents: 'none' }}>
+          <PreviewFrame src={path} displayWidth={TABLET_W} iframeWidth={768} iframeHeight={1024} animate />
         </Box>,
         document.body
       )}
@@ -329,6 +398,8 @@ export default function PathPreviewIcons({ path, previewEnabled = true }: Props)
         </IconButton>
         {clicked === 'pc' ? (
           <PCModalContent src={path} />
+        ) : clicked === 'tablet' ? (
+          <TabletModalContent src={path} />
         ) : clicked === 'mobile' ? (
           <MobileModalContent src={path} />
         ) : null}
