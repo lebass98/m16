@@ -108,6 +108,7 @@ export const tableData: TableSection[] = [
             { pageTitle: 'Q&A 게시글 상세 영역(센터 계정)', id: 'FE_NT_0014', depth1: '알림마당', depth2: 'Q&A', depth3: '상세', path: 'https://lebass98.github.io/familynet/fces/sub/FE_NT_0014.html', progressPc: 0, progressMobile: 0, start: '2026.04.21', updatedAt: '', end: '', note: '' },
             { pageTitle: '회원정보 조회 페이지', id: 'FE_MY_0001', depth1: '마이페이지', depth2: '회원정보', depth3: '', path: 'https://lebass98.github.io/familynet/fces/sub/FE_MY_0001.html', progressPc: 0, progressMobile: 0, start: '2026.04.21', updatedAt: '', end: '', note: '' },
             { pageTitle: '비밀번호 변경 페이지', id: 'FE_MY_0002', depth1: '마이페이지', depth2: '비밀번호 변경', depth3: '', path: 'https://lebass98.github.io/familynet/fces/sub/FE_MY_0002.html', progressPc: 0, progressMobile: 0, start: '2026.04.21', updatedAt: '', end: '', note: '' },
+            { pageTitle: '회원정보 수정 페이지(최초로그인후 해당페이지로 이동)', id: 'FE_MY_0003', depth1: '마이페이지', depth2: '회원정보 수정', depth3: '', path: 'https://lebass98.github.io/familynet/fces/sub/FE_MY_0003.html', progressPc: 0, progressMobile: 0, start: '2026.05.07', updatedAt: '', end: '', note: '' },
         ],
     },
 ];
