@@ -34,7 +34,7 @@ export default function App() {
   const [previewEnabled, setPreviewEnabled] = useState(true);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('darkMode') === 'true');
   const [desktopView, setDesktopView] = useState<'list' | 'thumbnail'>(() =>
-    (localStorage.getItem('desktopView') as 'list' | 'thumbnail') || 'list'
+    (localStorage.getItem('desktopView') as 'list' | 'thumbnail') || 'thumbnail'
   );
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
