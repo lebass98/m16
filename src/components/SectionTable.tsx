@@ -262,29 +262,49 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
             border: '1px solid rgba(255, 255, 255, 0.6)',
             boxShadow: '0 4px 16px 0 rgba(31, 38, 135, 0.06)',
             transition: 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease',
+            '& .card-meta, & .card-header': {
+              transition: 'background-color 0.25s ease',
+            },
             '&:hover': {
               transform: 'translateY(-6px) scale(1.02)',
               boxShadow: '0 16px 40px 0 rgba(6, 108, 179, 0.25), 0 4px 12px 0 rgba(31, 38, 135, 0.18)',
               borderColor: 'rgba(6, 108, 179, 0.55)',
               bgcolor: 'rgba(255, 255, 255, 0.7)',
               zIndex: 3,
+              '& .card-meta': {
+                bgcolor: 'rgba(0, 0, 0, 0.06)',
+              },
+              '& .card-header': {
+                bgcolor: '#111',
+                borderBottomColor: '#000',
+              },
+              '& .card-title': {
+                color: '#fff',
+              },
+              '& .card-mode-label': {
+                color: 'rgba(255, 255, 255, 0.85)',
+              },
+              '& .card-badge': {
+                bgcolor: '#fff',
+                color: '#111',
+              },
             },
           }}>
             {/* 헤더: 번호 + 제목 + PC/MO 진행도 */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', p: '8px 12px', bgcolor: 'rgba(255, 255, 255, 0.4)', borderBottom: '1px solid rgba(255, 255, 255, 0.5)', flexShrink: 0 }}>
-              <Box sx={{ flexShrink: 0, width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#333', color: '#fff', borderRadius: '50%', fontSize: 11, fontWeight: 700 }}>
+            <Box className="card-header" sx={{ display: 'flex', alignItems: 'center', gap: '8px', p: '8px 12px', bgcolor: 'rgba(255, 255, 255, 0.4)', borderBottom: '1px solid rgba(255, 255, 255, 0.5)', flexShrink: 0 }}>
+              <Box className="card-badge" sx={{ flexShrink: 0, width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#333', color: '#fff', borderRadius: '50%', fontSize: 11, fontWeight: 700, transition: 'background-color 0.25s ease, color 0.25s ease' }}>
                 {j + 1}
               </Box>
-              <Typography sx={{ flex: 1, fontSize: 13, fontWeight: 600, color: '#111', wordBreak: 'break-all', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={item.pageTitle || item.id}>
+              <Typography className="card-title" sx={{ flex: 1, fontSize: 13, fontWeight: 600, color: '#111', wordBreak: 'break-all', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', transition: 'color 0.25s ease' }} title={item.pageTitle || item.id}>
                 {item.pageTitle || item.id}
               </Typography>
               <Box sx={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                  <Typography sx={{ fontSize: 9, color: '#666', lineHeight: 1 }}>PC</Typography>
+                  <Typography className="card-mode-label" sx={{ fontSize: 9, color: '#666', lineHeight: 1, transition: 'color 0.25s ease' }}>PC</Typography>
                   <ProgressBar value={item.progressPc} />
                 </Box>
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                  <Typography sx={{ fontSize: 9, color: '#666', lineHeight: 1 }}>MO</Typography>
+                  <Typography className="card-mode-label" sx={{ fontSize: 9, color: '#666', lineHeight: 1, transition: 'color 0.25s ease' }}>MO</Typography>
                   <ProgressBar value={item.progressMobile} />
                 </Box>
               </Box>
@@ -314,7 +334,7 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
             </Box>
 
             {/* 메타 정보 */}
-            <Box sx={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: '4px', p: '10px 12px', bgcolor: 'rgba(255, 255, 255, 0.4)', borderTop: '1px solid rgba(255, 255, 255, 0.5)' }}>
+            <Box className="card-meta" sx={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: '4px', p: '10px 12px', bgcolor: 'rgba(255, 255, 255, 0.4)', borderTop: '1px solid rgba(255, 255, 255, 0.5)' }}>
               {item.path && previewEnabled && (
                 <Box sx={{ position: 'absolute', top: 6, right: 6, zIndex: 2 }}>
                   <PathPreviewIcons path={item.path} previewEnabled={previewEnabled} />
