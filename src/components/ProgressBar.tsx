@@ -15,10 +15,11 @@ export default function ProgressBar({ value }: Props) {
           bgcolor: '#22c55e',
           color: '#fff',
           fontWeight: 700,
-          fontSize: 12,
-          height: 22,
+          fontSize: 10,
+          height: 16,
           display: 'flex',
           mx: 'auto',
+          '& .MuiChip-label': { px: '6px' },
         }}
       />
     );
@@ -34,7 +35,7 @@ export default function ProgressBar({ value }: Props) {
           component="span"
           sx={{
             display: 'block',
-            width: 12,
+            width: 6,
             height: 16,
             borderRadius: '3px',
             bgcolor: i < filled ? '#066cb3' : '#e0e0e0',

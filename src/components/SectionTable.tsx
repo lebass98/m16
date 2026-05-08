@@ -261,10 +261,13 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
             WebkitBackdropFilter: 'blur(16px)',
             border: '1px solid rgba(255, 255, 255, 0.6)',
             boxShadow: '0 4px 16px 0 rgba(31, 38, 135, 0.06)',
-            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            transition: 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease',
             '&:hover': {
-              transform: 'translateY(-2px)',
-              boxShadow: '0 8px 24px 0 rgba(31, 38, 135, 0.12)',
+              transform: 'translateY(-6px) scale(1.02)',
+              boxShadow: '0 16px 40px 0 rgba(6, 108, 179, 0.25), 0 4px 12px 0 rgba(31, 38, 135, 0.18)',
+              borderColor: 'rgba(6, 108, 179, 0.55)',
+              bgcolor: 'rgba(255, 255, 255, 0.7)',
+              zIndex: 3,
             },
           }}>
             {/* 헤더: 번호 + 제목 + PC/MO 진행도 */}
@@ -290,9 +293,19 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
             {/* 썸네일 미리보기 */}
             <Box sx={{ position: 'relative', aspectRatio: '16 / 10', overflow: 'hidden', bgcolor: '#f5f5f5' }}>
               {item.path ? (
-                <Box sx={{ position: 'absolute', inset: 0 }}>
-                  <PreviewFrame src={item.path} displayWidth="100%" fillHeight iframeWidth={1920} iframeHeight={1080} />
-                </Box>
+                <>
+                  <Box sx={{ position: 'absolute', inset: 0 }}>
+                    <PreviewFrame src={item.path} displayWidth="100%" fillHeight iframeWidth={1920} iframeHeight={1080} />
+                  </Box>
+                  <Box
+                    component="a"
+                    href={item.path}
+                    target="_blank"
+                    rel="noreferrer"
+                    title={item.path}
+                    sx={{ position: 'absolute', inset: 0, zIndex: 2, cursor: 'pointer', display: 'block' }}
+                  />
+                </>
               ) : (
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#999', fontSize: 12 }}>
                   미리보기 없음
@@ -332,14 +345,14 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
               )}
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '4px 10px', pt: '2px' }}>
                 {item.start && (
-                  <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                    <Typography sx={{ color: '#888', fontSize: 11 }}>생성</Typography>
+                  <Box sx={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    <Typography sx={{ flexShrink: 0, color: '#888', fontSize: 11, width: 40 }}>생성</Typography>
                     <Typography sx={{ fontSize: 12, ...(item.start === latestDate ? emphasisSx : { color: '#222' }) }}>{item.start}</Typography>
                   </Box>
                 )}
                 {item.updatedAt && (
-                  <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                    <Typography sx={{ color: '#888', fontSize: 11 }}>업뎃</Typography>
+                  <Box sx={{ display: 'flex', gap: '6px', alignItems: 'center', marginLeft: 'auto' }}>
+                    <Typography sx={{ flexShrink: 0, color: '#888', fontSize: 11, width: 40 }}>업뎃</Typography>
                     <Typography sx={{ fontSize: 12, ...(item.updatedAt === latestDate ? emphasisSx : { color: '#222' }) }}>{item.updatedAt}</Typography>
                   </Box>
                 )}
