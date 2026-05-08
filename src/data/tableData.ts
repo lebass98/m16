@@ -36,6 +36,7 @@ export const tableData: TableSection[] = [
         depth1: '가족센터 평가시스템 기능개발',
         data: [
             { pageTitle: '평가하기 메인페이지', id: 'FE_SE_0000', depth1: '메인페이지', depth2: '', depth3: '', path: 'https://lebass98.github.io/familynet/fces/index.html', progressPc: 100, progressMobile: 80, start: '2026.04.21', updatedAt: '2026.04.28', end: '', note: '' },
+            { pageTitle: '로그인 페이지', id: 'FE_LG_0001', depth1: '로그인', depth2: '', depth3: '', path: 'https://lebass98.github.io/familynet/fces/login.html', progressPc: 100, progressMobile: 100, start: '2026.05.07', updatedAt: '2026.05.07', end: '', note: '' },
             { pageTitle: '평가하기 페이지', id: 'FE_SE_0001', depth1: '자체평가', depth2: '평가하기', depth3: '', path: 'https://lebass98.github.io/familynet/fces/sub/FE_SE_0001.html', progressPc: 100, progressMobile: 80, start: '2026.04.21', updatedAt: '2026.04.29', end: '', note: '' },
             { pageTitle: '평가하기 페이지', id: 'FE_SE_0001-1', depth1: '자체평가', depth2: '평가하기', depth3: '', path: 'https://lebass98.github.io/familynet/fces/sub/FE_SE_0001-1.html', progressPc: 100, progressMobile: 80, start: '2026.04.21', updatedAt: '2026.04.29', end: '', note: '예시 화면' },
             { pageTitle: '보완사유 모달창', id: 'FE_SE_0002', depth1: '자체평가', depth2: '평가하기', depth3: '', path: 'https://lebass98.github.io/familynet/fces/sub/FE_SE_0002.html', progressPc: 100, progressMobile: 80, start: '2026.04.21', updatedAt: '2026.04.29', end: '', note: '' },
