@@ -298,15 +298,15 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
                   미리보기 없음
                 </Box>
               )}
-              {item.path && (
-                <Box sx={{ position: 'absolute', top: 6, right: 6, display: 'flex', gap: '4px', zIndex: 2 }}>
-                  <PathPreviewIcons path={item.path} previewEnabled={previewEnabled} />
-                </Box>
-              )}
             </Box>
 
             {/* 메타 정보 */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px', p: '10px 12px', bgcolor: 'rgba(255, 255, 255, 0.4)', borderTop: '1px solid rgba(255, 255, 255, 0.5)' }}>
+            <Box sx={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: '4px', p: '10px 12px', bgcolor: 'rgba(255, 255, 255, 0.4)', borderTop: '1px solid rgba(255, 255, 255, 0.5)' }}>
+              {item.path && previewEnabled && (
+                <Box sx={{ position: 'absolute', top: 6, right: 6, zIndex: 2 }}>
+                  <PathPreviewIcons path={item.path} previewEnabled={previewEnabled} />
+                </Box>
+              )}
               {item.id && (
                 <Box sx={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
                   <Typography sx={{ flexShrink: 0, color: '#888', fontSize: 11, width: 40 }}>ID</Typography>
