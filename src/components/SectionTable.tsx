@@ -292,7 +292,7 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
           }}>
             {/* 헤더: 번호 + 제목 + PC/MO 진행도 */}
             <Box className="card-header" sx={{ display: 'flex', alignItems: 'center', gap: '8px', p: '8px 12px', bgcolor: 'rgba(255, 255, 255, 0.4)', borderBottom: '1px solid rgba(255, 255, 255, 0.5)', flexShrink: 0 }}>
-              <Box className="card-badge" sx={{ flexShrink: 0, width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#333', color: '#fff', borderRadius: '50%', fontSize: 11, fontWeight: 700, transition: 'background-color 0.25s ease, color 0.25s ease' }}>
+              <Box className="card-badge" sx={{ flexShrink: 0, width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#333', color: '#fff', borderRadius: '50%', fontSize: 11, fontWeight: 700, lineHeight: 1, transition: 'background-color 0.25s ease, color 0.25s ease' }}>
                 {j + 1}
               </Box>
               <Typography className="card-title" sx={{ flex: 1, fontSize: 13, fontWeight: 600, color: '#111', wordBreak: 'break-all', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', transition: 'color 0.25s ease' }} title={item.pageTitle || item.id}>
