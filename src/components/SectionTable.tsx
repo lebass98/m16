@@ -341,23 +341,23 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
                 </Box>
               )}
               {item.id && (
-                <Box sx={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
-                  <Typography sx={{ flexShrink: 0, color: '#888', fontSize: 11, width: 40 }}>ID</Typography>
-                  <Typography sx={{ flex: 1, color: '#222', wordBreak: 'break-all', fontSize: 12 }}>{item.id}</Typography>
+                <Box sx={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <Typography sx={{ flexShrink: 0, color: '#888', fontSize: 12, lineHeight: 1.4, width: 40 }}>ID</Typography>
+                  <Typography sx={{ flex: 1, color: '#222', wordBreak: 'break-all', fontSize: 12, lineHeight: 1.4 }}>{item.id}</Typography>
                 </Box>
               )}
               {(item.depth1 || item.depth2 || item.depth3) && (
-                <Box sx={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
-                  <Typography sx={{ flexShrink: 0, color: '#888', fontSize: 11, width: 40 }}>메뉴</Typography>
-                  <Typography sx={{ flex: 1, color: '#222', wordBreak: 'break-all', fontSize: 12 }}>
+                <Box sx={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <Typography sx={{ flexShrink: 0, color: '#888', fontSize: 12, lineHeight: 1.4, width: 40 }}>메뉴</Typography>
+                  <Typography sx={{ flex: 1, color: '#222', wordBreak: 'break-all', fontSize: 12, lineHeight: 1.4 }}>
                     {[item.depth1, item.depth2, item.depth3].filter(Boolean).join(' > ')}
                   </Typography>
                 </Box>
               )}
               {item.path && (
                 <Box sx={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                  <Typography sx={{ flexShrink: 0, color: '#888', fontSize: 11, width: 40 }}>경로</Typography>
-                  <Box component="a" href={item.path} target="_blank" rel="noreferrer" sx={{ flex: 1, color: '#066cb3', textDecoration: 'none', wordBreak: 'break-all', fontSize: 12, '&:hover': { textDecoration: 'underline' } }}>
+                  <Typography sx={{ flexShrink: 0, color: '#888', fontSize: 12, lineHeight: 1.4, width: 40 }}>경로</Typography>
+                  <Box component="a" href={item.path} target="_blank" rel="noreferrer" sx={{ flex: 1, color: '#066cb3', textDecoration: 'none', wordBreak: 'break-all', fontSize: 12, lineHeight: 1.4, '&:hover': { textDecoration: 'underline' } }}>
                     {(() => { try { return new URL(item.path).pathname; } catch { return item.path; } })()}
                   </Box>
                   <CopyPathButton path={item.path} />
@@ -366,27 +366,27 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '4px 10px', pt: '2px' }}>
                 {item.start && (
                   <Box sx={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                    <Typography sx={{ flexShrink: 0, color: '#888', fontSize: 11, width: 40 }}>생성</Typography>
-                    <Typography sx={{ fontSize: 12, ...(item.start === latestDate ? emphasisSx : { color: '#222' }) }}>{item.start}</Typography>
+                    <Typography sx={{ flexShrink: 0, color: '#888', fontSize: 12, lineHeight: 1.4, width: 40 }}>생성</Typography>
+                    <Typography sx={{ fontSize: 12, lineHeight: 1.4, ...(item.start === latestDate ? emphasisSx : { color: '#222' }) }}>{item.start}</Typography>
                   </Box>
                 )}
                 {item.updatedAt && (
                   <Box sx={{ display: 'flex', gap: '6px', alignItems: 'center', marginLeft: 'auto' }}>
-                    <Typography sx={{ flexShrink: 0, color: '#888', fontSize: 11, width: 40 }}>업뎃</Typography>
-                    <Typography sx={{ fontSize: 12, ...(item.updatedAt === latestDate ? emphasisSx : { color: '#222' }) }}>{item.updatedAt}</Typography>
+                    <Typography sx={{ flexShrink: 0, color: '#888', fontSize: 12, lineHeight: 1.4, width: 40 }}>업뎃</Typography>
+                    <Typography sx={{ fontSize: 12, lineHeight: 1.4, ...(item.updatedAt === latestDate ? emphasisSx : { color: '#222' }) }}>{item.updatedAt}</Typography>
                   </Box>
                 )}
                 {item.end && (
                   <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                    <Typography sx={{ color: '#888', fontSize: 11 }}>완료</Typography>
-                    <Typography sx={{ fontSize: 12, ...(item.end === latestDate ? emphasisSx : { color: '#222' }) }}>{item.end}</Typography>
+                    <Typography sx={{ color: '#888', fontSize: 12, lineHeight: 1.4 }}>완료</Typography>
+                    <Typography sx={{ fontSize: 12, lineHeight: 1.4, ...(item.end === latestDate ? emphasisSx : { color: '#222' }) }}>{item.end}</Typography>
                   </Box>
                 )}
               </Box>
               {item.note && (
-                <Box sx={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
-                  <Typography sx={{ flexShrink: 0, color: '#888', fontSize: 11, width: 40 }}>비고</Typography>
-                  <Typography sx={{ flex: 1, color: '#222', wordBreak: 'break-all', fontSize: 12 }}>{item.note}</Typography>
+                <Box sx={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <Typography sx={{ flexShrink: 0, color: '#888', fontSize: 12, lineHeight: 1.4, width: 40 }}>비고</Typography>
+                  <Typography sx={{ flex: 1, color: '#222', wordBreak: 'break-all', fontSize: 12, lineHeight: 1.4 }}>{item.note}</Typography>
                 </Box>
               )}
             </Box>
@@ -469,13 +469,13 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
               {previewEnabled ? (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px', p: '10px 12px' }}>
                   {item.id && (
-                    <Box sx={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
+                    <Box sx={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                       <Typography sx={{ flexShrink: 0, mr: '10px', color: '#888', fontSize: 12 }}>ID</Typography>
                       <Typography sx={{ flex: 1, color: '#222', wordBreak: 'break-all', fontSize: 13 }}>{item.id}</Typography>
                     </Box>
                   )}
                   {(item.depth1 || item.depth2 || item.depth3) && (
-                    <Box sx={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
+                    <Box sx={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                       <Typography sx={{ flexShrink: 0, mr: '10px', color: '#888', fontSize: 12 }}>메뉴</Typography>
                       <Typography sx={{ flex: 1, color: '#222', wordBreak: 'break-all', fontSize: 13 }}>
                         {[item.depth1, item.depth2, item.depth3].filter(Boolean).join(' > ')}
@@ -512,7 +512,7 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
                     )}
                   </Box>
                   {item.note && (
-                    <Box sx={{ display: 'flex', gap: '6px', alignItems: 'flex-start', mt: '2px' }}>
+                    <Box sx={{ display: 'flex', gap: '6px', alignItems: 'center', mt: '2px' }}>
                       <Typography sx={{ flexShrink: 0, mr: '10px', color: '#888', fontSize: 12 }}>비고</Typography>
                       <Typography sx={{ flex: 1, color: '#222', wordBreak: 'break-all', fontSize: 13 }}>{item.note}</Typography>
                     </Box>
