@@ -267,8 +267,8 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
             },
             '&:hover': {
               transform: 'translateY(-6px) scale(1.02)',
-              boxShadow: '0 16px 40px 0 rgba(6, 108, 179, 0.25), 0 4px 12px 0 rgba(31, 38, 135, 0.18)',
-              borderColor: 'rgba(6, 108, 179, 0.55)',
+              boxShadow: '0 16px 40px 0 rgba(0, 0, 0, 0.35), 0 4px 12px 0 rgba(0, 0, 0, 0.25)',
+              borderColor: 'transparent',
               bgcolor: 'rgba(255, 255, 255, 0.7)',
               zIndex: 3,
               '& .card-meta': {
@@ -334,7 +334,7 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
             </Box>
 
             {/* 메타 정보 */}
-            <Box className="card-meta" sx={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: '4px', p: '10px 12px', bgcolor: 'rgba(255, 255, 255, 0.4)', borderTop: '1px solid rgba(255, 255, 255, 0.5)' }}>
+            <Box className="card-meta" sx={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: '4px', p: '10px 12px', bgcolor: '#eee', borderTop: '1px solid rgba(255, 255, 255, 0.5)' }}>
               {item.path && previewEnabled && (
                 <Box sx={{ position: 'absolute', top: 6, right: 6, zIndex: 2 }}>
                   <PathPreviewIcons path={item.path} previewEnabled={previewEnabled} />
