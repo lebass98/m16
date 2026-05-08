@@ -13,11 +13,12 @@ interface Props {
   onHeaderClick?: () => void;
   hideUi?: boolean;
   previewEnabled?: boolean;
+  viewMode?: 'list' | 'thumbnail';
 }
 
 const emphasisSx = { fontWeight: 700, color: '#ff706e' };
 
-export default function SectionTable({ section, sectionIndex, latestDate, onHeaderClick, hideUi = false, previewEnabled = true }: Props) {
+export default function SectionTable({ section, sectionIndex, latestDate, onHeaderClick, hideUi = false, previewEnabled = true, viewMode = 'list' }: Props) {
   const hasDepth1 = section.data.some(item => item.depth1);
   const hasDepth2 = section.data.some(item => item.depth2);
   const hasDepth3 = section.data.some(item => item.depth3);
@@ -194,8 +195,8 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
         <Box component="span" sx={{ display: { xs: 'inline-block', md: 'none' }, fontSize: 12, opacity: 0.7 }}>▼</Box>
       </Typography>
 
-      {/* 데스크탑: DataGrid */}
-      <Box sx={{ display: { xs: 'none', md: 'block' }, width: '100%' }}>
+      {/* 데스크탑: DataGrid (리스트형) */}
+      <Box sx={{ display: { xs: 'none', md: viewMode === 'list' ? 'block' : 'none' }, width: '100%' }}>
         <DataGrid
           rows={rows}
           columns={columns}
@@ -240,6 +241,124 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
             '& .cell-emphasis': emphasisSx,
           }}
         />
+      </Box>
+
+      {/* 데스크탑: 썸네일 그리드 */}
+      <Box sx={{
+        display: { xs: 'none', md: viewMode === 'thumbnail' ? 'grid' : 'none' },
+        gridTemplateColumns: { md: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)', xl: 'repeat(4, 1fr)' },
+        gap: '12px',
+        p: '12px',
+      }}>
+        {section.data.map((item, j) => (
+          <Card key={j} variant="outlined" sx={{
+            borderRadius: '12px',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            bgcolor: 'rgba(255, 255, 255, 0.45)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            border: '1px solid rgba(255, 255, 255, 0.6)',
+            boxShadow: '0 4px 16px 0 rgba(31, 38, 135, 0.06)',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            '&:hover': {
+              transform: 'translateY(-2px)',
+              boxShadow: '0 8px 24px 0 rgba(31, 38, 135, 0.12)',
+            },
+          }}>
+            {/* 헤더: 번호 + 제목 + PC/MO 진행도 */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', p: '8px 12px', bgcolor: 'rgba(255, 255, 255, 0.4)', borderBottom: '1px solid rgba(255, 255, 255, 0.5)', flexShrink: 0 }}>
+              <Box sx={{ flexShrink: 0, width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#333', color: '#fff', borderRadius: '50%', fontSize: 11, fontWeight: 700 }}>
+                {j + 1}
+              </Box>
+              <Typography sx={{ flex: 1, fontSize: 13, fontWeight: 600, color: '#111', wordBreak: 'break-all', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={item.pageTitle || item.id}>
+                {item.pageTitle || item.id}
+              </Typography>
+              <Box sx={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                  <Typography sx={{ fontSize: 9, color: '#666', lineHeight: 1 }}>PC</Typography>
+                  <ProgressBar value={item.progressPc} />
+                </Box>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                  <Typography sx={{ fontSize: 9, color: '#666', lineHeight: 1 }}>MO</Typography>
+                  <ProgressBar value={item.progressMobile} />
+                </Box>
+              </Box>
+            </Box>
+
+            {/* 썸네일 미리보기 */}
+            <Box sx={{ position: 'relative', aspectRatio: '16 / 10', overflow: 'hidden', bgcolor: '#f5f5f5' }}>
+              {item.path ? (
+                <Box sx={{ position: 'absolute', inset: 0 }}>
+                  <PreviewFrame src={item.path} displayWidth="100%" fillHeight iframeWidth={1920} iframeHeight={1080} />
+                </Box>
+              ) : (
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#999', fontSize: 12 }}>
+                  미리보기 없음
+                </Box>
+              )}
+              {item.path && (
+                <Box sx={{ position: 'absolute', top: 6, right: 6, display: 'flex', gap: '4px', zIndex: 2 }}>
+                  <PathPreviewIcons path={item.path} previewEnabled={previewEnabled} />
+                </Box>
+              )}
+            </Box>
+
+            {/* 메타 정보 */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px', p: '10px 12px', bgcolor: 'rgba(255, 255, 255, 0.4)', borderTop: '1px solid rgba(255, 255, 255, 0.5)' }}>
+              {item.id && (
+                <Box sx={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
+                  <Typography sx={{ flexShrink: 0, color: '#888', fontSize: 11, width: 40 }}>ID</Typography>
+                  <Typography sx={{ flex: 1, color: '#222', wordBreak: 'break-all', fontSize: 12 }}>{item.id}</Typography>
+                </Box>
+              )}
+              {(item.depth1 || item.depth2 || item.depth3) && (
+                <Box sx={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
+                  <Typography sx={{ flexShrink: 0, color: '#888', fontSize: 11, width: 40 }}>메뉴</Typography>
+                  <Typography sx={{ flex: 1, color: '#222', wordBreak: 'break-all', fontSize: 12 }}>
+                    {[item.depth1, item.depth2, item.depth3].filter(Boolean).join(' > ')}
+                  </Typography>
+                </Box>
+              )}
+              {item.path && (
+                <Box sx={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <Typography sx={{ flexShrink: 0, color: '#888', fontSize: 11, width: 40 }}>경로</Typography>
+                  <Box component="a" href={item.path} target="_blank" rel="noreferrer" sx={{ flex: 1, color: '#066cb3', textDecoration: 'none', wordBreak: 'break-all', fontSize: 12, '&:hover': { textDecoration: 'underline' } }}>
+                    {(() => { try { return new URL(item.path).pathname; } catch { return item.path; } })()}
+                  </Box>
+                  <CopyPathButton path={item.path} />
+                </Box>
+              )}
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '4px 10px', pt: '2px' }}>
+                {item.start && (
+                  <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                    <Typography sx={{ color: '#888', fontSize: 11 }}>생성</Typography>
+                    <Typography sx={{ fontSize: 12, ...(item.start === latestDate ? emphasisSx : { color: '#222' }) }}>{item.start}</Typography>
+                  </Box>
+                )}
+                {item.updatedAt && (
+                  <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                    <Typography sx={{ color: '#888', fontSize: 11 }}>업뎃</Typography>
+                    <Typography sx={{ fontSize: 12, ...(item.updatedAt === latestDate ? emphasisSx : { color: '#222' }) }}>{item.updatedAt}</Typography>
+                  </Box>
+                )}
+                {item.end && (
+                  <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                    <Typography sx={{ color: '#888', fontSize: 11 }}>완료</Typography>
+                    <Typography sx={{ fontSize: 12, ...(item.end === latestDate ? emphasisSx : { color: '#222' }) }}>{item.end}</Typography>
+                  </Box>
+                )}
+              </Box>
+              {item.note && (
+                <Box sx={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
+                  <Typography sx={{ flexShrink: 0, color: '#888', fontSize: 11, width: 40 }}>비고</Typography>
+                  <Typography sx={{ flex: 1, color: '#222', wordBreak: 'break-all', fontSize: 12 }}>{item.note}</Typography>
+                </Box>
+              )}
+            </Box>
+          </Card>
+        ))}
       </Box>
 
       {/* 모바일: 카드 */}

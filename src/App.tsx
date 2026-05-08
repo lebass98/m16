@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
-import { Box, Typography, Dialog, List, ListItem, ListItemButton, ListItemText, Switch, IconButton, TextField, InputAdornment, LinearProgress } from '@mui/material';
+import { Box, Typography, Dialog, List, ListItem, ListItemButton, ListItemText, Switch, IconButton, TextField, InputAdornment, LinearProgress, ToggleButtonGroup, ToggleButton } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import SearchIcon from '@mui/icons-material/Search';
@@ -7,6 +7,8 @@ import BarChartIcon from '@mui/icons-material/BarChart';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import CloseIcon from '@mui/icons-material/Close';
+import ViewListIcon from '@mui/icons-material/ViewList';
+import GridViewIcon from '@mui/icons-material/GridView';
 import { sites } from './data/sites';
 import SectionTable from './components/SectionTable';
 import MobileCard from './components/MobileCard';
@@ -31,6 +33,9 @@ export default function App() {
   const [hideUi, setHideUi] = useState(false);
   const [previewEnabled, setPreviewEnabled] = useState(true);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('darkMode') === 'true');
+  const [desktopView, setDesktopView] = useState<'list' | 'thumbnail'>(() =>
+    (localStorage.getItem('desktopView') as 'list' | 'thumbnail') || 'list'
+  );
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [dashboardOpen, setDashboardOpen] = useState(false);
@@ -38,6 +43,7 @@ export default function App() {
   const flatLengthRef = useRef(0);
 
   useEffect(() => { localStorage.setItem('darkMode', String(darkMode)); }, [darkMode]);
+  useEffect(() => { localStorage.setItem('desktopView', desktopView); }, [desktopView]);
 
   const theme = useMemo(() => createTheme({ palette: { mode: darkMode ? 'dark' : 'light' } }), [darkMode]);
 
@@ -212,8 +218,49 @@ export default function App() {
 
         {/* 데스크탑 */}
         <Box sx={{ display: { xs: 'none', md: 'flex' }, flexDirection: 'column', gap: '10px' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: '4px' }}>
+            <ToggleButtonGroup
+              size="small"
+              value={desktopView}
+              exclusive
+              onChange={(_, v) => { if (v) setDesktopView(v); }}
+              sx={{
+                bgcolor: darkMode ? 'rgba(30,30,50,0.85)' : 'rgba(255,255,255,0.75)',
+                backdropFilter: 'blur(8px)',
+                borderRadius: '20px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                border: darkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.08)',
+                p: '2px',
+                '& .MuiToggleButton-root': {
+                  border: 'none',
+                  borderRadius: '18px !important',
+                  px: '12px',
+                  py: '4px',
+                  fontSize: 12,
+                  fontWeight: 500,
+                  textTransform: 'none',
+                  color: darkMode ? 'rgba(255,255,255,0.7)' : '#555',
+                  gap: '6px',
+                  '&.Mui-selected': {
+                    bgcolor: '#4a7ab5',
+                    color: '#fff',
+                    '&:hover': { bgcolor: '#3d6699' },
+                  },
+                },
+              }}
+            >
+              <ToggleButton value="list">
+                <ViewListIcon sx={{ fontSize: 16 }} />
+                리스트형
+              </ToggleButton>
+              <ToggleButton value="thumbnail">
+                <GridViewIcon sx={{ fontSize: 16 }} />
+                썸네일형
+              </ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
           {tableData.map((section, i) => (
-            <SectionTable key={i} section={section} sectionIndex={i} latestDate={latestDate} previewEnabled={previewEnabled} />
+            <SectionTable key={i} section={section} sectionIndex={i} latestDate={latestDate} previewEnabled={previewEnabled} viewMode={desktopView} />
           ))}
         </Box>
 
