@@ -256,6 +256,7 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
+            justifyContent: 'space-between',
             bgcolor: 'rgba(255, 255, 255, 0.45)',
             backdropFilter: 'blur(16px)',
             WebkitBackdropFilter: 'blur(16px)',
