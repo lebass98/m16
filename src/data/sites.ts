@@ -1,6 +1,6 @@
 import type { TableSection } from '../types';
 import { tableData } from './tableData';
-import { tableDataEpaa } from './tableData_epaa';
+// import { tableDataEpaa } from './tableData_epaa';
 
 export interface SiteConfig {
   key: string;
