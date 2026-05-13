@@ -13,7 +13,7 @@ type HoverType = 'pc' | 'tablet' | 'mobile' | null;
 const PC_W = 1024;
 const PC_H = Math.round(1080 * (PC_W / 1920));
 const TABLET_W = 500;
-const TABLET_H = Math.round(1024 * (TABLET_W / 768));
+const TABLET_H = Math.round(TABLET_W * (768 / 1024));
 const MOBILE_W = 375;
 const MOBILE_H = 667;
 const MOBILE_SPEED = 2;
@@ -21,8 +21,8 @@ const MOBILE_SPEED = 2;
 const IFRAME_W = 1920;
 const IFRAME_H = 1080;
 
-const MODAL_PC_W = 1024;
-const MODAL_TABLET_W = 768;
+const MODAL_PC_W = 1280;
+const MODAL_TABLET_W = 1024;
 const MODAL_MOBILE_OUTER_W = 400;
 const MODAL_MOBILE_INNER_W = 375;
 
@@ -176,9 +176,9 @@ function PCModalContent({ src }: { src: string }) {
 }
 
 function TabletModalContent({ src }: { src: string }) {
-  const scale = MODAL_TABLET_W / 768;
-  const IFRAME_W = 768;
-  const IFRAME_H = 1024;
+  const IFRAME_W = 1024;
+  const IFRAME_H = 768;
+  const scale = MODAL_TABLET_W / IFRAME_W;
   const FALLBACK_H = IFRAME_H * 5;
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -360,7 +360,7 @@ export default function PathPreviewIcons({ path, previewEnabled = true }: Props)
       )}
       {hovered === 'tablet' && createPortal(
         <Box sx={{ position: 'fixed', zIndex: 9999, left: pos.x, top: pos.y, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.3)', border: '1px solid #ddd', pointerEvents: 'none' }}>
-          <PreviewFrame src={path} displayWidth={TABLET_W} iframeWidth={768} iframeHeight={1024} animate />
+          <PreviewFrame src={path} displayWidth={TABLET_W} iframeWidth={1024} iframeHeight={768} animate />
         </Box>,
         document.body
       )}
