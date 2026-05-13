@@ -12,7 +12,7 @@ type HoverType = 'pc' | 'tablet' | 'mobile' | null;
 
 const PC_W = 1024;
 const PC_H = Math.round(1080 * (PC_W / 1920));
-const TABLET_W = 500;
+const TABLET_W = 768;
 const TABLET_H = Math.round(TABLET_W * (768 / 1024));
 const MOBILE_W = 375;
 const MOBILE_H = 667;
