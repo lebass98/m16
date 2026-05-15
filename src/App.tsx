@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
-import { Box, Typography, Dialog, List, ListItem, ListItemButton, ListItemText, Switch, IconButton, TextField, InputAdornment, LinearProgress, ToggleButtonGroup, ToggleButton } from '@mui/material';
+import { Box, Typography, Dialog, List, ListItem, ListItemButton, ListItemText, IconButton, TextField, InputAdornment, LinearProgress, ToggleButtonGroup, ToggleButton } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import SearchIcon from '@mui/icons-material/Search';
@@ -32,6 +32,7 @@ export default function App() {
   const [modalOpen, setModalOpen] = useState(false);
   const [hideUi, setHideUi] = useState(false);
   const [previewEnabled, setPreviewEnabled] = useState(true);
+  const [showIncomplete, setShowIncomplete] = useState(false);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('darkMode') === 'true');
   const [desktopView, setDesktopView] = useState<'list' | 'thumbnail'>(() =>
     (localStorage.getItem('desktopView') as 'list' | 'thumbnail') || 'thumbnail'
@@ -49,7 +50,13 @@ export default function App() {
 
   const site = sites[siteIndex];
   const siteColor = site.color ?? '#4a7ab5';
-  const tableData = site.data;
+  const rawTableData = site.data;
+  const tableData = useMemo(() => {
+    if (showIncomplete) return rawTableData;
+    return rawTableData
+      .map(section => ({ ...section, data: section.data.filter(item => (item.progressPc ?? 0) !== 0) }))
+      .filter(section => section.data.length > 0);
+  }, [rawTableData, showIncomplete]);
 
   const flatCards = useMemo(() =>
     tableData.flatMap((section, si) =>
@@ -169,6 +176,23 @@ export default function App() {
     bgcolor: darkMode ? 'rgba(30,30,50,0.85)' : 'rgba(255,255,255,0.75)',
     border: darkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
   };
+  const toggleBtnSx = (active: boolean) => ({
+    border: 'none',
+    cursor: 'pointer',
+    px: '12px',
+    py: '5px',
+    borderRadius: '14px',
+    fontSize: { xs: 11, md: 12 },
+    fontWeight: 600,
+    fontFamily: 'inherit',
+    lineHeight: 1.2,
+    bgcolor: active ? '#4a7ab5' : 'transparent',
+    color: active ? '#fff' : (darkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'),
+    transition: 'background 0.15s, color 0.15s',
+    '&:hover': {
+      bgcolor: active ? '#3d6699' : (darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'),
+    },
+  });
 
   return (
     <ThemeProvider theme={theme}>
@@ -188,15 +212,10 @@ export default function App() {
           </IconButton>
         </Box>
 
-        {/* 우상단 미리보기 토글 */}
-        <Box sx={{ display: 'flex', position: 'fixed', top: { xs: 6, md: 12 }, right: { xs: 10, md: 20 }, zIndex: 1200, alignItems: 'center', gap: '4px', backdropFilter: 'blur(8px)', borderRadius: '20px', px: '8px', py: '2px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', ...ctrlPanelSx }}>
-          <Typography sx={{ fontSize: { xs: 11, md: 13 }, color: darkMode ? 'rgba(255,255,255,0.7)' : '#555', lineHeight: 1, userSelect: 'none' }}>미리보기</Typography>
-          <Switch
-            checked={previewEnabled}
-            onChange={(e) => setPreviewEnabled(e.target.checked)}
-            size="small"
-            sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: '#7c9fd4' }, '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: '#4a7ab5' } }}
-          />
+        {/* 우상단 토글 (미리보기 / 미완료 보기) */}
+        <Box sx={{ display: 'flex', position: 'fixed', top: { xs: 6, md: 12 }, right: { xs: 10, md: 20 }, zIndex: 1200, alignItems: 'center', gap: '4px', backdropFilter: 'blur(8px)', borderRadius: '20px', px: '4px', py: '3px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', ...ctrlPanelSx }}>
+          <Box component="button" type="button" onClick={() => setPreviewEnabled(p => !p)} sx={toggleBtnSx(previewEnabled)}>미리보기</Box>
+          <Box component="button" type="button" onClick={() => setShowIncomplete(s => !s)} sx={toggleBtnSx(showIncomplete)}>미완료 보기</Box>
         </Box>
 
         {/* 타이틀 */}
