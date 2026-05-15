@@ -1,37 +1,38 @@
 import type { TableSection } from '../types';
 
 export const tableData: TableSection[] = [
-    {
-        depth1: '패밀리넷',
-        data: [
-            {
-                pageTitle: '메인화면',
-                id: 'familynet_main',
-                depth1: '메인',
-                depth2: '',
-                depth3: '',
-                path: 'https://lebass98.github.io/familynet/',
-                progressPc: 100, progressMobile: 100,
-                start: '2024.06.14',
-                updatedAt: '2024.06.20',
-                end: '',
-                note: '',
-            },
-            {
-                pageTitle: '서브페이지(샘플)',
-                id: 'familynet_sub',
-                depth1: '메인',
-                depth2: '',
-                depth3: '',
-                path: 'https://lebass98.github.io/familynet/sub.html',
-                progressPc: 100, progressMobile: 100,
-                start: '2024.06.14',
-                updatedAt: '2024.06.20',
-                end: '',
-                note: '',
-            },
-        ],
-    },
+    // 패밀리넷 섹션 임시 숨김
+    // {
+    //     depth1: '패밀리넷',
+    //     data: [
+    //         {
+    //             pageTitle: '메인화면',
+    //             id: 'familynet_main',
+    //             depth1: '메인',
+    //             depth2: '',
+    //             depth3: '',
+    //             path: 'https://lebass98.github.io/familynet/',
+    //             progressPc: 100, progressMobile: 100,
+    //             start: '2024.06.14',
+    //             updatedAt: '2024.06.20',
+    //             end: '',
+    //             note: '',
+    //         },
+    //         {
+    //             pageTitle: '서브페이지(샘플)',
+    //             id: 'familynet_sub',
+    //             depth1: '메인',
+    //             depth2: '',
+    //             depth3: '',
+    //             path: 'https://lebass98.github.io/familynet/sub.html',
+    //             progressPc: 100, progressMobile: 100,
+    //             start: '2024.06.14',
+    //             updatedAt: '2024.06.20',
+    //             end: '',
+    //             note: '',
+    //         },
+    //     ],
+    // },
     {
         depth1: '가족센터 평가시스템 기능개발',
         data: [
