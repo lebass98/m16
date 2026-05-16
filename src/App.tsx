@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
-import { Box, Typography, Dialog, List, ListItem, ListItemButton, ListItemText, IconButton, TextField, InputAdornment, LinearProgress, ToggleButtonGroup, ToggleButton, Slider, Checkbox } from '@mui/material';
+import { Box, Typography, Dialog, List, ListItem, ListItemButton, ListItemText, IconButton, TextField, InputAdornment, LinearProgress, ToggleButtonGroup, ToggleButton, Slider } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
 import BarChartIcon from '@mui/icons-material/BarChart';
@@ -53,7 +53,7 @@ export default function App() {
     try { return new Set(JSON.parse(localStorage.getItem('bookmarks') || '[]')); } catch { return new Set(); }
   });
   const [sectionFilter, setSectionFilter] = useState<Set<string>>(new Set());
-  const [sortBy, setSortBy] = useState<'updated' | 'created' | 'progress'>('updated');
+  const [sortBy] = useState<'updated' | 'created' | 'progress'>('updated');
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const flatLengthRef = useRef(0);
   const flatIndexRef = useRef(flatIndex);
