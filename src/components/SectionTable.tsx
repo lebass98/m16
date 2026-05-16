@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Paper, Box, Typography, Card, IconButton } from '@mui/material';
+import { Paper, Box, Typography, Card, IconButton, Tooltip } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
@@ -8,6 +8,7 @@ import DesktopWindowsOutlinedIcon from '@mui/icons-material/DesktopWindowsOutlin
 import TabletMacOutlinedIcon from '@mui/icons-material/TabletMacOutlined';
 import SmartphoneOutlinedIcon from '@mui/icons-material/SmartphoneOutlined';
 import ArrowOutwardIcon from '@mui/icons-material/ArrowOutward';
+import StickyNote2OutlinedIcon from '@mui/icons-material/StickyNote2Outlined';
 import type { TableItem, TableSection } from '../types';
 import ProgressBar from './ProgressBar';
 import PathPreviewIcons, { CopyPathButton } from './PathPreviewIcons';
@@ -182,7 +183,7 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
           </Box>
         )}
 
-        {/* 디바이스 토글 + Start cooking 버튼 */}
+        {/* 디바이스 토글 + 파일 보기 버튼 */}
         <Box className="reveal-up-sm" style={inner(5)} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', pt: '4px' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             {deviceBtn('pc', DesktopWindowsOutlinedIcon, 'PC 미리보기')}
@@ -209,7 +210,7 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
               },
             }}
           >
-            Start cooking
+            파일 보기
             <ArrowOutwardIcon sx={{ fontSize: 14 }} />
           </Box>
         </Box>
@@ -233,10 +234,6 @@ interface Props {
 const emphasisSx = { fontWeight: 700, color: '#ff706e' };
 
 export default function SectionTable({ section, sectionIndex, latestDate, onHeaderClick, hideUi = false, previewEnabled = true, viewMode = 'list', bookmarks = new Set(), onToggleBookmark }: Props) {
-  const hasDepth1 = section.data.some(item => item.depth1);
-  const hasDepth2 = section.data.some(item => item.depth2);
-  const hasDepth3 = section.data.some(item => item.depth3);
-
   const rows = useMemo(
     () => section.data.map((item, j) => ({ ...item, _rowId: j, _no: j + 1 })),
     [section.data]
@@ -259,31 +256,26 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
     {
       field: 'id',
       headerName: 'ID',
-      width: 120,
-      align: 'center',
-      headerAlign: 'center',
+      width: 200,
+      sortable: false,
+      renderCell: (params) => {
+        const id = params.value as string;
+        const row = params.row as { depth1?: string; depth2?: string; depth3?: string };
+        const depthPath = [row.depth1, row.depth2, row.depth3].filter(Boolean).join(' > ');
+        return (
+          <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', width: '100%', py: '4px', minWidth: 0 }}>
+            <Typography sx={{ fontSize: 13, fontWeight: 600, color: 'text.primary', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {id}
+            </Typography>
+            {depthPath && (
+              <Typography sx={{ fontSize: 10.5, color: 'text.secondary', lineHeight: 1.3, mt: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={depthPath}>
+                {depthPath}
+              </Typography>
+            )}
+          </Box>
+        );
+      },
     },
-    ...(hasDepth1 ? [{
-      field: 'depth1',
-      headerName: 'depth1',
-      width: 120,
-      align: 'center' as const,
-      headerAlign: 'center' as const,
-    }] : []),
-    ...(hasDepth2 ? [{
-      field: 'depth2',
-      headerName: 'depth2',
-      width: 120,
-      align: 'center' as const,
-      headerAlign: 'center' as const,
-    }] : []),
-    ...(hasDepth3 ? [{
-      field: 'depth3',
-      headerName: 'depth3',
-      width: 120,
-      align: 'center' as const,
-      headerAlign: 'center' as const,
-    }] : []),
     {
       field: 'path',
       headerName: '경로',
@@ -322,19 +314,26 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
     },
     {
       field: 'progressPc',
-      headerName: 'PC 진행도',
-      width: 90,
+      headerName: '진행도',
+      width: 130,
       align: 'center',
       headerAlign: 'center',
-      renderCell: (params) => <ProgressBar value={params.value} />,
-    },
-    {
-      field: 'progressMobile',
-      headerName: 'MO 진행도',
-      width: 90,
-      align: 'center',
-      headerAlign: 'center',
-      renderCell: (params) => <ProgressBar value={params.value} />,
+      sortable: false,
+      renderCell: (params) => {
+        const row = params.row as { progressPc?: number; progressMobile?: number };
+        return (
+          <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '4px', width: '100%', py: '4px' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Typography sx={{ fontSize: 9, fontWeight: 700, color: 'text.secondary', letterSpacing: '0.04em', width: 16, textAlign: 'right' }}>PC</Typography>
+              <ProgressBar value={(row.progressPc ?? 0) as never} />
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Typography sx={{ fontSize: 9, fontWeight: 700, color: 'text.secondary', letterSpacing: '0.04em', width: 16, textAlign: 'right' }}>MO</Typography>
+              <ProgressBar value={(row.progressMobile ?? 0) as never} />
+            </Box>
+          </Box>
+        );
+      },
     },
     {
       field: 'start',
@@ -357,9 +356,39 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
     {
       field: 'note',
       headerName: '비고',
-      width: 130,
+      width: 60,
+      align: 'center',
+      headerAlign: 'center',
+      sortable: false,
+      renderCell: (params) => {
+        const note = (params.value as string) ?? '';
+        if (!note.trim()) return null;
+        return (
+          <Tooltip
+            title={
+              <Box sx={{ fontSize: 12, whiteSpace: 'pre-wrap', lineHeight: 1.5, maxWidth: 280 }}>
+                {note}
+              </Box>
+            }
+            placement="top"
+            arrow
+            slotProps={{ tooltip: { sx: { bgcolor: 'rgb(33,33,33)', '& .MuiTooltip-arrow': { color: 'rgb(33,33,33)' } } } }}
+          >
+            <Box sx={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              width: 28, height: 28, borderRadius: '8px',
+              color: 'text.secondary',
+              transition: 'background-color 0.15s, color 0.15s',
+              cursor: 'help',
+              '&:hover': { bgcolor: 'rgb(var(--palette-primary-mainChannel) / 0.12)', color: 'primary.main' },
+            }}>
+              <StickyNote2OutlinedIcon sx={{ fontSize: 16 }} />
+            </Box>
+          </Tooltip>
+        );
+      },
     },
-  ], [hasDepth1, hasDepth2, hasDepth3, latestDate, previewEnabled]);
+  ], [latestDate, previewEnabled]);
 
   return (
     <Paper
@@ -413,7 +442,7 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
           disableRowSelectionOnClick
           disableColumnMenu
           hideFooter
-          rowHeight={48}
+          rowHeight={60}
           columnHeaderHeight={48}
           sx={{
             border: 'none',

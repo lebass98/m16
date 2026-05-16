@@ -315,8 +315,6 @@ export default function App() {
               <Typography sx={{ fontSize: 11, color: 'text.secondary', letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, px: '12px', py: '10px', mt: '6px' }}>Overview</Typography>
               {[
                 { label: 'Pages', icon: <GridViewIcon sx={{ fontSize: 20 }} />, active: true, onClick: () => {} },
-                { label: 'Dashboard', icon: <BarChartIcon sx={{ fontSize: 20 }} />, active: false, onClick: () => setDashboardOpen(true) },
-                { label: 'Search', icon: <SearchIcon sx={{ fontSize: 20 }} />, active: false, onClick: () => setSearchOpen(true) },
               ].map((it, navI) => (
                 <Box key={it.label} onClick={it.onClick} className="reveal-right" style={{ animationDelay: `${60 + navI * 50}ms` }} sx={{
                   display: 'flex', alignItems: 'center', gap: '14px', px: '12px', py: '8px', borderRadius: '8px', cursor: 'pointer',
@@ -466,9 +464,6 @@ export default function App() {
               </Box>
               <Box sx={{ flex: 1 }} />
               <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <IconButton size="small" onClick={() => setDashboardOpen(true)} title="완성도" sx={{ color: 'text.secondary', width: 40, height: 40, '&:hover': { bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.08)' } }}>
-                  <BarChartIcon sx={{ fontSize: 20 }} />
-                </IconButton>
                 <Box component="button" type="button" onClick={() => setPreviewEnabled(p => !p)} sx={{
                   border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, fontSize: 13,
                   px: '14px', py: '7px', borderRadius: '8px',
@@ -597,8 +592,21 @@ export default function App() {
                 )}
               </Box>
 
-              {/* (4) 우측 정보/활동 패널 (Minimals) */}
-              <Box sx={{ width: 320, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {/* (4) 우측 정보/활동 패널 (Minimals) — sticky로 스크롤 따라옴 */}
+              <Box sx={{
+                width: 320, flexShrink: 0,
+                display: 'flex', flexDirection: 'column', gap: '20px',
+                position: 'sticky',
+                top: 88,                              // 상단 헤더(약 68px) + 약간의 여백
+                alignSelf: 'flex-start',              // 부모 flex가 stretch 못 하게 — sticky 동작 보장
+                maxHeight: 'calc(100vh - 108px)',     // top(88) + 하단 여백(20)
+                overflowY: 'auto',
+                pr: '4px',                            // 스크롤바 여백
+                // 얇은 스크롤바
+                '&::-webkit-scrollbar': { width: '4px' },
+                '&::-webkit-scrollbar-thumb': { background: 'rgb(var(--palette-grey-500Channel) / 0.32)', borderRadius: '4px' },
+                '&::-webkit-scrollbar-track': { background: 'transparent' },
+              }}>
                 {/* 통계 카드 (Minimals stat widget) */}
                 <Box className="reveal-up" style={{ animationDelay: '80ms' }} sx={{ position: 'relative', bgcolor: 'background.paper', borderRadius: '16px', p: '24px', boxShadow: '0 0 2px 0 rgb(var(--palette-grey-500Channel) / 0.20), 0 12px 24px -4px rgb(var(--palette-grey-500Channel) / 0.12)', overflow: 'hidden' }}>
                   <Box sx={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: '50%', bgcolor: 'rgb(var(--palette-primary-mainChannel) / 0.08)' }} />
@@ -660,17 +668,31 @@ export default function App() {
                   </Box>
                 )}
 
-                {/* 섹션별 통계 */}
+                {/* 완성도 요약 (섹션별, PC + MO) */}
                 <Box className="reveal-up" style={{ animationDelay: '320ms' }} sx={{ bgcolor: 'background.paper', borderRadius: '16px', p: '24px', boxShadow: '0 0 2px 0 rgb(var(--palette-grey-500Channel) / 0.20), 0 12px 24px -4px rgb(var(--palette-grey-500Channel) / 0.12)' }}>
-                  <Typography sx={{ fontSize: 16, fontWeight: 700, color: 'text.primary', mb: '16px' }}>섹션별 진행도</Typography>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', mb: '16px' }}>
+                    <Typography sx={{ fontSize: 16, fontWeight: 700, color: 'text.primary' }}>완성도 요약</Typography>
+                    <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>{totalCount} pages</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
                     {dashboardStats.map((stat, i) => (
                       <Box key={i}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '6px' }}>
-                          <Typography sx={{ fontSize: 12.5, color: 'text.primary', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, mr: '8px' }} title={stat.title}>{stat.title}</Typography>
-                          <Typography sx={{ fontSize: 12, fontWeight: 700, color: stat.avgPc === 100 ? 'success.main' : 'primary.main' }}>{stat.avgPc}%</Typography>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', mb: '8px', gap: '8px' }}>
+                          <Typography sx={{ fontSize: 12.5, color: 'text.primary', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }} title={stat.title}>{stat.title}</Typography>
+                          <Typography sx={{ fontSize: 11, color: 'text.secondary', flexShrink: 0 }}>{stat.count}p</Typography>
                         </Box>
-                        <LinearProgress variant="determinate" value={stat.avgPc} sx={{ height: 5, borderRadius: 3, bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.16)', '& .MuiLinearProgress-bar': { bgcolor: stat.avgPc === 100 ? 'success.main' : 'primary.main', borderRadius: 3 } }} />
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <Typography sx={{ fontSize: 10, color: 'text.secondary', fontWeight: 700, width: 22, flexShrink: 0, letterSpacing: '0.04em' }}>PC</Typography>
+                            <LinearProgress variant="determinate" value={stat.avgPc} sx={{ flex: 1, height: 5, borderRadius: 3, bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.16)', '& .MuiLinearProgress-bar': { bgcolor: stat.avgPc === 100 ? 'success.main' : 'primary.main', borderRadius: 3 } }} />
+                            <Typography sx={{ fontSize: 11, fontWeight: 700, color: stat.avgPc === 100 ? 'success.main' : 'primary.main', width: 32, textAlign: 'right', flexShrink: 0 }}>{stat.avgPc}%</Typography>
+                          </Box>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <Typography sx={{ fontSize: 10, color: 'text.secondary', fontWeight: 700, width: 22, flexShrink: 0, letterSpacing: '0.04em' }}>MO</Typography>
+                            <LinearProgress variant="determinate" value={stat.avgMo} sx={{ flex: 1, height: 5, borderRadius: 3, bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.16)', '& .MuiLinearProgress-bar': { bgcolor: stat.avgMo === 100 ? 'success.main' : 'info.main', borderRadius: 3 } }} />
+                            <Typography sx={{ fontSize: 11, fontWeight: 700, color: stat.avgMo === 100 ? 'success.main' : 'info.main', width: 32, textAlign: 'right', flexShrink: 0 }}>{stat.avgMo}%</Typography>
+                          </Box>
+                        </Box>
                       </Box>
                     ))}
                   </Box>
