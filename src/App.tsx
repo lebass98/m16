@@ -13,6 +13,9 @@ import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutlined';
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
 import TuneIcon from '@mui/icons-material/Tune';
+import DesktopWindowsOutlinedIcon from '@mui/icons-material/DesktopWindowsOutlined';
+import TabletMacOutlinedIcon from '@mui/icons-material/TabletMacOutlined';
+import SmartphoneOutlinedIcon from '@mui/icons-material/SmartphoneOutlined';
 import { sites } from './data/sites';
 import { loadSheetCsv } from './data/parseSheetCsv';
 import type { TableSection } from './types';
@@ -43,6 +46,15 @@ export default function App() {
   const [desktopView, setDesktopView] = useState<'list' | 'thumbnail'>(() =>
     (localStorage.getItem('desktopView') as 'list' | 'thumbnail') || 'thumbnail'
   );
+  const [thumbnailDevice, setThumbnailDevice] = useState<'pc' | 'tablet' | 'mobile'>(() =>
+    (localStorage.getItem('thumbnailDevice') as 'pc' | 'tablet' | 'mobile') || 'pc'
+  );
+  useEffect(() => { localStorage.setItem('thumbnailDevice', thumbnailDevice); }, [thumbnailDevice]);
+  const [thumbnailCols, setThumbnailCols] = useState<2 | 3 | 4 | 5>(() => {
+    const v = Number(localStorage.getItem('thumbnailCols'));
+    return v === 2 || v === 3 || v === 4 || v === 5 ? (v as 2 | 3 | 4 | 5) : 3;
+  });
+  useEffect(() => { localStorage.setItem('thumbnailCols', String(thumbnailCols)); }, [thumbnailCols]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -569,6 +581,67 @@ export default function App() {
                       <ToggleButton value="list"><ViewListIcon sx={{ fontSize: 16 }} /></ToggleButton>
                       <ToggleButton value="thumbnail"><GridViewIcon sx={{ fontSize: 16 }} /></ToggleButton>
                     </ToggleButtonGroup>
+                    {/* 썸네일 모드일 때만: 전 카드 일괄 디바이스 토글 */}
+                    {desktopView === 'thumbnail' && (
+                      <ToggleButtonGroup
+                        size="small"
+                        value={thumbnailDevice}
+                        exclusive
+                        onChange={(_, v) => { if (v) setThumbnailDevice(v as 'pc' | 'tablet' | 'mobile'); }}
+                        sx={{
+                          bgcolor: 'background.paper',
+                          borderRadius: '10px',
+                          border: '1px solid rgb(var(--palette-grey-500Channel) / 0.24)',
+                          p: '2px',
+                          '& .MuiToggleButton-root': {
+                            border: 'none',
+                            borderRadius: '8px !important',
+                            px: '10px',
+                            py: '4px',
+                            fontSize: 11,
+                            textTransform: 'none',
+                            color: 'text.secondary',
+                            '&.Mui-selected': { bgcolor: 'text.primary', color: 'background.paper', '&:hover': { bgcolor: 'grey.700' } },
+                          },
+                        }}
+                      >
+                        <ToggleButton value="pc" title="모두 PC 화면으로"><DesktopWindowsOutlinedIcon sx={{ fontSize: 16 }} /></ToggleButton>
+                        <ToggleButton value="tablet" title="모두 태블릿 화면으로"><TabletMacOutlinedIcon sx={{ fontSize: 16 }} /></ToggleButton>
+                        <ToggleButton value="mobile" title="모두 모바일 화면으로"><SmartphoneOutlinedIcon sx={{ fontSize: 16 }} /></ToggleButton>
+                      </ToggleButtonGroup>
+                    )}
+                    {/* 썸네일 모드일 때만: 한 줄당 카드 수 */}
+                    {desktopView === 'thumbnail' && (
+                      <ToggleButtonGroup
+                        size="small"
+                        value={thumbnailCols}
+                        exclusive
+                        onChange={(_, v) => { if (v) setThumbnailCols(v as 2 | 3 | 4 | 5); }}
+                        sx={{
+                          bgcolor: 'background.paper',
+                          borderRadius: '10px',
+                          border: '1px solid rgb(var(--palette-grey-500Channel) / 0.24)',
+                          p: '2px',
+                          '& .MuiToggleButton-root': {
+                            border: 'none',
+                            borderRadius: '8px !important',
+                            minWidth: 28,
+                            px: '8px',
+                            py: '4px',
+                            fontSize: 12,
+                            fontWeight: 700,
+                            textTransform: 'none',
+                            color: 'text.secondary',
+                            '&.Mui-selected': { bgcolor: 'text.primary', color: 'background.paper', '&:hover': { bgcolor: 'grey.700' } },
+                          },
+                        }}
+                      >
+                        <ToggleButton value={2} title="한 줄에 2개">2</ToggleButton>
+                        <ToggleButton value={3} title="한 줄에 3개">3</ToggleButton>
+                        <ToggleButton value={4} title="한 줄에 4개">4</ToggleButton>
+                        <ToggleButton value={5} title="한 줄에 5개">5</ToggleButton>
+                      </ToggleButtonGroup>
+                    )}
                   </Box>
                 </Box>
 
@@ -584,6 +657,8 @@ export default function App() {
                         latestDate={latestDate}
                         previewEnabled={previewEnabled}
                         viewMode={desktopView}
+                        thumbnailDevice={thumbnailDevice}
+                        thumbnailCols={thumbnailCols}
                         bookmarks={bookmarks}
                         onToggleBookmark={toggleBookmark}
                       />

@@ -1,12 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Paper, Box, Typography, Card, IconButton, Tooltip } from '@mui/material';
-import { alpha } from '@mui/material/styles';
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
-import DesktopWindowsOutlinedIcon from '@mui/icons-material/DesktopWindowsOutlined';
-import TabletMacOutlinedIcon from '@mui/icons-material/TabletMacOutlined';
-import SmartphoneOutlinedIcon from '@mui/icons-material/SmartphoneOutlined';
 import ArrowOutwardIcon from '@mui/icons-material/ArrowOutward';
 import StickyNote2OutlinedIcon from '@mui/icons-material/StickyNote2Outlined';
 import type { TableItem, TableSection } from '../types';
@@ -49,7 +45,7 @@ const DEVICE_DIMS = {
 } as const;
 type DeviceKey = keyof typeof DEVICE_DIMS;
 
-function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmark, latestDate, cardIndex = 0 }: {
+function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmark, latestDate, cardIndex = 0, device = 'pc' }: {
   item: TableItem;
   section: TableSection;
   sectionIndex: number;
@@ -57,37 +53,16 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
   onToggleBookmark?: (id: string) => void;
   latestDate: string;
   cardIndex?: number;
+  /** 부모(상단 토글)에서 일괄 제어하는 미리보기 디바이스 */
+  device?: DeviceKey;
 }) {
   const baseDelay = Math.min(cardIndex, 16) * 55;
   const inner = (k: number) => ({ animationDelay: `${baseDelay + 120 + k * 60}ms` });
-  const [device, setDevice] = useState<DeviceKey>('pc');
   const isLatest = !!item.updatedAt && item.updatedAt === latestDate;
   const accent = getStatusColor(item.progressPc ?? 0, isLatest);
   const tags = [item.depth1, item.depth2, item.depth3].filter(Boolean);
   const dims = DEVICE_DIMS[device];
   void sectionIndex;
-
-  const deviceBtn = (key: DeviceKey, Icon: typeof DesktopWindowsOutlinedIcon, label: string) => (
-    <Box
-      component="button"
-      type="button"
-      onMouseEnter={() => setDevice(key)}
-      onFocus={() => setDevice(key)}
-      onClick={() => setDevice(key)}
-      title={label}
-      sx={(theme) => ({
-        border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        width: 30, height: 30, borderRadius: '8px',
-        bgcolor: device === key ? alpha(theme.palette.primary.main, 0.12) : 'transparent',
-        color: device === key ? 'primary.main' : 'text.secondary',
-        transition: 'background 0.2s, color 0.2s',
-        '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.08), color: 'primary.main' },
-      })}
-    >
-      <Icon sx={{ fontSize: 16 }} />
-    </Box>
-  );
 
   return (
     <Card
@@ -110,11 +85,20 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
           zIndex: 2,
         },
       }}>
-      {/* 썸네일 (디바이스별 프리뷰) */}
-      <Box className="reveal-scale" style={inner(0)} sx={{ position: 'relative', aspectRatio: device === 'mobile' ? '4 / 3' : '16 / 10', overflow: 'hidden', bgcolor: COLORS.gray100 }}>
+      {/* 썸네일 (디바이스별 프리뷰 — 카드 비율도 디바이스에 맞춰 변경) */}
+      <Box
+        className="reveal-scale"
+        style={inner(0)}
+        sx={{
+          position: 'relative',
+          aspectRatio: device === 'mobile' ? '9 / 16' : device === 'tablet' ? '4 / 3' : '16 / 9',
+          overflow: 'hidden',
+          bgcolor: COLORS.gray100,
+        }}
+      >
         {item.path ? (
           <>
-            <Box sx={{ position: 'absolute', inset: device === 'pc' ? 0 : '12px', borderRadius: device === 'pc' ? 0 : '12px', overflow: 'hidden', transition: 'inset 0.25s ease, max-width 0.25s ease', maxWidth: device === 'mobile' ? 220 : device === 'tablet' ? '70%' : 'none', marginLeft: 'auto', marginRight: 'auto', boxShadow: device === 'pc' ? 'none' : '0 8px 16px -4px rgb(var(--palette-grey-500Channel) / 0.16)' }}>
+            <Box sx={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
               <PreviewFrame key={device} src={item.path} displayWidth="100%" fillHeight iframeWidth={dims.w} iframeHeight={dims.h} />
             </Box>
             {/* 날짜 pill + 북마크 오버레이 */}
@@ -147,73 +131,75 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
             <Box component="span" sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: accent, display: 'inline-block' }} />
             {section.depth1}
           </Typography>
-          <Typography sx={{ fontSize: 17, fontWeight: 700, color: COLORS.gray900, lineHeight: 1.4, wordBreak: 'keep-all', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', letterSpacing: '-0.01em' }} title={item.pageTitle || item.id}>
+          <Typography sx={{ fontSize: 17, fontWeight: 700, color: COLORS.gray900, lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '-0.01em' }} title={item.pageTitle || item.id}>
             {item.pageTitle || item.id}
           </Typography>
         </Box>
 
-        {/* 진행도: PC / MO 두 줄로 분리, 라벨 좌측 */}
-        <Box className="reveal-up-sm" style={inner(2)} sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {(['pc', 'mo'] as const).map((kind) => {
-            const value = kind === 'pc' ? (item.progressPc ?? 0) : (item.progressMobile ?? 0);
-            const color = value >= 100 ? COLORS.success : value === 0 ? COLORS.error : COLORS.primary;
-            return (
-              <Box key={kind} sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Typography sx={{ fontSize: 10, color: COLORS.gray600, fontWeight: 700, letterSpacing: '0.06em', flexShrink: 0, width: 22, textTransform: 'uppercase' }}>{kind}</Typography>
-                <Box sx={{ flex: 1, height: 6, bgcolor: COLORS.gray100, borderRadius: 3, overflow: 'hidden' }}>
-                  <Box sx={{ width: `${value}%`, height: '100%', bgcolor: color, borderRadius: 3, transition: 'width 0.3s ease' }} />
+        {/* 업뎃 + depth 경로: 같은 줄, 같은 글씨 크기 */}
+        {(item.updatedAt || tags.length > 0) && (
+          <Box className="reveal-up-sm" style={inner(3)} sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px', minWidth: 0 }}>
+            <Typography sx={{ fontSize: 11, color: COLORS.gray500, lineHeight: 1.4, flexShrink: 0 }}>
+              {item.updatedAt ? `업뎃 ${item.updatedAt}` : ''}
+            </Typography>
+            {tags.length > 0 && (
+              <Typography
+                title={tags.join(' > ')}
+                sx={{ fontSize: 11, color: COLORS.gray500, lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, textAlign: 'right' }}
+              >
+                {tags.join(' > ')}
+              </Typography>
+            )}
+          </Box>
+        )}
+
+        {/* 디바이스 토글 + 작은 PC/MO % + 파일 보기 버튼 */}
+        {(() => {
+          const pcVal = item.progressPc ?? 0;
+          const moVal = item.progressMobile ?? 0;
+          const pcColor = pcVal >= 100 ? COLORS.success : pcVal === 0 ? COLORS.error : COLORS.primary;
+          const moColor = moVal >= 100 ? COLORS.success : moVal === 0 ? COLORS.error : COLORS.primary;
+          return (
+            <Box className="reveal-up-sm" style={inner(5)} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', pt: '4px' }}>
+              {/* 리스트뷰와 동일: 호버 시 팝업 미리보기, 클릭 시 모달 */}
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                {item.path ? <PathPreviewIcons path={item.path} previewEnabled /> : null}
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: 10, lineHeight: 1, color: COLORS.gray600, fontWeight: 600 }}>
+                  <Box component="span" sx={{ color: COLORS.gray500, letterSpacing: '0.04em' }}>PC</Box>
+                  <Box component="span" sx={{ color: pcColor, fontWeight: 700 }}>{pcVal}%</Box>
+                  <Box component="span" sx={{ color: COLORS.gray400 }}>·</Box>
+                  <Box component="span" sx={{ color: COLORS.gray500, letterSpacing: '0.04em' }}>MO</Box>
+                  <Box component="span" sx={{ color: moColor, fontWeight: 700 }}>{moVal}%</Box>
                 </Box>
-                <Typography sx={{ fontSize: 12, fontWeight: 700, color: COLORS.gray900, lineHeight: 1, flexShrink: 0, minWidth: 36, textAlign: 'right' }}>{value}%</Typography>
+                <Box
+                  component={item.path ? 'a' : 'button'}
+                  href={item.path || undefined}
+                  target={item.path ? '_blank' : undefined}
+                  rel={item.path ? 'noreferrer' : undefined}
+                  sx={{
+                    display: 'inline-flex', alignItems: 'center', gap: '6px',
+                    bgcolor: '#111', color: 'background.paper', textDecoration: 'none',
+                    border: 'none', cursor: item.path ? 'pointer' : 'not-allowed',
+                    opacity: item.path ? 1 : 0.4, fontFamily: 'inherit',
+                    fontSize: 13, fontWeight: 700,
+                    px: '16px', py: '9px', borderRadius: '999px',
+                    lineHeight: 1, transition: 'transform 0.15s, box-shadow 0.15s, background 0.2s',
+                    '&:hover': {
+                      bgcolor: item.path ? '#333' : '#111',
+                      transform: item.path ? 'translateY(-1px)' : 'none',
+                      boxShadow: item.path ? '0 6px 14px rgba(0,0,0,0.18)' : 'none',
+                    },
+                  }}
+                >
+                  파일 보기
+                  <ArrowOutwardIcon sx={{ fontSize: 14 }} />
+                </Box>
               </Box>
-            );
-          })}
-        </Box>
-        {item.updatedAt && (
-          <Typography className="reveal-up-sm" style={inner(3)} sx={{ fontSize: 11, color: COLORS.gray500, lineHeight: 1, mt: '-6px' }}>업뎃 {item.updatedAt}</Typography>
-        )}
-
-        {/* 태그 chips */}
-        {tags.length > 0 && (
-          <Box className="reveal-up-sm" style={inner(4)} sx={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-            {tags.map((tag, ti) => (
-              <Box key={ti} sx={{ bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.08)', px: '8px', py: '3px', borderRadius: '6px', fontSize: 11, color: COLORS.gray700, lineHeight: 1.4, fontWeight: 600 }}>
-                {tag}
-              </Box>
-            ))}
-          </Box>
-        )}
-
-        {/* 디바이스 토글 + 파일 보기 버튼 */}
-        <Box className="reveal-up-sm" style={inner(5)} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', pt: '4px' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            {deviceBtn('pc', DesktopWindowsOutlinedIcon, 'PC 미리보기')}
-            {deviceBtn('tablet', TabletMacOutlinedIcon, '태블릿 미리보기')}
-            {deviceBtn('mobile', SmartphoneOutlinedIcon, '모바일 미리보기')}
-          </Box>
-          <Box
-            component={item.path ? 'a' : 'button'}
-            href={item.path || undefined}
-            target={item.path ? '_blank' : undefined}
-            rel={item.path ? 'noreferrer' : undefined}
-            sx={{
-              display: 'inline-flex', alignItems: 'center', gap: '6px',
-              bgcolor: '#111', color: 'background.paper', textDecoration: 'none',
-              border: 'none', cursor: item.path ? 'pointer' : 'not-allowed',
-              opacity: item.path ? 1 : 0.4, fontFamily: 'inherit',
-              fontSize: 13, fontWeight: 700,
-              px: '16px', py: '9px', borderRadius: '999px',
-              lineHeight: 1, transition: 'transform 0.15s, box-shadow 0.15s, background 0.2s',
-              '&:hover': {
-                bgcolor: item.path ? '#333' : '#111',
-                transform: item.path ? 'translateY(-1px)' : 'none',
-                boxShadow: item.path ? '0 6px 14px rgba(0,0,0,0.18)' : 'none',
-              },
-            }}
-          >
-            파일 보기
-            <ArrowOutwardIcon sx={{ fontSize: 14 }} />
-          </Box>
-        </Box>
+            </Box>
+          );
+        })()}
       </Box>
     </Card>
   );
@@ -227,13 +213,15 @@ interface Props {
   hideUi?: boolean;
   previewEnabled?: boolean;
   viewMode?: 'list' | 'thumbnail';
+  thumbnailDevice?: DeviceKey;
+  thumbnailCols?: 2 | 3 | 4 | 5;
   bookmarks?: Set<string>;
   onToggleBookmark?: (id: string) => void;
 }
 
 const emphasisSx = { fontWeight: 700, color: '#ff706e' };
 
-export default function SectionTable({ section, sectionIndex, latestDate, onHeaderClick, hideUi = false, previewEnabled = true, viewMode = 'list', bookmarks = new Set(), onToggleBookmark }: Props) {
+export default function SectionTable({ section, sectionIndex, latestDate, onHeaderClick, hideUi = false, previewEnabled = true, viewMode = 'list', thumbnailDevice = 'pc', thumbnailCols = 3, bookmarks = new Set(), onToggleBookmark }: Props) {
   const rows = useMemo(
     () => section.data.map((item, j) => ({ ...item, _rowId: j, _no: j + 1 })),
     [section.data]
@@ -493,10 +481,10 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
         />
       </Box>
 
-      {/* 데스크탑: 썸네일 그리드 (다크 레시피 카드) */}
+      {/* 데스크탑: 썸네일 그리드 (사용자가 한 줄당 카드 수를 선택) */}
       <Box sx={{
         display: { xs: 'none', md: viewMode === 'thumbnail' ? 'grid' : 'none' },
-        gridTemplateColumns: { md: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' },
+        gridTemplateColumns: `repeat(${thumbnailCols}, 1fr)`,
         gap: '18px',
         p: '18px',
       }}>
@@ -510,6 +498,7 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
             onToggleBookmark={onToggleBookmark}
             latestDate={latestDate}
             cardIndex={j}
+            device={thumbnailDevice}
           />
         ))}
       </Box>
