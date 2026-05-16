@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
-import { Box, Typography, Dialog, List, ListItem, ListItemButton, ListItemText, IconButton, TextField, InputAdornment, LinearProgress, ToggleButtonGroup, ToggleButton, Slider } from '@mui/material';
+import { Box, Typography, Dialog, List, ListItem, ListItemButton, ListItemText, IconButton, TextField, InputAdornment, LinearProgress, ToggleButtonGroup, ToggleButton, Slider, Tooltip } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
 import BarChartIcon from '@mui/icons-material/BarChart';
@@ -22,6 +22,12 @@ import type { TableSection } from './types';
 import { PREVIEW_SCROLL_DIR_EVENT } from './types/events';
 import SectionTable from './components/SectionTable';
 import MobileCard from './components/MobileCard';
+import SettingsDrawer from './components/SettingsDrawer';
+import SearchDialog, { type SearchHit } from './components/SearchDialog';
+import SettingsIcon from '@mui/icons-material/Settings';
+import { ThemeProvider } from './theme/theme-provider';
+import { PRESETS, isPresetKey, type PresetKey } from './theme/presets';
+import { createPaletteChannel } from 'minimal-shared/utils';
 import './App.css';
 import arrowDownIcon from './assets/arrow-down-circle-svgrepo-com.svg';
 
@@ -55,6 +61,43 @@ export default function App() {
     return v === 2 || v === 3 || v === 4 || v === 5 ? (v as 2 | 3 | 4 | 5) : 3;
   });
   useEffect(() => { localStorage.setItem('thumbnailCols', String(thumbnailCols)); }, [thumbnailCols]);
+
+  // 설정 패널
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [compact, setCompact] = useState(() => localStorage.getItem('compact') === 'true');
+  useEffect(() => { localStorage.setItem('compact', String(compact)); }, [compact]);
+  // Compact → CSS 변수로 카드 padding 한 번에 줄임
+  useEffect(() => {
+    document.documentElement.style.setProperty('--card-pad', compact ? '16px' : '24px');
+    document.documentElement.style.setProperty('--card-gap', compact ? '14px' : '24px');
+  }, [compact]);
+  const [contrast, setContrast] = useState(false);  // placeholder (테마 미적용)
+  const [rtl, setRtl] = useState(false);            // placeholder (RTL 미적용)
+  const [preset, setPreset] = useState<PresetKey>(() => {
+    const v = localStorage.getItem('preset') || 'default';
+    return isPresetKey(v) ? v : 'default';
+  });
+  useEffect(() => { localStorage.setItem('preset', preset); }, [preset]);
+  const [fontSize, setFontSize] = useState<number>(() => {
+    const v = Number(localStorage.getItem('fontSize'));
+    return v >= 12 && v <= 20 ? v : 16;
+  });
+  useEffect(() => {
+    localStorage.setItem('fontSize', String(fontSize));
+    document.documentElement.style.fontSize = `${fontSize}px`;
+  }, [fontSize]);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // 선택된 preset 으로 theme override 생성 (Channel suffix 까지 자동 생성)
+  const themeOverrides = useMemo(() => ({
+    colorSchemes: {
+      light: {
+        palette: {
+          primary: createPaletteChannel(PRESETS[preset]),
+        },
+      },
+    },
+  }), [preset]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -273,7 +316,7 @@ export default function App() {
   });
 
   return (
-    <>
+    <ThemeProvider themeOverrides={themeOverrides}>
       <Box sx={{ boxSizing: 'border-box', p: 0, pb: { xs: 0, md: 0 }, height: { xs: '100dvh', md: 'auto' }, minHeight: '100vh', display: 'flex', flexDirection: 'column', background: { xs: darkMode ? 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)' : 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)', md: 'background.default' } }}>
 
         {/* 모바일: 좌상단 컨트롤 (검색 · 대시보드 · 다크모드) */}
@@ -384,114 +427,39 @@ export default function App() {
                 <Typography sx={{ fontSize: 11, color: 'text.secondary', letterSpacing: '0.06em', fontWeight: 700, textTransform: 'uppercase' }}>Workspace</Typography>
                 <Typography sx={{ fontSize: 18, fontWeight: 700, color: 'text.primary', lineHeight: 1.4 }}>{site.title}</Typography>
               </Box>
-              <Box sx={{ flex: 1, maxWidth: 480, position: 'relative' }}>
-                <Box sx={{
-                  display: 'flex', alignItems: 'center', gap: '10px',
-                  bgcolor: 'background.paper',
-                  border: '1px solid',
-                  borderColor: searchFocused ? 'primary.main' : 'rgb(var(--palette-grey-500Channel) / 0.32)',
-                  borderRadius: '12px',
-                  px: '14px', py: '8px',
-                  boxShadow: searchFocused ? '0 0 0 3px rgb(var(--palette-primary-mainChannel) / 0.16)' : 'none',
-                  transition: 'border-color 0.15s, box-shadow 0.15s',
-                  '&:hover': { borderColor: searchFocused ? 'primary.main' : 'text.primary' },
-                }}>
-                  <SearchIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
-                  <Box
-                    component="input"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onFocus={() => setSearchFocused(true)}
-                    onBlur={() => setTimeout(() => setSearchFocused(false), 150)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Escape') { setSearchQuery(''); setSearchFilter(''); (e.target as HTMLInputElement).blur(); }
-                      else if (e.key === 'Enter') { setSearchFilter(searchQuery); setSearchFocused(false); (e.target as HTMLInputElement).blur(); }
-                    }}
-                    placeholder="페이지·메뉴·메모 검색..."
-                    sx={{
-                      flex: 1, border: 'none', outline: 'none', bgcolor: 'transparent',
-                      fontFamily: 'inherit', fontSize: 14, color: 'text.primary',
-                      '&::placeholder': { color: 'text.disabled' },
-                    }}
-                  />
-                  {(searchQuery || searchFilter) && (
-                    <IconButton size="small" onMouseDown={(e) => { e.preventDefault(); setSearchQuery(''); setSearchFilter(''); }} sx={{ p: '2px', color: 'text.secondary' }}>
-                      <CloseIcon sx={{ fontSize: 16 }} />
-                    </IconButton>
-                  )}
-                  <Box sx={{ fontSize: 10, fontWeight: 700, color: 'text.secondary', bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.12)', px: '6px', py: '3px', borderRadius: '6px' }}>ESC</Box>
-                </Box>
-                {/* 인라인 검색 결과 드롭다운 (Minimals) */}
-                {searchFocused && searchQuery.trim() !== '' && (
-                  <Box sx={{
-                    position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0,
-                    bgcolor: 'background.paper', borderRadius: '16px',
-                    boxShadow: '0 0 2px 0 rgb(var(--palette-grey-500Channel) / 0.20), 0 20px 40px -4px rgb(var(--palette-grey-500Channel) / 0.24)',
-                    maxHeight: 420, overflowY: 'auto', zIndex: 30, p: '8px',
-                  }}>
-                    {searchResults.length === 0 ? (
-                      <Box sx={{ py: '32px', textAlign: 'center', color: 'text.disabled', fontSize: 14 }}>검색 결과가 없습니다</Box>
-                    ) : (
-                      <>
-                        <Box sx={{ px: '12px', pt: '6px', pb: '8px', display: 'flex', justifyContent: 'space-between' }}>
-                          <Typography sx={{ fontSize: 11, color: 'text.secondary', letterSpacing: '0.06em', fontWeight: 700, textTransform: 'uppercase' }}>Results</Typography>
-                          <Typography sx={{ fontSize: 11, color: 'text.disabled' }}>{searchResults.length}건</Typography>
-                        </Box>
-                        {searchResults.map((card) => {
-                          const isDone = (card.item.progressPc ?? 0) >= 100;
-                          const statusKey = isDone ? 'success' : (card.item.progressPc ?? 0) === 0 ? 'error' : 'primary';
-                          const statusColor = `${statusKey}.main`;
-                          return (
-                            <Box
-                              key={card.globalIdx}
-                              onMouseDown={(e) => {
-                                e.preventDefault();
-                                setSearchQuery(card.item.pageTitle || card.item.id);
-                                setSearchFilter(card.item.pageTitle || card.item.id);
-                                setSearchFocused(false);
-                              }}
-                              sx={{
-                                display: 'flex', alignItems: 'center', gap: '12px',
-                                px: '12px', py: '10px',
-                                borderRadius: '10px',
-                                cursor: 'pointer',
-                                '&:hover': { bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.08)' },
-                              }}
-                            >
-                              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: statusColor, flexShrink: 0 }} />
-                              <Box sx={{ flex: 1, minWidth: 0 }}>
-                                <Typography sx={{ fontSize: 14, fontWeight: 600, color: 'text.primary', lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{card.item.pageTitle || card.item.id}</Typography>
-                                <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                  {[card.sectionTitle, card.item.depth2, card.item.depth3].filter(Boolean).join(' › ')}
-                                </Typography>
-                              </Box>
-                              <Box sx={(theme) => ({ fontSize: 11, color: statusColor, fontWeight: 700, bgcolor: alpha(theme.palette[statusKey].main, 0.12), px: '8px', py: '3px', borderRadius: '8px' })}>{card.item.progressPc}%</Box>
-                            </Box>
-                          );
-                        })}
-                      </>
-                    )}
-                  </Box>
-                )}
-              </Box>
+              {/* 인라인 검색 바 제거됨 — 헤더 우측 🔍 버튼 클릭 시 모달 오픈 */}
               <Box sx={{ flex: 1 }} />
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Box component="button" type="button" onClick={() => setPreviewEnabled(p => !p)} sx={{
-                  border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, fontSize: 13,
-                  px: '14px', py: '7px', borderRadius: '8px',
-                  bgcolor: previewEnabled ? 'primary.main' : 'rgb(var(--palette-grey-500Channel) / 0.16)',
-                  color: previewEnabled ? 'background.paper' : 'text.primary',
-                  transition: 'background 0.15s',
-                  '&:hover': { bgcolor: previewEnabled ? 'primary.dark' : 'rgb(var(--palette-grey-500Channel) / 0.24)' },
-                }}>미리보기</Box>
-                <Box component="button" type="button" onClick={() => setShowIncomplete(s => !s)} sx={{
-                  border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, fontSize: 13,
-                  px: '14px', py: '7px', borderRadius: '8px',
-                  bgcolor: showIncomplete ? 'primary.main' : 'rgb(var(--palette-grey-500Channel) / 0.16)',
-                  color: showIncomplete ? 'background.paper' : 'text.primary',
-                  transition: 'background 0.15s',
-                  '&:hover': { bgcolor: showIncomplete ? 'primary.dark' : 'rgb(var(--palette-grey-500Channel) / 0.24)' },
-                }}>미완료</Box>
+              {/* 검색 · 설정 아이콘 버튼 그룹 (왼쪽 토글들과 동일 30px 높이) */}
+              <Box sx={{
+                display: 'flex', alignItems: 'center', gap: '2px',
+                bgcolor: 'background.paper',
+                borderRadius: '10px',
+                border: '1px solid rgb(var(--palette-grey-500Channel) / 0.24)',
+                p: '2px',
+              }}>
+                <Tooltip title="검색 (Cmd/Ctrl+K)" arrow>
+                  <IconButton
+                    size="small"
+                    onClick={() => setSearchOpen(true)}
+                    sx={{ width: 30, height: 26, borderRadius: '8px', color: 'text.secondary', '&:hover': { bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.08)' } }}
+                  >
+                    <SearchIcon sx={{ fontSize: 18 }} />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="설정" arrow>
+                  <IconButton
+                    size="small"
+                    onClick={() => setSettingsOpen(true)}
+                    sx={(theme) => ({
+                      width: 30, height: 26, borderRadius: '8px',
+                      color: settingsOpen ? 'primary.main' : 'text.secondary',
+                      bgcolor: settingsOpen ? alpha(theme.palette.primary.main, 0.12) : 'transparent',
+                      '&:hover': { bgcolor: settingsOpen ? alpha(theme.palette.primary.main, 0.16) : 'rgb(var(--palette-grey-500Channel) / 0.08)' },
+                    })}
+                  >
+                    <SettingsIcon sx={{ fontSize: 18 }} />
+                  </IconButton>
+                </Tooltip>
               </Box>
             </Box>
 
@@ -569,17 +537,18 @@ export default function App() {
                         '& .MuiToggleButton-root': {
                           border: 'none',
                           borderRadius: '8px !important',
-                          px: '10px',
-                          py: '4px',
-                          fontSize: 11,
+                          minWidth: 30,
+                          height: 26,
+                          px: '8px',
+                          py: 0,
                           textTransform: 'none',
                           color: 'text.secondary',
                           '&.Mui-selected': { bgcolor: 'text.primary', color: 'background.paper', '&:hover': { bgcolor: 'grey.700' } },
                         },
                       }}
                     >
-                      <ToggleButton value="list"><ViewListIcon sx={{ fontSize: 16 }} /></ToggleButton>
-                      <ToggleButton value="thumbnail"><GridViewIcon sx={{ fontSize: 16 }} /></ToggleButton>
+                      <ToggleButton value="list"><ViewListIcon sx={{ fontSize: 18 }} /></ToggleButton>
+                      <ToggleButton value="thumbnail"><GridViewIcon sx={{ fontSize: 18 }} /></ToggleButton>
                     </ToggleButtonGroup>
                     {/* 썸네일 모드일 때만: 전 카드 일괄 디바이스 토글 */}
                     {desktopView === 'thumbnail' && (
@@ -596,21 +565,22 @@ export default function App() {
                           '& .MuiToggleButton-root': {
                             border: 'none',
                             borderRadius: '8px !important',
-                            px: '10px',
-                            py: '4px',
-                            fontSize: 11,
+                            minWidth: 30,
+                            height: 26,
+                            px: '8px',
+                            py: 0,
                             textTransform: 'none',
                             color: 'text.secondary',
                             '&.Mui-selected': { bgcolor: 'text.primary', color: 'background.paper', '&:hover': { bgcolor: 'grey.700' } },
                           },
                         }}
                       >
-                        <ToggleButton value="pc" title="모두 PC 화면으로"><DesktopWindowsOutlinedIcon sx={{ fontSize: 16 }} /></ToggleButton>
-                        <ToggleButton value="tablet" title="모두 태블릿 화면으로"><TabletMacOutlinedIcon sx={{ fontSize: 16 }} /></ToggleButton>
-                        <ToggleButton value="mobile" title="모두 모바일 화면으로"><SmartphoneOutlinedIcon sx={{ fontSize: 16 }} /></ToggleButton>
+                        <ToggleButton value="pc" title="모두 PC 화면으로"><DesktopWindowsOutlinedIcon sx={{ fontSize: 18 }} /></ToggleButton>
+                        <ToggleButton value="tablet" title="모두 태블릿 화면으로"><TabletMacOutlinedIcon sx={{ fontSize: 18 }} /></ToggleButton>
+                        <ToggleButton value="mobile" title="모두 모바일 화면으로"><SmartphoneOutlinedIcon sx={{ fontSize: 18 }} /></ToggleButton>
                       </ToggleButtonGroup>
                     )}
-                    {/* 썸네일 모드일 때만: 한 줄당 카드 수 */}
+                    {/* 썸네일 모드일 때만: 한 줄당 카드 수 — 세로 막대 시각화 */}
                     {desktopView === 'thumbnail' && (
                       <ToggleButtonGroup
                         size="small"
@@ -625,21 +595,25 @@ export default function App() {
                           '& .MuiToggleButton-root': {
                             border: 'none',
                             borderRadius: '8px !important',
-                            minWidth: 28,
+                            minWidth: 30,
+                            height: 26,
                             px: '8px',
-                            py: '4px',
-                            fontSize: 12,
-                            fontWeight: 700,
+                            py: 0,
                             textTransform: 'none',
                             color: 'text.secondary',
                             '&.Mui-selected': { bgcolor: 'text.primary', color: 'background.paper', '&:hover': { bgcolor: 'grey.700' } },
                           },
                         }}
                       >
-                        <ToggleButton value={2} title="한 줄에 2개">2</ToggleButton>
-                        <ToggleButton value={3} title="한 줄에 3개">3</ToggleButton>
-                        <ToggleButton value={4} title="한 줄에 4개">4</ToggleButton>
-                        <ToggleButton value={5} title="한 줄에 5개">5</ToggleButton>
+                        {([2, 3, 4, 5] as const).map((n) => (
+                          <ToggleButton key={n} value={n} title={`한 줄에 ${n}개`}>
+                            <Box sx={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
+                              {Array.from({ length: n }, (_, i) => (
+                                <Box key={i} sx={{ width: 2.5, height: 14, bgcolor: 'currentColor', borderRadius: '1px' }} />
+                              ))}
+                            </Box>
+                          </ToggleButton>
+                        ))}
                       </ToggleButtonGroup>
                     )}
                   </Box>
@@ -670,7 +644,7 @@ export default function App() {
               {/* (4) 우측 정보/활동 패널 (Minimals) — sticky로 스크롤 따라옴 */}
               <Box sx={{
                 width: 320, flexShrink: 0,
-                display: 'flex', flexDirection: 'column', gap: '20px',
+                display: 'flex', flexDirection: 'column', gap: 'var(--card-gap, 20px)',
                 position: 'sticky',
                 top: 88,                              // 상단 헤더(약 68px) + 약간의 여백
                 alignSelf: 'flex-start',              // 부모 flex가 stretch 못 하게 — sticky 동작 보장
@@ -683,7 +657,7 @@ export default function App() {
                 '&::-webkit-scrollbar-track': { background: 'transparent' },
               }}>
                 {/* 통계 카드 (Minimals stat widget) */}
-                <Box className="reveal-up" style={{ animationDelay: '80ms' }} sx={{ position: 'relative', bgcolor: 'background.paper', borderRadius: '16px', p: '24px', boxShadow: '0 0 2px 0 rgb(var(--palette-grey-500Channel) / 0.20), 0 12px 24px -4px rgb(var(--palette-grey-500Channel) / 0.12)', overflow: 'hidden' }}>
+                <Box className="reveal-up" style={{ animationDelay: '80ms' }} sx={{ position: 'relative', bgcolor: 'background.paper', borderRadius: '16px', p: 'var(--card-pad, 24px)', boxShadow: '0 0 2px 0 rgb(var(--palette-grey-500Channel) / 0.20), 0 12px 24px -4px rgb(var(--palette-grey-500Channel) / 0.12)', overflow: 'hidden' }}>
                   <Box sx={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: '50%', bgcolor: 'rgb(var(--palette-primary-mainChannel) / 0.08)' }} />
                   <Typography sx={{ position: 'relative', fontSize: 14, color: 'text.secondary', fontWeight: 600, mb: '4px' }}>Overall progress</Typography>
                   <Box sx={{ position: 'relative', display: 'flex', alignItems: 'baseline', gap: '8px', mb: '8px' }}>
@@ -697,7 +671,7 @@ export default function App() {
                 </Box>
 
                 {/* 최근 업데이트 활동 */}
-                <Box className="reveal-up" style={{ animationDelay: '160ms' }} sx={{ bgcolor: 'background.paper', borderRadius: '16px', p: '24px', boxShadow: '0 0 2px 0 rgb(var(--palette-grey-500Channel) / 0.20), 0 12px 24px -4px rgb(var(--palette-grey-500Channel) / 0.12)' }}>
+                <Box className="reveal-up" style={{ animationDelay: '160ms' }} sx={{ bgcolor: 'background.paper', borderRadius: '16px', p: 'var(--card-pad, 24px)', boxShadow: '0 0 2px 0 rgb(var(--palette-grey-500Channel) / 0.20), 0 12px 24px -4px rgb(var(--palette-grey-500Channel) / 0.12)' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: '16px' }}>
                     <Typography sx={{ fontSize: 16, fontWeight: 700, color: 'text.primary' }}>최근 업데이트</Typography>
                     <Typography sx={{ fontSize: 13, color: 'primary.main', cursor: 'pointer', fontWeight: 600, '&:hover': { textDecoration: 'underline' } }}>전체보기</Typography>
@@ -728,7 +702,7 @@ export default function App() {
 
                 {/* 북마크 */}
                 {bookmarks.size > 0 && (
-                  <Box className="reveal-up" style={{ animationDelay: '240ms' }} sx={{ bgcolor: 'background.paper', borderRadius: '16px', p: '24px', boxShadow: '0 0 2px 0 rgb(var(--palette-grey-500Channel) / 0.20), 0 12px 24px -4px rgb(var(--palette-grey-500Channel) / 0.12)' }}>
+                  <Box className="reveal-up" style={{ animationDelay: '240ms' }} sx={{ bgcolor: 'background.paper', borderRadius: '16px', p: 'var(--card-pad, 24px)', boxShadow: '0 0 2px 0 rgb(var(--palette-grey-500Channel) / 0.20), 0 12px 24px -4px rgb(var(--palette-grey-500Channel) / 0.12)' }}>
                     <Typography sx={{ fontSize: 16, fontWeight: 700, color: 'text.primary', mb: '16px' }}>북마크 <Box component="span" sx={{ color: 'text.secondary', fontWeight: 500 }}>({bookmarks.size})</Box></Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       {flatCards.filter(c => bookmarks.has(c.item.id)).slice(0, 5).map((card, i) => (
@@ -744,7 +718,7 @@ export default function App() {
                 )}
 
                 {/* 완성도 요약 (섹션별, PC + MO) */}
-                <Box className="reveal-up" style={{ animationDelay: '320ms' }} sx={{ bgcolor: 'background.paper', borderRadius: '16px', p: '24px', boxShadow: '0 0 2px 0 rgb(var(--palette-grey-500Channel) / 0.20), 0 12px 24px -4px rgb(var(--palette-grey-500Channel) / 0.12)' }}>
+                <Box className="reveal-up" style={{ animationDelay: '320ms' }} sx={{ bgcolor: 'background.paper', borderRadius: '16px', p: 'var(--card-pad, 24px)', boxShadow: '0 0 2px 0 rgb(var(--palette-grey-500Channel) / 0.20), 0 12px 24px -4px rgb(var(--palette-grey-500Channel) / 0.12)' }}>
                   <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', mb: '16px' }}>
                     <Typography sx={{ fontSize: 16, fontWeight: 700, color: 'text.primary' }}>완성도 요약</Typography>
                     <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>{totalCount} pages</Typography>
@@ -982,6 +956,33 @@ export default function App() {
         </Dialog>
 
       </Box>
-    </>
+
+      <SettingsDrawer
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        darkMode={darkMode}
+        onToggleDarkMode={() => setDarkMode(d => !d)}
+        previewEnabled={previewEnabled}
+        onTogglePreview={() => setPreviewEnabled(p => !p)}
+        showIncomplete={showIncomplete}
+        onToggleIncomplete={() => setShowIncomplete(s => !s)}
+        compact={compact}
+        onToggleCompact={() => setCompact(c => !c)}
+        contrast={contrast}
+        onToggleContrast={() => setContrast(c => !c)}
+        rtl={rtl}
+        onToggleRtl={() => setRtl(r => !r)}
+        onReset={() => {
+          if (window.confirm('모든 설정을 초기화하고 페이지를 새로고침할까요?')) {
+            localStorage.clear();
+            window.location.reload();
+          }
+        }}
+        preset={preset}
+        onSelectPreset={setPreset}
+        fontSize={fontSize}
+        onChangeFontSize={setFontSize}
+      />
+    </ThemeProvider>
   );
 }
