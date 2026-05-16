@@ -14,6 +14,9 @@ import WorkOutlineIcon from '@mui/icons-material/WorkOutlined';
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
 import TuneIcon from '@mui/icons-material/Tune';
 import { sites } from './data/sites';
+import { loadSheetCsv } from './data/parseSheetCsv';
+import type { TableSection } from './types';
+import { PREVIEW_SCROLL_DIR_EVENT } from './types/events';
 import SectionTable from './components/SectionTable';
 import MobileCard from './components/MobileCard';
 import './App.css';
@@ -53,6 +56,8 @@ export default function App() {
   const [sortBy, setSortBy] = useState<'updated' | 'created' | 'progress'>('updated');
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const flatLengthRef = useRef(0);
+  const flatIndexRef = useRef(flatIndex);
+  useEffect(() => { flatIndexRef.current = flatIndex; }, [flatIndex]);
 
   const toggleBookmark = useCallback((id: string) => {
     setBookmarks(prev => {
@@ -76,7 +81,18 @@ export default function App() {
 
   const site = sites[siteIndex];
   const siteColor = site.color ?? '#4a7ab5';
-  const rawTableData = site.data;
+  // sheetCsvUrl 이 있으면 시트에서 fetch, 없으면 정적 data 그대로.
+  // 시트 fetch 실패 시 자동으로 site.data 를 fallback 으로 사용.
+  const [rawTableData, setRawTableData] = useState<TableSection[]>(site.data);
+  useEffect(() => {
+    setRawTableData(site.data);
+    if (!site.sheetCsvUrl) return;
+    let cancelled = false;
+    loadSheetCsv(site.sheetCsvUrl, site.data).then(d => {
+      if (!cancelled) setRawTableData(d);
+    });
+    return () => { cancelled = true; };
+  }, [site]);
   const tableData = useMemo(() => {
     const [min, max] = progressRange;
     const q = searchFilter.trim().toLowerCase();
@@ -167,12 +183,12 @@ export default function App() {
   const overallMo = totalCount ? Math.round(dashboardStats.reduce((s, d) => s + d.avgMo * d.count, 0) / totalCount) : 0;
 
   useEffect(() => {
-    const handleDir = (e: any) => {
+    const handleDir = (e: WindowEventMap[typeof PREVIEW_SCROLL_DIR_EVENT]) => {
       if (e.detail === 'down') setHideUi(true);
       else if (e.detail === 'up') setHideUi(false);
     };
-    window.addEventListener('preview-scroll-dir', handleDir);
-    return () => window.removeEventListener('preview-scroll-dir', handleDir);
+    window.addEventListener(PREVIEW_SCROLL_DIR_EVENT, handleDir);
+    return () => window.removeEventListener(PREVIEW_SCROLL_DIR_EVENT, handleDir);
   }, []);
 
   useEffect(() => {
@@ -188,18 +204,21 @@ export default function App() {
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    let isScrolling: any;
+    let isScrolling: ReturnType<typeof setTimeout> | undefined;
     const handleScroll = () => {
       clearTimeout(isScrolling);
       isScrolling = setTimeout(() => {
         const idx = Math.round(container.scrollLeft / container.clientWidth);
-        if (idx !== flatIndex) setFlatIndex(idx);
+        if (idx !== flatIndexRef.current) setFlatIndex(idx);
       }, 60);
     };
 
     container.addEventListener('scroll', handleScroll, { passive: true });
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, [previewEnabled, flatIndex]);
+    return () => {
+      clearTimeout(isScrolling);
+      container.removeEventListener('scroll', handleScroll);
+    };
+  }, [previewEnabled]);
 
   const handleSiteChange = (next: number) => {
     setSiteIndex(next);

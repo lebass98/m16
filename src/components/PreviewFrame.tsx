@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from 'react';
+import { useIframeAutoScroll } from '../hooks/useIframeAutoScroll';
+import { PREVIEW_SCROLL_DIR_EVENT } from '../types/events';
 import '../App.css';
-
-const PAUSE_MS = 800;
 
 interface Props {
   src: string;
@@ -14,53 +14,85 @@ interface Props {
   allowScroll?: boolean;
 }
 
-export default function PreviewFrame({ src, displayWidth, animate = false, fillHeight = false, speed = 4, iframeWidth = 1920, iframeHeight = 1080, allowScroll = false }: Props) {
+const LOAD_MARGIN = '200px';
+const UNLOAD_MARGIN = '1200px';
+
+export default function PreviewFrame({
+  src,
+  displayWidth,
+  animate = false,
+  fillHeight = false,
+  speed = 4,
+  iframeWidth = 1920,
+  iframeHeight = 1080,
+  allowScroll = false,
+}: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [actualWidth, setActualWidth] = useState(typeof displayWidth === 'number' ? displayWidth : 375);
-  const [actualHeight, setActualHeight] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasEnteredView, setHasEnteredView] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { setIsLoading(true); }, [src]);
+  // 측정 가능한 폭만 별도 상태로 추적. displayWidth가 숫자면 그대로 사용해 setState 불필요.
+  const [resizeWidth, setResizeWidth] = useState(375);
+  const [resizeHeight, setResizeHeight] = useState(0);
+  const actualWidth = typeof displayWidth === 'number' ? displayWidth : resizeWidth;
+  const actualHeight = typeof displayWidth === 'number' ? 0 : resizeHeight;
 
+  const [shouldLoad, setShouldLoad] = useState(false);
+  // 현재 src와 마지막 로드 완료된 src를 비교해 isLoading을 파생값으로 계산.
+  const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
+  const isLoading = !shouldLoad || loadedSrc !== src;
+
+  // 진입 시 load, 멀리 벗어나면 unload (히스테리시스로 스크롤 시 깜박임 방지)
   useEffect(() => {
-    const ob = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        setHasEnteredView(true);
-        ob.disconnect();
+    const el = containerRef.current;
+    if (!el) return;
+
+    const loadObserver = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) setShouldLoad(true);
+    }, { rootMargin: LOAD_MARGIN });
+
+    const unloadObserver = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) {
+        setShouldLoad(false);
+        setLoadedSrc(null);
       }
-    }, { rootMargin: '300px' });
-    if (containerRef.current) ob.observe(containerRef.current);
-    return () => ob.disconnect();
+    }, { rootMargin: UNLOAD_MARGIN });
+
+    loadObserver.observe(el);
+    unloadObserver.observe(el);
+
+    return () => {
+      loadObserver.disconnect();
+      unloadObserver.disconnect();
+    };
   }, []);
 
   useEffect(() => {
-    if (typeof displayWidth === 'number') {
-      setActualWidth(displayWidth);
-      return;
-    }
+    if (typeof displayWidth === 'number') return; // 숫자면 ResizeObserver 불필요
+    const target = containerRef.current;
+    if (!target) return;
     const ob = new ResizeObserver((entries) => {
-      if (entries[0] && entries[0].contentRect.width > 0) {
-        setActualWidth(entries[0].contentRect.width);
-        setActualHeight(entries[0].contentRect.height);
+      const rect = entries[0]?.contentRect;
+      if (rect && rect.width > 0) {
+        setResizeWidth(rect.width);
+        setResizeHeight(rect.height);
       }
     });
-    if (containerRef.current) ob.observe(containerRef.current);
+    ob.observe(target);
     return () => ob.disconnect();
   }, [displayWidth]);
 
   const scale = actualWidth / iframeWidth;
   const displayHeight = Math.round(iframeHeight * scale);
   const dynamicIframeHeight = fillHeight && actualHeight > 0 ? actualHeight / scale : iframeHeight;
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
 
+  // 로드 완료 시 loadedSrc 갱신 + iframe 내부 스크롤 방향을 외부로 전파
   useEffect(() => {
     const iframe = iframeRef.current;
-    if (!iframe || !hasEnteredView) return;
+    if (!iframe || !shouldLoad) return;
 
     const handleLoad = () => {
-      setIsLoading(false);
+      setLoadedSrc(src);
       try {
         const win = iframe.contentWindow;
         if (win) {
@@ -68,114 +100,31 @@ export default function PreviewFrame({ src, displayWidth, animate = false, fillH
           win.addEventListener('scroll', () => {
             const currentY = win.scrollY;
             if (currentY > lastY + 5) {
-              window.dispatchEvent(new CustomEvent('preview-scroll-dir', { detail: 'down' }));
+              window.dispatchEvent(new CustomEvent(PREVIEW_SCROLL_DIR_EVENT, { detail: 'down' }));
               lastY = currentY;
             } else if (currentY < lastY - 5) {
-              window.dispatchEvent(new CustomEvent('preview-scroll-dir', { detail: 'up' }));
+              window.dispatchEvent(new CustomEvent(PREVIEW_SCROLL_DIR_EVENT, { detail: 'up' }));
               lastY = currentY;
             }
           });
         }
-      } catch (e) { /* ignore cross-origin */ }
+      } catch { /* cross-origin */ }
     };
 
     iframe.addEventListener('load', handleLoad);
     return () => iframe.removeEventListener('load', handleLoad);
-  }, [src, hasEnteredView]);
+  }, [src, shouldLoad]);
 
-  useEffect(() => {
-    if (!animate || !hasEnteredView) return;
-
-    let y = 0;
-    let dir = 1;
-    let rafId = 0;
-    let paused = false;
-    let maxScroll = 0;
-
-    function applyY() {
-      if (iframeRef.current) iframeRef.current.style.transform = `translateY(-${y}px)`;
-    }
-
-    function pause(callback: () => void) {
-      paused = true;
-      setTimeout(() => { paused = false; callback(); }, PAUSE_MS);
-    }
-
-    function tick() {
-      if (paused) return;
-
-      const iframe = iframeRef.current;
-      if (iframe) {
-        try {
-          const doc = iframe.contentDocument;
-          if (doc) {
-            const sh = Math.max(doc.documentElement?.scrollHeight || 0, doc.body?.scrollHeight || 0);
-            if (sh > iframeHeight) {
-              const currentH = parseInt(iframe.style.height) || 0;
-              if (sh !== currentH) {
-                iframe.style.height = `${sh}px`;
-                if (wrapperRef.current) wrapperRef.current.style.height = `${sh}px`;
-                maxScroll = Math.max(sh - iframeHeight, 0);
-              }
-            } else if (sh > 0 && sh <= iframeHeight) {
-              maxScroll = 0;
-            }
-          }
-        } catch { /* ignore cross-origin */ }
-      }
-
-      y += speed * dir;
-
-      if (y >= maxScroll) {
-        y = maxScroll;
-        applyY();
-        if (maxScroll > 0) {
-          pause(() => { dir = -1; rafId = requestAnimationFrame(tick); });
-        } else {
-          rafId = requestAnimationFrame(tick);
-        }
-        return;
-      }
-      if (y <= 0) {
-        y = 0;
-        applyY();
-        if (maxScroll > 0) {
-          pause(() => { dir = 1; rafId = requestAnimationFrame(tick); });
-        } else {
-          rafId = requestAnimationFrame(tick);
-        }
-        return;
-      }
-      applyY();
-      rafId = requestAnimationFrame(tick);
-    }
-
-    const iframe = iframeRef.current;
-    if (!iframe) return;
-
-    iframe.onload = () => {
-      let contentH = iframeHeight * 2.5; // cross-origin 기본값 (너무 길지 않게 수정)
-      try {
-        const doc = iframe.contentDocument;
-        const sh = Math.max(doc?.documentElement?.scrollHeight || 0, doc?.body?.scrollHeight || 0);
-        if (sh > 0) {
-          contentH = Math.max(sh, iframeHeight);
-        }
-      } catch { /* cross-origin */ }
-
-      // iframe과 스케일 래퍼를 실제 높이로 조정
-      iframe.style.height = `${contentH}px`;
-      if (wrapperRef.current) wrapperRef.current.style.height = `${contentH}px`;
-
-      maxScroll = Math.max(contentH - iframeHeight, 0);
-      rafId = requestAnimationFrame(tick);
-    };
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      if (iframe) iframe.onload = null;
-    };
-  }, [animate, src, speed, hasEnteredView]);
+  // 자동 스크롤 (animate=true 일 때만)
+  useIframeAutoScroll({
+    iframeRef,
+    wrapperRef,
+    enabled: animate && shouldLoad,
+    speed,
+    iframeHeight,
+    fallbackHeightMultiplier: 2.5,
+    resetKey: src,
+  });
 
   return (
     <div
@@ -199,34 +148,37 @@ export default function PreviewFrame({ src, displayWidth, animate = false, fillH
           </div>
         </div>
       )}
-      <div
-        ref={wrapperRef}
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: iframeWidth,
-          height: animate ? iframeHeight : dynamicIframeHeight,
-          transform: `scale(${scale})`,
-          transformOrigin: 'top left',
-        }}
-      >
-        <iframe
-          ref={iframeRef}
-          src={hasEnteredView ? src : undefined}
-          title="preview"
+      {shouldLoad && (
+        <div
+          ref={wrapperRef}
           style={{
-            display: 'block',
+            position: 'absolute',
+            top: 0,
+            left: 0,
             width: iframeWidth,
             height: animate ? iframeHeight : dynamicIframeHeight,
-            border: 'none',
-            pointerEvents: allowScroll ? 'auto' : 'none',
-            opacity: isLoading ? 0 : 1,
-            transition: 'opacity 0.45s ease',
+            transform: `scale(${scale})`,
+            transformOrigin: 'top left',
           }}
-          tabIndex={-1}
-        />
-      </div>
+        >
+          <iframe
+            ref={iframeRef}
+            src={src}
+            title="preview"
+            loading="lazy"
+            style={{
+              display: 'block',
+              width: iframeWidth,
+              height: animate ? iframeHeight : dynamicIframeHeight,
+              border: 'none',
+              pointerEvents: allowScroll ? 'auto' : 'none',
+              opacity: isLoading ? 0 : 1,
+              transition: 'opacity 0.45s ease',
+            }}
+            tabIndex={-1}
+          />
+        </div>
+      )}
     </div>
   );
 }

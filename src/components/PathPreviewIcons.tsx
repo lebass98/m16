@@ -7,6 +7,7 @@ import mobileIcon from '../assets/mobile-svgrepo-com.svg';
 import copyIcon from '../assets/copy-success-svgrepo-com.svg';
 import CloseIcon from '@mui/icons-material/Close';
 import PreviewFrame from './PreviewFrame';
+import { useIframeAutoScroll } from '../hooks/useIframeAutoScroll';
 
 type HoverType = 'pc' | 'tablet' | 'mobile' | null;
 
@@ -42,85 +43,14 @@ function calcPos(e: React.MouseEvent, w: number, h: number) {
 function MobilePreviewFrame({ src }: { src: string }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  useEffect(() => {
-    let y = 0;
-    let dir = 1;
-    let rafId = 0;
-    let paused = false;
-    let maxScroll = 0;
-    const PAUSE_MS = 800;
-
-    function applyY() {
-      if (iframeRef.current) iframeRef.current.style.transform = `translateY(-${y}px)`;
-    }
-    function pause(callback: () => void) {
-      paused = true;
-      setTimeout(() => { paused = false; callback(); }, PAUSE_MS);
-    }
-    function tick() {
-      if (paused) return;
-
-      const iframe = iframeRef.current;
-      if (iframe) {
-        try {
-          const doc = iframe.contentDocument;
-          if (doc) {
-            const sh = Math.max(doc.documentElement?.scrollHeight || 0, doc.body?.scrollHeight || 0);
-            if (sh > MOBILE_H) {
-              const currentH = parseInt(iframe.style.height) || 0;
-              if (sh !== currentH) {
-                iframe.style.height = `${sh}px`;
-                maxScroll = Math.max(sh - MOBILE_H, 0);
-              }
-            } else if (sh > 0 && sh <= MOBILE_H) {
-              maxScroll = 0;
-            }
-          }
-        } catch { /* cross-origin */ }
-      }
-
-      y += MOBILE_SPEED * dir;
-      if (y >= maxScroll) {
-        y = maxScroll;
-        applyY();
-        if (maxScroll > 0) {
-          pause(() => { dir = -1; rafId = requestAnimationFrame(tick); });
-        } else {
-          rafId = requestAnimationFrame(tick);
-        }
-        return;
-      }
-      if (y <= 0) {
-        y = 0;
-        applyY();
-        if (maxScroll > 0) {
-          pause(() => { dir = 1; rafId = requestAnimationFrame(tick); });
-        } else {
-          rafId = requestAnimationFrame(tick);
-        }
-        return;
-      }
-      applyY();
-      rafId = requestAnimationFrame(tick);
-    }
-
-    const iframe = iframeRef.current;
-    if (!iframe) return;
-    iframe.onload = () => {
-      let contentH = MOBILE_H * 3; // cross-origin 기본값 (너무 길지 않게 수정)
-      try {
-        const doc = iframe.contentDocument;
-        const sh = Math.max(doc?.documentElement?.scrollHeight || 0, doc?.body?.scrollHeight || 0);
-        if (sh > 0) {
-          contentH = Math.max(sh, MOBILE_H);
-        }
-      } catch { /* cross-origin */ }
-      iframe.style.height = `${contentH}px`;
-      maxScroll = Math.max(contentH - MOBILE_H, 0);
-      rafId = requestAnimationFrame(tick);
-    };
-    return () => { cancelAnimationFrame(rafId); if (iframe) iframe.onload = null; };
-  }, [src]);
+  useIframeAutoScroll({
+    iframeRef,
+    enabled: true,
+    speed: MOBILE_SPEED,
+    iframeHeight: MOBILE_H,
+    fallbackHeightMultiplier: 3,
+    resetKey: src,
+  });
 
   return (
     <div style={{ width: MOBILE_W, height: MOBILE_H, overflow: 'hidden', position: 'relative', background: '#fff' }}>
