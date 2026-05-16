@@ -153,49 +153,52 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
           </Box>
         )}
 
-        {/* 디바이스 토글 + 작은 PC/MO % + 파일 보기 버튼 */}
+        {/* 디바이스 토글 + 작은 PC/MO % (Row 1) + 파일 보기 (Row 2, full width) */}
         {(() => {
           const pcVal = item.progressPc ?? 0;
           const moVal = item.progressMobile ?? 0;
           const pcColor = pcVal >= 100 ? COLORS.success : pcVal === 0 ? COLORS.error : COLORS.primary;
           const moColor = moVal >= 100 ? COLORS.success : moVal === 0 ? COLORS.error : COLORS.primary;
           return (
-            <Box className="reveal-up-sm" style={inner(5)} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', pt: '4px' }}>
-              {/* 리스트뷰와 동일: 호버 시 팝업 미리보기, 클릭 시 모달 */}
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                {item.path ? <PathPreviewIcons path={item.path} previewEnabled /> : null}
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: 10, lineHeight: 1, color: COLORS.gray600, fontWeight: 600 }}>
+            <Box className="reveal-up-sm" style={inner(5)} sx={{ display: 'flex', flexDirection: 'column', gap: '10px', pt: '4px' }}>
+              {/* Row 1: 디바이스 토글 (좌) + PC/MO % (우) */}
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap', rowGap: '6px' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  {item.path ? <PathPreviewIcons path={item.path} previewEnabled /> : null}
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: 10, lineHeight: 1, color: COLORS.gray600, fontWeight: 600, ml: 'auto' }}>
                   <Box component="span" sx={{ color: COLORS.gray500, letterSpacing: '0.04em' }}>PC</Box>
                   <Box component="span" sx={{ color: pcColor, fontWeight: 700 }}>{pcVal}%</Box>
                   <Box component="span" sx={{ color: COLORS.gray400 }}>·</Box>
                   <Box component="span" sx={{ color: COLORS.gray500, letterSpacing: '0.04em' }}>MO</Box>
                   <Box component="span" sx={{ color: moColor, fontWeight: 700 }}>{moVal}%</Box>
                 </Box>
-                <Box
-                  component={item.path ? 'a' : 'button'}
-                  href={item.path || undefined}
-                  target={item.path ? '_blank' : undefined}
-                  rel={item.path ? 'noreferrer' : undefined}
-                  sx={{
-                    display: 'inline-flex', alignItems: 'center', gap: '6px',
-                    bgcolor: '#111', color: 'background.paper', textDecoration: 'none',
-                    border: 'none', cursor: item.path ? 'pointer' : 'not-allowed',
-                    opacity: item.path ? 1 : 0.4, fontFamily: 'inherit',
-                    fontSize: 13, fontWeight: 700,
-                    px: '16px', py: '9px', borderRadius: '999px',
-                    lineHeight: 1, transition: 'transform 0.15s, box-shadow 0.15s, background 0.2s',
-                    '&:hover': {
-                      bgcolor: item.path ? '#333' : '#111',
-                      transform: item.path ? 'translateY(-1px)' : 'none',
-                      boxShadow: item.path ? '0 6px 14px rgba(0,0,0,0.18)' : 'none',
-                    },
-                  }}
-                >
-                  파일 보기
-                  <ArrowOutwardIcon sx={{ fontSize: 14 }} />
-                </Box>
+              </Box>
+
+              {/* Row 2: 파일 보기 — 풀-폭 CTA */}
+              <Box
+                component={item.path ? 'a' : 'button'}
+                href={item.path || undefined}
+                target={item.path ? '_blank' : undefined}
+                rel={item.path ? 'noreferrer' : undefined}
+                sx={{
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                  width: '100%',
+                  bgcolor: '#111', color: 'background.paper', textDecoration: 'none',
+                  border: 'none', cursor: item.path ? 'pointer' : 'not-allowed',
+                  opacity: item.path ? 1 : 0.4, fontFamily: 'inherit',
+                  fontSize: 13, fontWeight: 700,
+                  px: '16px', py: '10px', borderRadius: '12px',
+                  lineHeight: 1, transition: 'transform 0.15s, box-shadow 0.15s, background 0.2s',
+                  '&:hover': {
+                    bgcolor: item.path ? '#333' : '#111',
+                    transform: item.path ? 'translateY(-1px)' : 'none',
+                    boxShadow: item.path ? '0 6px 14px rgba(0,0,0,0.18)' : 'none',
+                  },
+                }}
+              >
+                파일 보기
+                <ArrowOutwardIcon sx={{ fontSize: 14 }} />
               </Box>
             </Box>
           );

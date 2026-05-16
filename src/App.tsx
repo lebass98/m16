@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
-import { Box, Typography, Dialog, List, ListItem, ListItemButton, ListItemText, IconButton, TextField, InputAdornment, LinearProgress, ToggleButtonGroup, ToggleButton, Slider, Tooltip } from '@mui/material';
+import { Box, Typography, Dialog, List, ListItem, ListItemButton, ListItemText, IconButton, LinearProgress, ToggleButtonGroup, ToggleButton, Slider, Tooltip } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
 import BarChartIcon from '@mui/icons-material/BarChart';
@@ -86,7 +86,6 @@ export default function App() {
     localStorage.setItem('fontSize', String(fontSize));
     document.documentElement.style.fontSize = `${fontSize}px`;
   }, [fontSize]);
-  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // 선택된 preset 으로 theme override 생성 (Channel suffix 까지 자동 생성)
   const themeOverrides = useMemo(() => ({
@@ -99,7 +98,6 @@ export default function App() {
     },
   }), [preset]);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [searchFocused, setSearchFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFilter, setSearchFilter] = useState('');
   const [dashboardOpen, setDashboardOpen] = useState(false);
@@ -211,8 +209,8 @@ export default function App() {
   const latestDate = useMemo(() => getLatestDate(tableData), [tableData]);
   const totalCount = useMemo(() => tableData.reduce((sum, s) => sum + s.data.length, 0), [tableData]);
 
-  // 검색
-  const searchResults = useMemo(() => {
+  // 검색 결과 (모달용 — SearchHit shape)
+  const searchHits: SearchHit[] = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return [];
     return flatCards
@@ -221,7 +219,22 @@ export default function App() {
         [item.pageTitle, item.id, item.depth1, item.depth2, item.depth3, item.note]
           .some(v => v?.toLowerCase().includes(q))
       )
-      .slice(0, 30);
+      .slice(0, 30)
+      .map(c => {
+        let pathDisplay = c.item.id || c.item.path || '';
+        if (c.item.path) {
+          try { pathDisplay = new URL(c.item.path).pathname; } catch { pathDisplay = c.item.path; }
+        }
+        return {
+          globalIdx: c.globalIdx,
+          pageTitle: c.item.pageTitle,
+          id: c.item.id,
+          pathDisplay,
+          section: c.sectionTitle,
+          href: c.item.path || undefined,
+          progress: c.item.progressPc ?? 0,
+        };
+      });
   }, [searchQuery, flatCards]);
 
   // 대시보드 통계
@@ -244,6 +257,18 @@ export default function App() {
     };
     window.addEventListener(PREVIEW_SCROLL_DIR_EVENT, handleDir);
     return () => window.removeEventListener(PREVIEW_SCROLL_DIR_EVENT, handleDir);
+  }, []);
+
+  // Cmd/Ctrl + K → 검색 모달 오픈
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, []);
 
   useEffect(() => {
@@ -282,14 +307,6 @@ export default function App() {
     setTimeout(() => {
       scrollContainerRef.current?.scrollTo({ left: 0, behavior: 'instant' });
     }, 0);
-  };
-
-  const handleSearchNavigate = (globalIdx: number) => {
-    setFlatIndex(globalIdx);
-    if (!previewEnabled) setPreviewEnabled(true);
-    setTimeout(() => scrollToFlat(globalIdx), 50);
-    setSearchOpen(false);
-    setSearchQuery('');
   };
 
   const ctrlBtnSx = { p: '4px', color: darkMode ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.6)' };
@@ -422,7 +439,7 @@ export default function App() {
           {/* 우측 컨텐츠 영역 */}
           <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
             {/* (2) 상단 헤더 (Minimals) */}
-            <Box sx={{ bgcolor: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(20px)', borderBottom: '1px dashed rgb(var(--palette-grey-500Channel) / 0.2)', px: '32px', py: '14px', display: 'flex', alignItems: 'center', gap: '20px', position: 'sticky', top: 0, zIndex: 10 }}>
+            <Box sx={{ bgcolor: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(20px)', borderBottom: '1px dashed rgb(var(--palette-grey-500Channel) / 0.2)', px: { md: '16px', lg: '32px' }, py: '14px', display: 'flex', alignItems: 'center', gap: { md: '12px', lg: '20px' }, position: 'sticky', top: 0, zIndex: 10 }}>
               <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                 <Typography sx={{ fontSize: 11, color: 'text.secondary', letterSpacing: '0.06em', fontWeight: 700, textTransform: 'uppercase' }}>Workspace</Typography>
                 <Typography sx={{ fontSize: 18, fontWeight: 700, color: 'text.primary', lineHeight: 1.4 }}>{site.title}</Typography>
@@ -464,12 +481,12 @@ export default function App() {
             </Box>
 
             {/* (3) + (4) 메인 + 우측 패널 */}
-            <Box sx={{ flex: 1, display: 'flex', gap: '24px', p: '24px 32px', minHeight: 0 }}>
+            <Box sx={{ flex: 1, display: 'flex', gap: { md: '16px', lg: '24px' }, p: { md: '16px', lg: '24px 32px' }, minHeight: 0 }}>
               {/* (3) 메인 콘텐츠 (Minimals) */}
-              <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: { md: '16px', lg: '24px' } }}>
                 {/* 필터 칩 row */}
-                <Box className="reveal-up" style={{ animationDelay: '40ms' }} sx={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', bgcolor: 'background.paper', borderRadius: '16px', p: '16px 20px', boxShadow: '0 0 2px 0 rgb(var(--palette-grey-500Channel) / 0.20), 0 12px 24px -4px rgb(var(--palette-grey-500Channel) / 0.12)' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+                <Box className="reveal-up" style={{ animationDelay: '40ms' }} sx={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', bgcolor: 'background.paper', borderRadius: '16px', p: { md: '12px 14px', lg: '16px 20px' }, boxShadow: '0 0 2px 0 rgb(var(--palette-grey-500Channel) / 0.20), 0 12px 24px -4px rgb(var(--palette-grey-500Channel) / 0.12)' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, flexWrap: 'wrap', minWidth: 0 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px', bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.12)', px: '10px', py: '6px', borderRadius: '8px' }}>
                       <LocationOnOutlinedIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
                       <Typography sx={{ fontSize: 12, color: 'text.primary', fontWeight: 600 }}>{sectionFilter.size === 0 ? '전체 메뉴' : `${sectionFilter.size}개 메뉴`}</Typography>
@@ -483,7 +500,7 @@ export default function App() {
                       <Typography sx={{ fontSize: 12, color: 'text.primary', fontWeight: 600 }}>최근 {latestDate || '-'}</Typography>
                     </Box>
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 240 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: { md: 180, lg: 240 }, flex: { md: '1 0 100%', lg: '0 0 auto' } }}>
                     <Typography sx={{ fontSize: 12, color: 'text.secondary', whiteSpace: 'nowrap', fontWeight: 600 }}>{progressRange[0]}–{progressRange[1]}%</Typography>
                     <Slider
                       size="small"
@@ -498,7 +515,7 @@ export default function App() {
                 </Box>
 
                 {/* 헤더 행: 타이틀 + 정렬/뷰토글 */}
-                <Box className="reveal-up" style={{ animationDelay: '100ms' }} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box className="reveal-up" style={{ animationDelay: '100ms' }} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                     <Typography sx={{ fontSize: 24, fontWeight: 800, color: 'text.primary', letterSpacing: '-0.01em' }}>
                       {searchFilter ? '검색 결과' : 'Recommended pages'}
@@ -643,7 +660,7 @@ export default function App() {
 
               {/* (4) 우측 정보/활동 패널 (Minimals) — sticky로 스크롤 따라옴 */}
               <Box sx={{
-                width: 320, flexShrink: 0,
+                width: { md: 280, lg: 320 }, flexShrink: 0,
                 display: 'flex', flexDirection: 'column', gap: 'var(--card-gap, 20px)',
                 position: 'sticky',
                 top: 88,                              // 상단 헤더(약 68px) + 약간의 여백
@@ -859,53 +876,6 @@ export default function App() {
           </List>
         </Dialog>
 
-        {/* 검색 모달 */}
-        <Dialog open={searchOpen} onClose={() => { setSearchOpen(false); setSearchQuery(''); }} fullWidth maxWidth="xs" slotProps={{ paper: { sx: { m: 2, maxHeight: '80vh' } } }}>
-          <Box sx={{ p: '12px 16px', borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
-            <TextField
-              autoFocus
-              fullWidth
-              size="small"
-              placeholder="페이지명, 메뉴, 메모 검색..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              slotProps={{
-                input: {
-                  startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 18, color: 'text.secondary' }} /></InputAdornment>,
-                }
-              }}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '20px' } }}
-            />
-            <IconButton size="small" onClick={() => { setSearchOpen(false); setSearchQuery(''); }}>
-              <CloseIcon sx={{ fontSize: 18 }} />
-            </IconButton>
-          </Box>
-          <Box sx={{ overflowY: 'auto' }}>
-            {searchQuery.trim() === '' ? (
-              <Box sx={{ py: 4, textAlign: 'center', color: 'text.secondary', fontSize: 13 }}>검색어를 입력하세요</Box>
-            ) : searchResults.length === 0 ? (
-              <Box sx={{ py: 4, textAlign: 'center', color: 'text.secondary', fontSize: 13 }}>검색 결과가 없습니다</Box>
-            ) : (
-              <List dense sx={{ pt: 0, pb: 0 }}>
-                {searchResults.map((card) => (
-                  <ListItem key={card.globalIdx} disablePadding>
-                    <ListItemButton onClick={() => handleSearchNavigate(card.globalIdx)} sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
-                      <ListItemText
-                        primary={<Typography sx={{ fontSize: 14, fontWeight: 600 }}>{card.item.pageTitle || card.item.id}</Typography>}
-                        secondary={
-                          <Typography component="span" sx={{ fontSize: 11, color: 'text.secondary' }}>
-                            {[card.sectionTitle, card.item.depth2, card.item.depth3].filter(Boolean).join(' > ')}
-                          </Typography>
-                        }
-                      />
-                    </ListItemButton>
-                  </ListItem>
-                ))}
-              </List>
-            )}
-          </Box>
-        </Dialog>
-
         {/* 완성도 대시보드 모달 */}
         <Dialog open={dashboardOpen} onClose={() => setDashboardOpen(false)} fullWidth maxWidth="xs" slotProps={{ paper: { sx: { m: 2, maxHeight: '85vh' } } }}>
           <Box sx={{ p: '14px 16px', borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -956,6 +926,15 @@ export default function App() {
         </Dialog>
 
       </Box>
+
+      <SearchDialog
+        open={searchOpen}
+        onClose={() => { setSearchOpen(false); setSearchQuery(''); }}
+        query={searchQuery}
+        onQueryChange={setSearchQuery}
+        results={searchHits}
+        totalCount={totalCount}
+      />
 
       <SettingsDrawer
         open={settingsOpen}
