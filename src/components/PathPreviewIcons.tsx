@@ -23,7 +23,7 @@ const IFRAME_H = 1080;
 
 const MODAL_PC_W = 1280;
 const MODAL_TABLET_W = 1024;
-const MODAL_MOBILE_OUTER_W = 400;
+const MODAL_MOBILE_OUTER_W = 375;
 const MODAL_MOBILE_INNER_W = 375;
 
 
@@ -159,7 +159,7 @@ function PCModalContent({ src }: { src: string }) {
   }, [src, scale]);
 
   return (
-    <div style={{ width: MODAL_PC_W, maxHeight: '80vh', overflowY: 'auto', background: '#fff' }}>
+    <div className="hide-scrollbar" style={{ width: MODAL_PC_W, maxHeight: '80vh', overflowY: 'auto', background: '#fff' }}>
       <div ref={containerRef} style={{ width: MODAL_PC_W, height: Math.round(FALLBACK_H * scale), position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
         <div ref={wrapperRef} style={{ position: 'absolute', top: 0, left: 0, width: IFRAME_W, height: FALLBACK_H, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
           <iframe
@@ -201,13 +201,14 @@ function TabletModalContent({ src }: { src: string }) {
   }, [src, scale]);
 
   return (
-    <div style={{ width: MODAL_TABLET_W, maxHeight: '80vh', overflowY: 'auto', background: '#fff' }}>
+    <div className="hide-scrollbar" style={{ width: MODAL_TABLET_W, maxHeight: '80vh', overflowY: 'auto', background: '#fff' }}>
       <div ref={containerRef} style={{ width: MODAL_TABLET_W, height: Math.round(FALLBACK_H * scale), position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
         <div ref={wrapperRef} style={{ position: 'absolute', top: 0, left: 0, width: IFRAME_W, height: FALLBACK_H, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
           <iframe
             ref={iframeRef}
             src={src}
             title="Tablet modal preview"
+            scrolling="no"
             style={{ display: 'block', width: IFRAME_W, height: FALLBACK_H, border: 'none', pointerEvents: 'none' }}
             tabIndex={-1}
           />
@@ -220,6 +221,7 @@ function TabletModalContent({ src }: { src: string }) {
 function MobileModalContent({ src }: { src: string }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const outerRef = useRef<HTMLDivElement>(null);
+  const FALLBACK_H = 6000;
 
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -227,24 +229,23 @@ function MobileModalContent({ src }: { src: string }) {
     iframe.onload = () => {
       try {
         const sh = iframe.contentDocument?.documentElement?.scrollHeight ?? 0;
-        if (sh > MOBILE_H) {
+        if (sh > 0) {
           iframe.style.height = `${sh}px`;
-          iframe.style.pointerEvents = 'none';
-          if (outerRef.current) outerRef.current.style.overflowY = 'auto';
         }
-      } catch { /* cross-origin */ }
+      } catch { /* cross-origin: keep fallback height */ }
     };
     return () => { if (iframe) iframe.onload = null; };
   }, [src]);
 
   return (
-    <div ref={outerRef} style={{ width: MODAL_MOBILE_OUTER_W, maxHeight: '80vh', overflowY: 'hidden', background: '#fff' }}>
+    <div ref={outerRef} className="hide-scrollbar" style={{ width: MODAL_MOBILE_OUTER_W, maxHeight: '80vh', overflowY: 'auto', background: '#fff' }}>
       <div style={{ width: MODAL_MOBILE_INNER_W, margin: '0 auto' }}>
         <iframe
           ref={iframeRef}
           src={src}
           title="Mobile modal preview"
-          style={{ display: 'block', width: MODAL_MOBILE_INNER_W, height: '80vh', border: 'none' }}
+          scrolling="no"
+          style={{ display: 'block', width: MODAL_MOBILE_INNER_W, height: FALLBACK_H, border: 'none', pointerEvents: 'none' }}
           tabIndex={-1}
         />
       </div>
@@ -388,18 +389,6 @@ export default function PathPreviewIcons({ path, previewEnabled = true }: Props)
           },
         }}
       >
-        <IconButton
-          onClick={() => setClicked(null)}
-          size="small"
-          sx={{
-            position: 'absolute', top: 8, right: 8, zIndex: 10,
-            width: 32, height: 32,
-            bgcolor: 'rgba(0,0,0,0.55)', color: '#fff',
-            '&:hover': { bgcolor: 'rgba(0,0,0,0.85)' },
-          }}
-        >
-          <CloseIcon fontSize="small" />
-        </IconButton>
         {clicked === 'pc' ? (
           <PCModalContent src={path} />
         ) : clicked === 'tablet' ? (
@@ -408,6 +397,24 @@ export default function PathPreviewIcons({ path, previewEnabled = true }: Props)
           <MobileModalContent src={path} />
         ) : null}
       </Dialog>
+      {/* 모달 외부 닫기 버튼 — 미리보기 화면을 가리지 않도록 viewport 우상단 고정 */}
+      {clicked && createPortal(
+        <IconButton
+          onClick={() => setClicked(null)}
+          aria-label="닫기"
+          sx={{
+            position: 'fixed', top: 20, right: 20, zIndex: 1500,
+            width: 44, height: 44,
+            bgcolor: 'rgba(0,0,0,0.7)', color: '#fff',
+            backdropFilter: 'blur(8px)',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+            '&:hover': { bgcolor: 'rgba(0,0,0,0.9)' },
+          }}
+        >
+          <CloseIcon />
+        </IconButton>,
+        document.body
+      )}
     </Box>
   );
 }
