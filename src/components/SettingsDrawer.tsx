@@ -269,10 +269,10 @@ export default function SettingsDrawer({
 
         {/* Font Size 슬라이더 */}
         <SectionLabel info="앱 전체 글자 크기 (rem 기반 — Typography 변환 자동 스케일)">Font</SectionLabel>
-        <Box sx={{ p: '20px 16px 16px', borderRadius: '12px', border: '1px solid rgb(var(--palette-grey-500Channel) / 0.16)', bgcolor: 'background.paper' }}>
-          <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', mb: '8px' }}>
+        <Box sx={{ p: '16px 20px 8px', borderRadius: '12px', border: '1px solid rgb(var(--palette-grey-500Channel) / 0.16)', bgcolor: 'background.paper' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: '4px' }}>
             <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary' }}>Size</Typography>
-            <Box sx={{ fontSize: 11, fontWeight: 700, color: 'primary.main', bgcolor: alpha(theme.palette.primary.main, 0.12), px: '8px', py: '2px', borderRadius: '6px' }}>
+            <Box sx={{ fontSize: 11, fontWeight: 700, lineHeight: 1.4, color: 'primary.main', bgcolor: alpha(theme.palette.primary.main, 0.12), px: '8px', py: '2px', borderRadius: '6px' }}>
               {fontSize}px
             </Box>
           </Box>
@@ -282,20 +282,35 @@ export default function SettingsDrawer({
             min={12}
             max={20}
             step={1}
-            marks
+            marks={[
+              { value: 12, label: '12' },
+              { value: 14, label: '14' },
+              { value: 16, label: '16' },
+              { value: 18, label: '18' },
+              { value: 20, label: '20' },
+            ]}
             onChange={(_, v) => onChangeFontSize(v as number)}
             valueLabelDisplay="auto"
             valueLabelFormat={(v) => `${v}px`}
             sx={{
               color: 'primary.main',
-              '& .MuiSlider-mark': { bgcolor: alpha(theme.palette.text.primary, 0.3), height: 4, width: 1 },
-              '& .MuiSlider-markActive': { bgcolor: 'primary.contrastText' },
+              mt: '4px',
+              '& .MuiSlider-mark': {
+                bgcolor: alpha(theme.palette.text.primary, 0.3),
+                height: 6,
+                width: 2,
+                borderRadius: 1,
+              },
+              '& .MuiSlider-markActive': {
+                bgcolor: alpha(theme.palette.primary.contrastText, 0.6),
+              },
+              '& .MuiSlider-markLabel': {
+                fontSize: 10,
+                color: 'text.disabled',
+                top: 22,
+              },
             }}
           />
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: '-2px' }}>
-            <Typography sx={{ fontSize: 10, color: 'text.disabled' }}>12</Typography>
-            <Typography sx={{ fontSize: 10, color: 'text.disabled' }}>20</Typography>
-          </Box>
         </Box>
       </Box>
     </Drawer>
