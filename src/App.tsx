@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
-import { Box, Typography, Dialog, List, ListItem, ListItemButton, ListItemText, IconButton, LinearProgress, ToggleButtonGroup, ToggleButton, Slider, Tooltip } from '@mui/material';
+import { Box, Typography, Dialog, List, ListItem, ListItemButton, ListItemText, IconButton, LinearProgress, ToggleButtonGroup, ToggleButton, Slider, Tooltip, Select, MenuItem } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
 import BarChartIcon from '@mui/icons-material/BarChart';
@@ -12,7 +12,6 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutlined';
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
-import TuneIcon from '@mui/icons-material/Tune';
 import DesktopWindowsOutlinedIcon from '@mui/icons-material/DesktopWindowsOutlined';
 import TabletMacOutlinedIcon from '@mui/icons-material/TabletMacOutlined';
 import SmartphoneOutlinedIcon from '@mui/icons-material/SmartphoneOutlined';
@@ -68,6 +67,10 @@ export default function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem('sidebarCollapsed') === 'true');
   useEffect(() => { localStorage.setItem('sidebarCollapsed', String(sidebarCollapsed)); }, [sidebarCollapsed]);
 
+  // 우측 사이드바(정보/활동 패널) 숨김 상태
+  const [rightSidebarHidden, setRightSidebarHidden] = useState(() => localStorage.getItem('rightSidebarHidden') === 'true');
+  useEffect(() => { localStorage.setItem('rightSidebarHidden', String(rightSidebarHidden)); }, [rightSidebarHidden]);
+
   // 설정 패널
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [compact, setCompact] = useState(() => localStorage.getItem('compact') === 'true');
@@ -112,7 +115,23 @@ export default function App() {
     try { return new Set(JSON.parse(localStorage.getItem('bookmarks') || '[]')); } catch { return new Set(); }
   });
   const [sectionFilter, setSectionFilter] = useState<Set<string>>(new Set());
-  const [sortBy] = useState<'updated' | 'created' | 'progress'>('updated');
+  type SortKey = 'no' | 'pageTitle' | 'id' | 'path' | 'progress' | 'created' | 'updated' | 'end';
+  const SORT_KEYS: SortKey[] = ['no', 'pageTitle', 'id', 'path', 'progress', 'created', 'updated', 'end'];
+  const SORT_LABELS: Record<SortKey, string> = {
+    no: 'No',
+    pageTitle: '페이지제목',
+    id: 'ID',
+    path: '경로',
+    progress: '진행도',
+    created: '생성일',
+    updated: '최근 업데이트',
+    end: '완료일',
+  };
+  const [sortBy, setSortBy] = useState<SortKey>(() => {
+    const v = localStorage.getItem('sortBy') as SortKey | null;
+    return v && SORT_KEYS.includes(v) ? v : 'updated';
+  });
+  useEffect(() => { localStorage.setItem('sortBy', sortBy); }, [sortBy]);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const flatLengthRef = useRef(0);
   const flatIndexRef = useRef(flatIndex);
@@ -163,22 +182,32 @@ export default function App() {
       .map(section => ({
         ...section,
         data: section.data
-          .filter(item => showIncomplete ? true : (item.progressPc ?? 0) !== 0)
-          .filter(item => {
+          .map((item, idx) => ({ item, idx }))
+          .filter(({ item }) => showIncomplete ? true : (item.progressPc ?? 0) !== 0)
+          .filter(({ item }) => {
             const p = item.progressPc ?? 0;
             return p >= min && p <= max;
           })
-          .filter(item => {
+          .filter(({ item }) => {
             if (!q) return true;
             return [item.pageTitle, item.id, item.depth1, item.depth2, item.depth3, item.note, section.depth1]
               .some(v => v?.toLowerCase().includes(q));
           })
-          .slice()
           .sort((a, b) => {
-            if (sortBy === 'updated') return (b.updatedAt || '').localeCompare(a.updatedAt || '');
-            if (sortBy === 'created') return (b.start || '').localeCompare(a.start || '');
-            return (b.progressPc ?? 0) - (a.progressPc ?? 0);
-          }),
+            const ai = a.item, bi = b.item;
+            switch (sortBy) {
+              case 'no': return a.idx - b.idx;
+              case 'pageTitle': return (ai.pageTitle || '').localeCompare(bi.pageTitle || '');
+              case 'id': return (ai.id || '').localeCompare(bi.id || '');
+              case 'path': return (ai.path || '').localeCompare(bi.path || '');
+              case 'progress': return (bi.progressPc ?? 0) - (ai.progressPc ?? 0);
+              case 'created': return (bi.start || '').localeCompare(ai.start || '');
+              case 'updated': return (bi.updatedAt || '').localeCompare(ai.updatedAt || '');
+              case 'end': return (bi.end || '').localeCompare(ai.end || '');
+              default: return 0;
+            }
+          })
+          .map(({ item }) => item),
       }))
       .filter(section => section.data.length > 0);
   }, [rawTableData, showIncomplete, sectionFilter, progressRange, sortBy, searchFilter]);
@@ -541,7 +570,7 @@ export default function App() {
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px', bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.12)', px: '10px', py: '6px', borderRadius: '8px' }}>
                       <WorkOutlineIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
-                      <Typography sx={{ fontSize: 12, color: 'text.primary', fontWeight: 600 }}>정렬: {sortBy === 'updated' ? '최근 업뎃' : sortBy === 'created' ? '생성일' : '진행도'}</Typography>
+                      <Typography sx={{ fontSize: 12, color: 'text.primary', fontWeight: 600 }}>정렬: {SORT_LABELS[sortBy]}</Typography>
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px', bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.12)', px: '10px', py: '6px', borderRadius: '8px' }}>
                       <CalendarMonthOutlinedIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
@@ -583,12 +612,27 @@ export default function App() {
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Sort by:</Typography>
-                    <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary' }}>
-                      {sortBy === 'updated' ? '최근 업뎃' : sortBy === 'created' ? '생성일' : '진행도'}
-                    </Typography>
-                    <IconButton size="small" sx={{ bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.08)', width: 32, height: 32, '&:hover': { bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.16)' } }}>
-                      <TuneIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                    </IconButton>
+                    <Select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value as SortKey)}
+                      size="small"
+                      sx={{
+                        fontSize: 13,
+                        fontWeight: 700,
+                        color: 'text.primary',
+                        bgcolor: 'background.paper',
+                        height: 32,
+                        '& .MuiSelect-select': { py: '6px', pl: '10px', pr: '28px !important' },
+                        '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgb(var(--palette-grey-500Channel) / 0.24)' },
+                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgb(var(--palette-grey-500Channel) / 0.4)' },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
+                        '& .MuiSelect-icon': { right: 6, fontSize: 18, color: 'text.secondary' },
+                      }}
+                    >
+                      {SORT_KEYS.map(k => (
+                        <MenuItem key={k} value={k} sx={{ fontSize: 13 }}>{SORT_LABELS[k]}</MenuItem>
+                      ))}
+                    </Select>
                     <ToggleButtonGroup
                       size="small"
                       value={desktopView}
@@ -709,7 +753,7 @@ export default function App() {
               {/* (4) 우측 정보/활동 패널 (Minimals) — sticky로 스크롤 따라옴 */}
               <Box sx={{
                 width: { md: 280, lg: 320 }, flexShrink: 0,
-                display: 'flex', flexDirection: 'column', gap: 'var(--card-gap, 20px)',
+                display: rightSidebarHidden ? 'none' : 'flex', flexDirection: 'column', gap: 'var(--card-gap, 20px)',
                 position: 'sticky',
                 top: 88,                              // 상단 헤더(약 68px) + 약간의 여백
                 alignSelf: 'flex-start',              // 부모 flex가 stretch 못 하게 — sticky 동작 보장
@@ -995,6 +1039,8 @@ export default function App() {
         onToggleIncomplete={() => setShowIncomplete(s => !s)}
         compact={compact}
         onToggleCompact={() => setCompact(c => !c)}
+        rightSidebarHidden={rightSidebarHidden}
+        onToggleRightSidebar={() => setRightSidebarHidden(h => !h)}
         contrast={contrast}
         onToggleContrast={() => setContrast(c => !c)}
         rtl={rtl}

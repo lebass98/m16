@@ -12,6 +12,7 @@ import FormatTextdirectionLToRIcon from '@mui/icons-material/FormatTextdirection
 import ViewCompactIcon from '@mui/icons-material/ViewCompact';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import PendingActionsOutlinedIcon from '@mui/icons-material/PendingActionsOutlined';
+import VerticalSplitOutlinedIcon from '@mui/icons-material/VerticalSplitOutlined';
 import CheckIcon from '@mui/icons-material/Check';
 import { PRESET_LIST, type PresetKey } from '../theme/presets';
 
@@ -29,6 +30,8 @@ interface Props {
   onToggleIncomplete: () => void;
   compact: boolean;
   onToggleCompact: () => void;
+  rightSidebarHidden: boolean;
+  onToggleRightSidebar: () => void;
   // 자리표시(placeholder) 토글
   contrast: boolean;
   onToggleContrast: () => void;
@@ -116,6 +119,7 @@ export default function SettingsDrawer({
   previewEnabled, onTogglePreview,
   showIncomplete, onToggleIncomplete,
   compact, onToggleCompact,
+  rightSidebarHidden, onToggleRightSidebar,
   contrast, onToggleContrast,
   rtl, onToggleRtl,
   onReset,
@@ -223,6 +227,13 @@ export default function SettingsDrawer({
             label="미완료 보기"
             value={showIncomplete}
             onChange={onToggleIncomplete}
+          />
+          <ToggleCard
+            icon={<VerticalSplitOutlinedIcon />}
+            label="우측 사이드바 숨김"
+            value={rightSidebarHidden}
+            onChange={onToggleRightSidebar}
+            disabledHint="우측 정보/활동 패널을 숨겨 본문 영역을 넓게 사용"
           />
         </Box>
 
