@@ -16,6 +16,8 @@ import TuneIcon from '@mui/icons-material/Tune';
 import DesktopWindowsOutlinedIcon from '@mui/icons-material/DesktopWindowsOutlined';
 import TabletMacOutlinedIcon from '@mui/icons-material/TabletMacOutlined';
 import SmartphoneOutlinedIcon from '@mui/icons-material/SmartphoneOutlined';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { sites } from './data/sites';
 import { loadSheetCsv } from './data/parseSheetCsv';
 import type { TableSection } from './types';
@@ -61,6 +63,10 @@ export default function App() {
     return v === 2 || v === 3 || v === 4 || v === 5 ? (v as 2 | 3 | 4 | 5) : 3;
   });
   useEffect(() => { localStorage.setItem('thumbnailCols', String(thumbnailCols)); }, [thumbnailCols]);
+
+  // 좌측 사이드바 접힘 상태
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem('sidebarCollapsed') === 'true');
+  useEffect(() => { localStorage.setItem('sidebarCollapsed', String(sidebarCollapsed)); }, [sidebarCollapsed]);
 
   // 설정 패널
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -129,7 +135,10 @@ export default function App() {
     });
   }, []);
 
-  useEffect(() => { localStorage.setItem('darkMode', String(darkMode)); }, [darkMode]);
+  useEffect(() => {
+    localStorage.setItem('darkMode', String(darkMode));
+    document.documentElement.setAttribute('data-color-scheme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
   useEffect(() => { localStorage.setItem('desktopView', desktopView); }, [desktopView]);
 
   const site = sites[siteIndex];
@@ -369,112 +378,151 @@ export default function App() {
         </Box>
 
         {/* 데스크탑: Minimals UI 대시보드 레이아웃 */}
-        <Box sx={{ display: { xs: 'none', md: 'flex' }, flexDirection: 'row', minHeight: '100vh', bgcolor: 'grey.200' }}>
+        <Box sx={{ display: { xs: 'none', md: 'flex' }, flexDirection: 'row', minHeight: '100vh', bgcolor: 'background.default', position: 'relative' }}>
           {/* (1) 좌측 화이트 사이드바 (Minimals 스타일) */}
-          <Box sx={{ width: 260, flexShrink: 0, bgcolor: 'background.paper', color: 'text.primary', display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, height: '100vh', overflowY: 'auto', borderRight: '1px dashed rgb(var(--palette-grey-500Channel) / 0.2)' }}>
-            <Box onClick={() => setSiteModalOpen(true)} sx={{ display: 'flex', alignItems: 'center', gap: '12px', m: '16px', p: '12px', borderRadius: '12px', bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.08)', cursor: 'pointer', '&:hover': { bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.16)' } }}>
-              <Box sx={{ width: 40, height: 40, borderRadius: '10px', bgcolor: 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'background.paper', fontSize: 16, fontWeight: 800 }}>
-                {site.title.charAt(0)}
+          <Box sx={{ width: sidebarCollapsed ? 88 : 260, transition: 'width 0.25s ease', flexShrink: 0, bgcolor: 'background.paper', color: 'text.primary', display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, height: '100vh', overflowY: 'auto', overflowX: 'hidden', borderRight: '1px dashed rgb(var(--palette-grey-500Channel) / 0.2)' }}>
+            <Tooltip title={sidebarCollapsed ? site.title : ''} placement="right" arrow>
+              <Box onClick={() => setSiteModalOpen(true)} sx={{ display: 'flex', alignItems: 'center', gap: '12px', m: '16px', p: '12px', borderRadius: '12px', bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.08)', cursor: 'pointer', justifyContent: sidebarCollapsed ? 'center' : 'flex-start', '&:hover': { bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.16)' } }}>
+                <Box sx={{ width: 40, height: 40, borderRadius: '10px', bgcolor: 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'background.paper', fontSize: 16, fontWeight: 800, flexShrink: 0 }}>
+                  {site.title.charAt(0)}
+                </Box>
+                {!sidebarCollapsed && (
+                  <>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography sx={{ fontSize: 14, fontWeight: 600, color: 'text.primary', lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{site.title}</Typography>
+                      <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.4 }}>{totalCount} pages</Typography>
+                    </Box>
+                    <KeyboardArrowDownIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+                  </>
+                )}
               </Box>
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography sx={{ fontSize: 14, fontWeight: 600, color: 'text.primary', lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{site.title}</Typography>
-                <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.4 }}>{totalCount} pages</Typography>
-              </Box>
-              <KeyboardArrowDownIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
-            </Box>
+            </Tooltip>
 
             <Box sx={{ p: '0 16px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-              <Typography sx={{ fontSize: 11, color: 'text.secondary', letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, px: '12px', py: '10px', mt: '6px' }}>Overview</Typography>
+              {!sidebarCollapsed && (
+                <Typography sx={{ fontSize: 11, color: 'text.secondary', letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, px: '12px', py: '10px', mt: '6px' }}>Overview</Typography>
+              )}
               {[
                 { label: 'Pages', icon: <GridViewIcon sx={{ fontSize: 20 }} />, active: true, onClick: () => {} },
               ].map((it, navI) => (
-                <Box key={it.label} onClick={it.onClick} className="reveal-right" style={{ animationDelay: `${60 + navI * 50}ms` }} sx={{
-                  display: 'flex', alignItems: 'center', gap: '14px', px: '12px', py: '8px', borderRadius: '8px', cursor: 'pointer',
-                  bgcolor: it.active ? 'rgb(var(--palette-primary-mainChannel) / 0.08)' : 'transparent',
-                  color: it.active ? 'primary.main' : 'text.secondary',
-                  fontWeight: it.active ? 600 : 500,
-                  position: 'relative',
-                  '&:hover': { bgcolor: it.active ? 'rgb(var(--palette-primary-mainChannel) / 0.16)' : 'rgb(var(--palette-grey-500Channel) / 0.08)', color: it.active ? 'primary.main' : 'text.primary' },
-                  '&::before': it.active ? { content: '""', position: 'absolute', left: 0, top: '50%', transform: 'translate(-16px,-50%)', width: 3, height: 20, borderRadius: '0 2px 2px 0', bgcolor: 'primary.main' } : {},
-                }}>
-                  {it.icon}
-                  <Typography sx={{ fontSize: 14, fontWeight: 'inherit', color: 'inherit', flex: 1 }}>{it.label}</Typography>
-                </Box>
+                <Tooltip key={it.label} title={sidebarCollapsed ? it.label : ''} placement="right" arrow>
+                  <Box onClick={it.onClick} className="reveal-right" style={{ animationDelay: `${60 + navI * 50}ms` }} sx={{
+                    display: 'flex', alignItems: 'center', gap: '14px', px: '12px', py: '8px', borderRadius: '8px', cursor: 'pointer',
+                    justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+                    bgcolor: it.active ? 'rgb(var(--palette-primary-mainChannel) / 0.08)' : 'transparent',
+                    color: it.active ? 'primary.main' : 'text.secondary',
+                    fontWeight: it.active ? 600 : 500,
+                    position: 'relative',
+                    '&:hover': { bgcolor: it.active ? 'rgb(var(--palette-primary-mainChannel) / 0.16)' : 'rgb(var(--palette-grey-500Channel) / 0.08)', color: it.active ? 'primary.main' : 'text.primary' },
+                    '&::before': it.active && !sidebarCollapsed ? { content: '""', position: 'absolute', left: 0, top: '50%', transform: 'translate(-16px,-50%)', width: 3, height: 20, borderRadius: '0 2px 2px 0', bgcolor: 'primary.main' } : {},
+                  }}>
+                    {it.icon}
+                    {!sidebarCollapsed && (
+                      <Typography sx={{ fontSize: 14, fontWeight: 'inherit', color: 'inherit', flex: 1 }}>{it.label}</Typography>
+                    )}
+                  </Box>
+                </Tooltip>
               ))}
 
-              <Typography sx={{ fontSize: 11, color: 'text.secondary', letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, px: '12px', py: '10px', mt: '14px' }}>섹션</Typography>
-              {rawTableData.map((section, i) => {
-                const isActive = sectionFilter.has(section.depth1);
-                return (
-                  <Box key={i} onClick={() => toggleSectionFilter(section.depth1)} className="reveal-right" style={{ animationDelay: `${260 + i * 40}ms` }} sx={{
-                    display: 'flex', alignItems: 'center', gap: '12px', px: '12px', py: '8px', borderRadius: '8px', cursor: 'pointer', position: 'relative',
-                    bgcolor: isActive ? 'rgb(var(--palette-primary-mainChannel) / 0.08)' : 'transparent',
-                    color: isActive ? 'primary.main' : 'text.secondary',
-                    '&:hover': { bgcolor: isActive ? 'rgb(var(--palette-primary-mainChannel) / 0.16)' : 'rgb(var(--palette-grey-500Channel) / 0.08)', color: isActive ? 'primary.main' : 'text.primary' },
-                    '&::before': isActive ? { content: '""', position: 'absolute', left: 0, top: '50%', transform: 'translate(-16px,-50%)', width: 3, height: 18, borderRadius: '0 2px 2px 0', bgcolor: 'primary.main' } : {},
-                  }}>
-                    <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: isActive ? 'primary.main' : 'grey.400', flexShrink: 0 }} />
-                    <Typography sx={{ fontSize: 13, flex: 1, color: 'inherit', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: isActive ? 600 : 500 }} title={section.depth1}>{section.depth1}</Typography>
-                    <Box sx={{ fontSize: 10, fontWeight: 700, color: isActive ? 'primary.main' : 'text.disabled', bgcolor: isActive ? 'rgb(var(--palette-primary-mainChannel) / 0.16)' : 'rgb(var(--palette-grey-500Channel) / 0.12)', px: '6px', py: '2px', borderRadius: '6px', lineHeight: 1.4 }}>{section.data.length}</Box>
-                  </Box>
-                );
-              })}
+              {!sidebarCollapsed && (
+                <>
+                  <Typography sx={{ fontSize: 11, color: 'text.secondary', letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, px: '12px', py: '10px', mt: '14px' }}>섹션</Typography>
+                  {rawTableData.map((section, i) => {
+                    const isActive = sectionFilter.has(section.depth1);
+                    return (
+                      <Box key={i} onClick={() => toggleSectionFilter(section.depth1)} className="reveal-right" style={{ animationDelay: `${260 + i * 40}ms` }} sx={{
+                        display: 'flex', alignItems: 'center', gap: '12px', px: '12px', py: '8px', borderRadius: '8px', cursor: 'pointer', position: 'relative',
+                        bgcolor: isActive ? 'rgb(var(--palette-primary-mainChannel) / 0.08)' : 'transparent',
+                        color: isActive ? 'primary.main' : 'text.secondary',
+                        '&:hover': { bgcolor: isActive ? 'rgb(var(--palette-primary-mainChannel) / 0.16)' : 'rgb(var(--palette-grey-500Channel) / 0.08)', color: isActive ? 'primary.main' : 'text.primary' },
+                        '&::before': isActive ? { content: '""', position: 'absolute', left: 0, top: '50%', transform: 'translate(-16px,-50%)', width: 3, height: 18, borderRadius: '0 2px 2px 0', bgcolor: 'primary.main' } : {},
+                      }}>
+                        <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: isActive ? 'primary.main' : 'grey.400', flexShrink: 0 }} />
+                        <Typography sx={{ fontSize: 13, flex: 1, color: 'inherit', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: isActive ? 600 : 500 }} title={section.depth1}>{section.depth1}</Typography>
+                        <Box sx={{ fontSize: 10, fontWeight: 700, color: isActive ? 'primary.main' : 'text.disabled', bgcolor: isActive ? 'rgb(var(--palette-primary-mainChannel) / 0.16)' : 'rgb(var(--palette-grey-500Channel) / 0.12)', px: '6px', py: '2px', borderRadius: '6px', lineHeight: 1.4 }}>{section.data.length}</Box>
+                      </Box>
+                    );
+                  })}
+                </>
+              )}
             </Box>
 
             <Box sx={{ flex: 1 }} />
-            <Box sx={{ m: '16px', p: '16px', borderRadius: '16px', bgcolor: 'rgb(var(--palette-primary-mainChannel) / 0.08)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <Box sx={{ m: '16px', p: '16px', borderRadius: '16px', bgcolor: 'rgb(var(--palette-primary-mainChannel) / 0.08)', display: 'flex', alignItems: 'center', justifyContent: sidebarCollapsed ? 'center' : 'flex-start', gap: '12px' }}>
               <Box sx={{ width: 40, height: 40, borderRadius: '50%', bgcolor: 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'background.paper', fontSize: 14, fontWeight: 700, flexShrink: 0 }}>
                 U
               </Box>
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography sx={{ fontSize: 13, color: 'text.primary', fontWeight: 600, lineHeight: 1.4 }}>User</Typography>
-                <Typography sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.4 }}>Online</Typography>
-              </Box>
-              <IconButton size="small" onClick={() => setDarkMode(d => !d)} sx={{ color: 'text.secondary' }}>
-                {darkMode ? <LightModeIcon sx={{ fontSize: 18 }} /> : <DarkModeIcon sx={{ fontSize: 18 }} />}
-              </IconButton>
+              {!sidebarCollapsed && (
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography sx={{ fontSize: 13, color: 'text.primary', fontWeight: 600, lineHeight: 1.4 }}>User</Typography>
+                  <Typography sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.4 }}>Online</Typography>
+                </Box>
+              )}
             </Box>
           </Box>
+
+          {/* 사이드바 접기/펼치기 토글 버튼 */}
+          <Tooltip title={sidebarCollapsed ? '사이드바 펼치기' : '사이드바 접기'} placement="right" arrow>
+            <IconButton
+              onClick={() => setSidebarCollapsed(c => !c)}
+              sx={{
+                position: 'fixed',
+                top: 28,
+                left: sidebarCollapsed ? 88 : 260,
+                transform: 'translate(-50%, 0)',
+                transition: 'left 0.25s ease',
+                width: 24,
+                height: 24,
+                zIndex: 1100,
+                bgcolor: 'background.paper',
+                border: '1px solid rgb(var(--palette-grey-500Channel) / 0.32)',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+                color: 'text.secondary',
+                '&:hover': { bgcolor: 'background.paper', color: 'primary.main' },
+              }}
+            >
+              {sidebarCollapsed ? <ChevronRightIcon sx={{ fontSize: 16 }} /> : <ChevronLeftIcon sx={{ fontSize: 16 }} />}
+            </IconButton>
+          </Tooltip>
 
           {/* 우측 컨텐츠 영역 */}
           <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
             {/* (2) 상단 헤더 (Minimals) */}
-            <Box sx={{ bgcolor: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(20px)', borderBottom: '1px dashed rgb(var(--palette-grey-500Channel) / 0.2)', px: { md: '16px', lg: '32px' }, py: '14px', display: 'flex', alignItems: 'center', gap: { md: '12px', lg: '20px' }, position: 'sticky', top: 0, zIndex: 10 }}>
+            <Box sx={{ bgcolor: 'rgb(var(--palette-background-paperChannel) / 0.8)', backdropFilter: 'blur(20px)', borderBottom: '1px dashed rgb(var(--palette-grey-500Channel) / 0.2)', px: { md: '16px', lg: '32px' }, py: '14px', display: 'flex', alignItems: 'center', gap: { md: '12px', lg: '20px' }, position: 'sticky', top: 0, zIndex: 10 }}>
               <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                 <Typography sx={{ fontSize: 11, color: 'text.secondary', letterSpacing: '0.06em', fontWeight: 700, textTransform: 'uppercase' }}>Workspace</Typography>
                 <Typography sx={{ fontSize: 18, fontWeight: 700, color: 'text.primary', lineHeight: 1.4 }}>{site.title}</Typography>
               </Box>
-              {/* 인라인 검색 바 제거됨 — 헤더 우측 🔍 버튼 클릭 시 모달 오픈 */}
               <Box sx={{ flex: 1 }} />
-              {/* 검색 · 설정 아이콘 버튼 그룹 (왼쪽 토글들과 동일 30px 높이) */}
-              <Box sx={{
-                display: 'flex', alignItems: 'center', gap: '2px',
-                bgcolor: 'background.paper',
-                borderRadius: '10px',
-                border: '1px solid rgb(var(--palette-grey-500Channel) / 0.24)',
-                p: '2px',
-              }}>
+              {/* 검색 · 설정 · 다크모드 아이콘 버튼 (개별) */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Tooltip title="검색 (Cmd/Ctrl+K)" arrow>
                   <IconButton
-                    size="small"
                     onClick={() => setSearchOpen(true)}
-                    sx={{ width: 30, height: 26, borderRadius: '8px', color: 'text.secondary', '&:hover': { bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.08)' } }}
+                    sx={{ width: 40, height: 40, color: 'text.secondary', '&:hover': { bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.08)', color: 'text.primary' } }}
                   >
-                    <SearchIcon sx={{ fontSize: 18 }} />
+                    <SearchIcon sx={{ fontSize: 24 }} />
                   </IconButton>
                 </Tooltip>
                 <Tooltip title="설정" arrow>
                   <IconButton
-                    size="small"
                     onClick={() => setSettingsOpen(true)}
                     sx={(theme) => ({
-                      width: 30, height: 26, borderRadius: '8px',
+                      width: 40, height: 40,
                       color: settingsOpen ? 'primary.main' : 'text.secondary',
                       bgcolor: settingsOpen ? alpha(theme.palette.primary.main, 0.12) : 'transparent',
-                      '&:hover': { bgcolor: settingsOpen ? alpha(theme.palette.primary.main, 0.16) : 'rgb(var(--palette-grey-500Channel) / 0.08)' },
+                      '&:hover': { bgcolor: settingsOpen ? alpha(theme.palette.primary.main, 0.16) : 'rgb(var(--palette-grey-500Channel) / 0.08)', color: settingsOpen ? 'primary.main' : 'text.primary' },
                     })}
                   >
-                    <SettingsIcon sx={{ fontSize: 18 }} />
+                    <SettingsIcon sx={{ fontSize: 24 }} />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title={darkMode ? '라이트 모드' : '다크 모드'} arrow>
+                  <IconButton
+                    onClick={() => setDarkMode(d => !d)}
+                    sx={{ width: 40, height: 40, color: 'text.secondary', '&:hover': { bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.08)', color: 'text.primary' } }}
+                  >
+                    {darkMode ? <LightModeIcon sx={{ fontSize: 24 }} /> : <DarkModeIcon sx={{ fontSize: 24 }} />}
                   </IconButton>
                 </Tooltip>
               </Box>
