@@ -7,14 +7,13 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
-import ContrastIcon from '@mui/icons-material/Contrast';
 import FormatTextdirectionLToRIcon from '@mui/icons-material/FormatTextdirectionLToR';
-import ViewCompactIcon from '@mui/icons-material/ViewCompact';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import PendingActionsOutlinedIcon from '@mui/icons-material/PendingActionsOutlined';
 import VerticalSplitOutlinedIcon from '@mui/icons-material/VerticalSplitOutlined';
 import CheckIcon from '@mui/icons-material/Check';
 import { PRESET_LIST, type PresetKey } from '../theme/presets';
+import { FONT_FAMILY_KEYS, type FontFamilyKey } from '../theme/fonts';
 
 const DRAWER_WIDTH = 360;
 
@@ -28,21 +27,19 @@ interface Props {
   onTogglePreview: () => void;
   showIncomplete: boolean;
   onToggleIncomplete: () => void;
-  compact: boolean;
-  onToggleCompact: () => void;
   rightSidebarHidden: boolean;
   onToggleRightSidebar: () => void;
   // 자리표시(placeholder) 토글
-  contrast: boolean;
-  onToggleContrast: () => void;
   rtl: boolean;
   onToggleRtl: () => void;
   onReset: () => void;
-  // Presets · Font Size
+  // Presets · Font
   preset: PresetKey;
   onSelectPreset: (key: PresetKey) => void;
   fontSize: number;
   onChangeFontSize: (value: number) => void;
+  fontFamily: FontFamilyKey;
+  onSelectFontFamily: (key: FontFamilyKey) => void;
 }
 
 interface ToggleCardProps {
@@ -118,13 +115,12 @@ export default function SettingsDrawer({
   darkMode, onToggleDarkMode,
   previewEnabled, onTogglePreview,
   showIncomplete, onToggleIncomplete,
-  compact, onToggleCompact,
   rightSidebarHidden, onToggleRightSidebar,
-  contrast, onToggleContrast,
   rtl, onToggleRtl,
   onReset,
   preset, onSelectPreset,
   fontSize, onChangeFontSize,
+  fontFamily, onSelectFontFamily,
 }: Props) {
   const theme = useTheme();
 
@@ -143,7 +139,7 @@ export default function SettingsDrawer({
         paper: {
           sx: {
             width: DRAWER_WIDTH,
-            bgcolor: 'background.default',
+            bgcolor: 'background.paper',
             borderTopLeftRadius: '16px',
             borderBottomLeftRadius: '16px',
             overflow: 'hidden',
@@ -182,7 +178,7 @@ export default function SettingsDrawer({
         '&::-webkit-scrollbar': { width: '4px' },
         '&::-webkit-scrollbar-thumb': { background: alpha(theme.palette.text.primary, 0.2), borderRadius: '4px' },
       }}>
-        {/* 표시 (4 토글 2x2) */}
+        {/* 표시 (2 토글) */}
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
           <ToggleCard
             icon={darkMode ? <LightModeIcon /> : <DarkModeIcon />}
@@ -191,25 +187,10 @@ export default function SettingsDrawer({
             onChange={onToggleDarkMode}
           />
           <ToggleCard
-            icon={<ContrastIcon />}
-            label="Contrast"
-            value={contrast}
-            onChange={onToggleContrast}
-            disabledHint="아직 적용되지 않음 — 추후 고대비 테마 연결"
-          />
-          <ToggleCard
             icon={<FormatTextdirectionLToRIcon />}
             label="Right to left"
             value={rtl}
             onChange={onToggleRtl}
-            disabledHint="아직 적용되지 않음 — 추후 RTL 레이아웃 연결"
-          />
-          <ToggleCard
-            icon={<ViewCompactIcon />}
-            label="Compact"
-            value={compact}
-            onChange={onToggleCompact}
-            disabledHint="카드 여백을 줄여 한 화면에 더 많이 표시"
           />
         </Box>
 
@@ -278,15 +259,47 @@ export default function SettingsDrawer({
           </Box>
         </Box>
 
-        {/* Font Size 슬라이더 */}
-        <SectionLabel info="앱 전체 글자 크기 (rem 기반 — Typography 변환 자동 스케일)">Font</SectionLabel>
-        <Box sx={{ p: '16px 20px 8px', borderRadius: '12px', border: '1px solid rgb(var(--palette-grey-500Channel) / 0.16)', bgcolor: 'background.paper' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: '4px' }}>
-            <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary' }}>Size</Typography>
-            <Box sx={{ fontSize: 11, fontWeight: 700, lineHeight: 1.4, color: 'primary.main', bgcolor: alpha(theme.palette.primary.main, 0.12), px: '8px', py: '2px', borderRadius: '6px' }}>
-              {fontSize}px
-            </Box>
+        {/* Font — Family + Size */}
+        <SectionLabel info="앱 전체 폰트와 크기 설정">Font</SectionLabel>
+        <Box sx={{ p: '20px', borderRadius: '12px', border: '1px solid rgb(var(--palette-grey-500Channel) / 0.16)', bgcolor: 'background.paper' }}>
+          {/* Family */}
+          <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary', mb: '12px' }}>Family</Typography>
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+            {FONT_FAMILY_KEYS.map((f) => {
+              const selected = fontFamily === f;
+              return (
+                <Box
+                  key={f}
+                  onClick={() => onSelectFontFamily(f)}
+                  sx={{
+                    cursor: 'pointer',
+                    bgcolor: selected ? alpha(theme.palette.primary.main, 0.04) : 'transparent',
+                    border: '1px solid',
+                    borderColor: selected ? alpha(theme.palette.primary.main, 0.48) : 'rgb(var(--palette-grey-500Channel) / 0.16)',
+                    borderRadius: '10px',
+                    p: '14px 8px 10px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '6px',
+                    transition: 'background 0.15s, border-color 0.15s',
+                    '&:hover': { borderColor: alpha(theme.palette.primary.main, 0.32) },
+                  }}
+                >
+                  <Box sx={{ fontFamily: `"${f}", sans-serif`, fontSize: 30, fontWeight: 600, lineHeight: 1, letterSpacing: '-0.02em' }}>
+                    <Box component="span" sx={{ color: selected ? 'primary.main' : 'text.disabled' }}>A</Box>
+                    <Box component="span" sx={{ color: selected ? alpha(theme.palette.primary.main, 0.45) : alpha(theme.palette.text.disabled, 0.55) }}>a</Box>
+                  </Box>
+                  <Typography sx={{ fontFamily: `"${f}", sans-serif`, fontSize: 13, fontWeight: 600, color: selected ? 'text.primary' : 'text.disabled' }}>
+                    {f}
+                  </Typography>
+                </Box>
+              );
+            })}
           </Box>
+
+          {/* Size */}
+          <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary', mt: '24px', mb: '4px' }}>Size</Typography>
           <Slider
             size="small"
             value={fontSize}
@@ -301,11 +314,11 @@ export default function SettingsDrawer({
               { value: 20, label: '20' },
             ]}
             onChange={(_, v) => onChangeFontSize(v as number)}
-            valueLabelDisplay="auto"
+            valueLabelDisplay="on"
             valueLabelFormat={(v) => `${v}px`}
             sx={{
               color: 'primary.main',
-              mt: '4px',
+              mt: '24px',
               '& .MuiSlider-mark': {
                 bgcolor: alpha(theme.palette.text.primary, 0.3),
                 height: 6,
@@ -319,6 +332,27 @@ export default function SettingsDrawer({
                 fontSize: 10,
                 color: 'text.disabled',
                 top: 22,
+              },
+              '& .MuiSlider-valueLabel': {
+                bgcolor: theme.palette.text.primary,
+                color: theme.palette.background.paper,
+                borderRadius: '8px',
+                fontSize: 11,
+                fontWeight: 700,
+                px: '8px',
+                py: '4px',
+                top: -6,
+                '&::before': { display: 'none' },
+                '&::after': {
+                  content: '""',
+                  position: 'absolute',
+                  bottom: -3,
+                  left: '50%',
+                  transform: 'translateX(-50%) rotate(45deg)',
+                  width: 8,
+                  height: 8,
+                  bgcolor: theme.palette.text.primary,
+                },
               },
             }}
           />

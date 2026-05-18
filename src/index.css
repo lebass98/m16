@@ -4,12 +4,77 @@
 @import '@fontsource/barlow/600.css';
 @import '@fontsource/barlow/700.css';
 @import '@fontsource/barlow/800.css';
+@import '@fontsource/pretendard/400.css';
+@import '@fontsource/pretendard/500.css';
+@import '@fontsource/pretendard/600.css';
+@import '@fontsource/pretendard/700.css';
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+@import '@fontsource/nunito-sans/400.css';
+@import '@fontsource/nunito-sans/500.css';
+@import '@fontsource/nunito-sans/600.css';
+@import '@fontsource/nunito-sans/700.css';
+
+:root {
+  --glass-blur: blur(20px) saturate(180%);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.18);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.12);
+}
+
+/* Light mode — make paper / default translucent so body gradient shows through */
+html:not([data-color-scheme='dark']) {
+  --palette-background-paper: rgba(255, 255, 255, 0.62);
+  --palette-background-default: transparent;
+}
+
+html[data-color-scheme='dark'] {
+  --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
+  --palette-background-paper: rgba(28, 31, 46, 0.55);
+  --palette-background-default: transparent;
+}
 
 body {
   margin: 0;
   font-size: 16px;
+  min-height: 100vh;
+  background:
+    radial-gradient(at 18% 12%, rgba(255, 154, 158, 0.55) 0px, transparent 50%),
+    radial-gradient(at 82% 18%, rgba(120, 198, 255, 0.55) 0px, transparent 50%),
+    radial-gradient(at 24% 88%, rgba(255, 206, 137, 0.45) 0px, transparent 50%),
+    radial-gradient(at 78% 78%, rgba(168, 138, 255, 0.55) 0px, transparent 50%),
+    linear-gradient(135deg, #f5f7fa 0%, #e8eefc 100%);
+  background-attachment: fixed;
+}
+
+html[data-color-scheme='dark'] body {
+  background:
+    radial-gradient(at 18% 12%, rgba(99, 102, 241, 0.30) 0px, transparent 50%),
+    radial-gradient(at 82% 18%, rgba(14, 165, 233, 0.28) 0px, transparent 50%),
+    radial-gradient(at 24% 88%, rgba(236, 72, 153, 0.22) 0px, transparent 50%),
+    radial-gradient(at 78% 78%, rgba(168, 85, 247, 0.28) 0px, transparent 50%),
+    linear-gradient(135deg, #0f1020 0%, #1a1a2e 50%, #16213e 100%);
+  background-attachment: fixed;
 }
 
 #root {
   width: 100%;
+}
+
+/* Global glass effect for MUI overlay surfaces */
+.MuiDrawer-paper,
+.MuiDialog-paper,
+.MuiPopover-paper,
+.MuiMenu-paper,
+.MuiAutocomplete-paper {
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+}
+
+.MuiTooltip-tooltip {
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
 }

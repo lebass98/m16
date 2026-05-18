@@ -30,7 +30,7 @@ export const themeConfig: ThemeConfig = {
    * Typography
    *************************************** */
   fontFamily: {
-    primary: 'DM Sans Variable',
+    primary: 'Pretendard',
     secondary: 'Barlow',
   },
   /** **************************************

@@ -28,6 +28,7 @@ import SearchDialog, { type SearchHit } from './components/SearchDialog';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { ThemeProvider } from './theme/theme-provider';
 import { PRESETS, isPresetKey, type PresetKey } from './theme/presets';
+import { isFontFamilyKey, type FontFamilyKey } from './theme/fonts';
 import { createPaletteChannel } from 'minimal-shared/utils';
 import './App.css';
 import arrowDownIcon from './assets/arrow-down-circle-svgrepo-com.svg';
@@ -73,15 +74,8 @@ export default function App() {
 
   // 설정 패널
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [compact, setCompact] = useState(() => localStorage.getItem('compact') === 'true');
-  useEffect(() => { localStorage.setItem('compact', String(compact)); }, [compact]);
-  // Compact → CSS 변수로 카드 padding 한 번에 줄임
-  useEffect(() => {
-    document.documentElement.style.setProperty('--card-pad', compact ? '16px' : '24px');
-    document.documentElement.style.setProperty('--card-gap', compact ? '14px' : '24px');
-  }, [compact]);
-  const [contrast, setContrast] = useState(false);  // placeholder (테마 미적용)
-  const [rtl, setRtl] = useState(false);            // placeholder (RTL 미적용)
+  const [rtl, setRtl] = useState(() => localStorage.getItem('rtl') === 'true');
+  useEffect(() => { localStorage.setItem('rtl', String(rtl)); }, [rtl]);
   const [preset, setPreset] = useState<PresetKey>(() => {
     const v = localStorage.getItem('preset') || 'default';
     return isPresetKey(v) ? v : 'default';
@@ -93,10 +87,16 @@ export default function App() {
   });
   useEffect(() => {
     localStorage.setItem('fontSize', String(fontSize));
-    document.documentElement.style.fontSize = `${fontSize}px`;
+    // 전체 콘텐츠를 비율 스케일 — sx에 px로 박힌 값까지 모두 확대/축소
+    (document.body.style as CSSStyleDeclaration & { zoom: string }).zoom = String(fontSize / 16);
   }, [fontSize]);
+  const [fontFamily, setFontFamily] = useState<FontFamilyKey>(() => {
+    const v = localStorage.getItem('fontFamily');
+    return isFontFamilyKey(v) ? v : 'Pretendard';
+  });
+  useEffect(() => { localStorage.setItem('fontFamily', fontFamily); }, [fontFamily]);
 
-  // 선택된 preset 으로 theme override 생성 (Channel suffix 까지 자동 생성)
+  // 선택된 preset · 폰트로 theme override 생성
   const themeOverrides = useMemo(() => ({
     colorSchemes: {
       light: {
@@ -105,7 +105,10 @@ export default function App() {
         },
       },
     },
-  }), [preset]);
+    typography: {
+      fontFamily: `"${fontFamily}", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`,
+    },
+  }), [preset, fontFamily]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFilter, setSearchFilter] = useState('');
@@ -371,8 +374,8 @@ export default function App() {
   });
 
   return (
-    <ThemeProvider themeOverrides={themeOverrides}>
-      <Box sx={{ boxSizing: 'border-box', p: 0, pb: { xs: 0, md: 0 }, height: { xs: '100dvh', md: 'auto' }, minHeight: '100vh', display: 'flex', flexDirection: 'column', background: { xs: darkMode ? 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)' : 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)', md: 'background.default' } }}>
+    <ThemeProvider themeOverrides={themeOverrides} direction={rtl ? 'rtl' : 'ltr'}>
+      <Box sx={{ boxSizing: 'border-box', p: 0, pb: { xs: 0, md: 0 }, height: { xs: '100dvh', md: 'auto' }, minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'transparent' }}>
 
         {/* 모바일: 좌상단 컨트롤 (검색 · 대시보드 · 다크모드) */}
         <Box sx={{ display: { xs: 'flex', md: 'none' }, position: 'fixed', top: 6, left: 10, zIndex: 1200, alignItems: 'center', backdropFilter: 'blur(8px)', borderRadius: '20px', px: '4px', py: '2px', boxShadow: '0 2px 8px rgba(0,0,0,0.12)', ...ctrlPanelSx }}>
@@ -407,9 +410,9 @@ export default function App() {
         </Box>
 
         {/* 데스크탑: Minimals UI 대시보드 레이아웃 */}
-        <Box sx={{ display: { xs: 'none', md: 'flex' }, flexDirection: 'row', minHeight: '100vh', bgcolor: 'background.default', position: 'relative' }}>
+        <Box sx={{ display: { xs: 'none', md: 'flex' }, flexDirection: 'row', minHeight: '100vh', bgcolor: 'transparent', position: 'relative' }}>
           {/* (1) 좌측 화이트 사이드바 (Minimals 스타일) */}
-          <Box sx={{ width: sidebarCollapsed ? 88 : 260, transition: 'width 0.25s ease', flexShrink: 0, bgcolor: 'background.paper', color: 'text.primary', display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, height: '100vh', overflowY: 'auto', overflowX: 'hidden', borderRight: '1px dashed rgb(var(--palette-grey-500Channel) / 0.2)' }}>
+          <Box sx={{ width: sidebarCollapsed ? 88 : 260, transition: 'width 0.25s ease', flexShrink: 0, bgcolor: 'background.paper', backdropFilter: 'var(--glass-blur)', WebkitBackdropFilter: 'var(--glass-blur)', color: 'text.primary', display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, height: '100vh', overflowY: 'auto', overflowX: 'hidden', borderRight: '1px solid rgba(255,255,255,0.18)' }}>
             <Tooltip title={sidebarCollapsed ? site.title : ''} placement="right" arrow>
               <Box onClick={() => setSiteModalOpen(true)} sx={{ display: 'flex', alignItems: 'center', gap: '12px', m: '16px', p: '12px', borderRadius: '12px', bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.08)', cursor: 'pointer', justifyContent: sidebarCollapsed ? 'center' : 'flex-start', '&:hover': { bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.16)' } }}>
                 <Box sx={{ width: 40, height: 40, borderRadius: '10px', bgcolor: 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'background.paper', fontSize: 16, fontWeight: 800, flexShrink: 0 }}>
@@ -562,7 +565,7 @@ export default function App() {
               {/* (3) 메인 콘텐츠 (Minimals) */}
               <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: { md: '16px', lg: '24px' } }}>
                 {/* 필터 칩 row */}
-                <Box className="reveal-up" style={{ animationDelay: '40ms' }} sx={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', bgcolor: 'background.paper', borderRadius: '16px', p: { md: '12px 14px', lg: '16px 20px' }, boxShadow: '0 0 2px 0 rgb(var(--palette-grey-500Channel) / 0.20), 0 12px 24px -4px rgb(var(--palette-grey-500Channel) / 0.12)' }}>
+                <Box className="reveal-up" style={{ animationDelay: '40ms' }} sx={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', bgcolor: 'background.paper', backdropFilter: 'var(--glass-blur)', WebkitBackdropFilter: 'var(--glass-blur)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: '16px', p: { md: '12px 14px', lg: '16px 20px' }, boxShadow: 'var(--glass-shadow)' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, flexWrap: 'wrap', minWidth: 0 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px', bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.12)', px: '10px', py: '6px', borderRadius: '8px' }}>
                       <LocationOnOutlinedIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
@@ -729,7 +732,7 @@ export default function App() {
                 </Box>
 
                 {tableData.length === 0 ? (
-                  <Box sx={{ bgcolor: 'background.paper', borderRadius: '16px', py: '80px', textAlign: 'center', color: 'text.disabled', fontSize: 14, boxShadow: '0 0 2px 0 rgb(var(--palette-grey-500Channel) / 0.20)' }}>표시할 항목이 없습니다</Box>
+                  <Box sx={{ bgcolor: 'background.paper', backdropFilter: 'var(--glass-blur)', WebkitBackdropFilter: 'var(--glass-blur)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: '16px', py: '80px', textAlign: 'center', color: 'text.disabled', fontSize: 14, boxShadow: 'var(--glass-shadow)' }}>표시할 항목이 없습니다</Box>
                 ) : (
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                     {tableData.map((section, i) => (
@@ -757,16 +760,10 @@ export default function App() {
                 position: 'sticky',
                 top: 88,                              // 상단 헤더(약 68px) + 약간의 여백
                 alignSelf: 'flex-start',              // 부모 flex가 stretch 못 하게 — sticky 동작 보장
-                maxHeight: 'calc(100vh - 108px)',     // top(88) + 하단 여백(20)
-                overflowY: 'auto',
-                pr: '4px',                            // 스크롤바 여백
-                // 얇은 스크롤바
-                '&::-webkit-scrollbar': { width: '4px' },
-                '&::-webkit-scrollbar-thumb': { background: 'rgb(var(--palette-grey-500Channel) / 0.32)', borderRadius: '4px' },
-                '&::-webkit-scrollbar-track': { background: 'transparent' },
+                overflow: 'visible',
               }}>
                 {/* 통계 카드 (Minimals stat widget) */}
-                <Box className="reveal-up" style={{ animationDelay: '80ms' }} sx={{ position: 'relative', bgcolor: 'background.paper', borderRadius: '16px', p: 'var(--card-pad, 24px)', boxShadow: '0 0 2px 0 rgb(var(--palette-grey-500Channel) / 0.20), 0 12px 24px -4px rgb(var(--palette-grey-500Channel) / 0.12)', overflow: 'hidden' }}>
+                <Box className="reveal-up" style={{ animationDelay: '80ms' }} sx={{ position: 'relative', bgcolor: 'background.paper', backdropFilter: 'var(--glass-blur)', WebkitBackdropFilter: 'var(--glass-blur)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: '16px', p: 'var(--card-pad, 24px)', boxShadow: 'var(--glass-shadow)', overflow: 'hidden' }}>
                   <Box sx={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: '50%', bgcolor: 'rgb(var(--palette-primary-mainChannel) / 0.08)' }} />
                   <Typography sx={{ position: 'relative', fontSize: 14, color: 'text.secondary', fontWeight: 600, mb: '4px' }}>Overall progress</Typography>
                   <Box sx={{ position: 'relative', display: 'flex', alignItems: 'baseline', gap: '8px', mb: '8px' }}>
@@ -780,7 +777,7 @@ export default function App() {
                 </Box>
 
                 {/* 최근 업데이트 활동 */}
-                <Box className="reveal-up" style={{ animationDelay: '160ms' }} sx={{ bgcolor: 'background.paper', borderRadius: '16px', p: 'var(--card-pad, 24px)', boxShadow: '0 0 2px 0 rgb(var(--palette-grey-500Channel) / 0.20), 0 12px 24px -4px rgb(var(--palette-grey-500Channel) / 0.12)' }}>
+                <Box className="reveal-up" style={{ animationDelay: '160ms' }} sx={{ bgcolor: 'background.paper', backdropFilter: 'var(--glass-blur)', WebkitBackdropFilter: 'var(--glass-blur)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: '16px', p: 'var(--card-pad, 24px)', boxShadow: 'var(--glass-shadow)' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: '16px' }}>
                     <Typography sx={{ fontSize: 16, fontWeight: 700, color: 'text.primary' }}>최근 업데이트</Typography>
                     <Typography sx={{ fontSize: 13, color: 'primary.main', cursor: 'pointer', fontWeight: 600, '&:hover': { textDecoration: 'underline' } }}>전체보기</Typography>
@@ -811,7 +808,7 @@ export default function App() {
 
                 {/* 북마크 */}
                 {bookmarks.size > 0 && (
-                  <Box className="reveal-up" style={{ animationDelay: '240ms' }} sx={{ bgcolor: 'background.paper', borderRadius: '16px', p: 'var(--card-pad, 24px)', boxShadow: '0 0 2px 0 rgb(var(--palette-grey-500Channel) / 0.20), 0 12px 24px -4px rgb(var(--palette-grey-500Channel) / 0.12)' }}>
+                  <Box className="reveal-up" style={{ animationDelay: '240ms' }} sx={{ bgcolor: 'background.paper', backdropFilter: 'var(--glass-blur)', WebkitBackdropFilter: 'var(--glass-blur)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: '16px', p: 'var(--card-pad, 24px)', boxShadow: 'var(--glass-shadow)' }}>
                     <Typography sx={{ fontSize: 16, fontWeight: 700, color: 'text.primary', mb: '16px' }}>북마크 <Box component="span" sx={{ color: 'text.secondary', fontWeight: 500 }}>({bookmarks.size})</Box></Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       {flatCards.filter(c => bookmarks.has(c.item.id)).slice(0, 5).map((card, i) => (
@@ -827,7 +824,7 @@ export default function App() {
                 )}
 
                 {/* 완성도 요약 (섹션별, PC + MO) */}
-                <Box className="reveal-up" style={{ animationDelay: '320ms' }} sx={{ bgcolor: 'background.paper', borderRadius: '16px', p: 'var(--card-pad, 24px)', boxShadow: '0 0 2px 0 rgb(var(--palette-grey-500Channel) / 0.20), 0 12px 24px -4px rgb(var(--palette-grey-500Channel) / 0.12)' }}>
+                <Box className="reveal-up" style={{ animationDelay: '320ms' }} sx={{ bgcolor: 'background.paper', backdropFilter: 'var(--glass-blur)', WebkitBackdropFilter: 'var(--glass-blur)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: '16px', p: 'var(--card-pad, 24px)', boxShadow: 'var(--glass-shadow)' }}>
                   <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', mb: '16px' }}>
                     <Typography sx={{ fontSize: 16, fontWeight: 700, color: 'text.primary' }}>완성도 요약</Typography>
                     <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>{totalCount} pages</Typography>
@@ -1037,12 +1034,8 @@ export default function App() {
         onTogglePreview={() => setPreviewEnabled(p => !p)}
         showIncomplete={showIncomplete}
         onToggleIncomplete={() => setShowIncomplete(s => !s)}
-        compact={compact}
-        onToggleCompact={() => setCompact(c => !c)}
         rightSidebarHidden={rightSidebarHidden}
         onToggleRightSidebar={() => setRightSidebarHidden(h => !h)}
-        contrast={contrast}
-        onToggleContrast={() => setContrast(c => !c)}
         rtl={rtl}
         onToggleRtl={() => setRtl(r => !r)}
         onReset={() => {
@@ -1055,6 +1048,8 @@ export default function App() {
         onSelectPreset={setPreset}
         fontSize={fontSize}
         onChangeFontSize={setFontSize}
+        fontFamily={fontFamily}
+        onSelectFontFamily={setFontFamily}
       />
     </ThemeProvider>
   );
