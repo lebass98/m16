@@ -181,11 +181,11 @@ export default function App() {
     const [min, max] = progressRange;
     const q = searchFilter.trim().toLowerCase();
     return rawTableData
-      .filter(section => sectionFilter.size === 0 || sectionFilter.has(section.depth1))
       .map(section => ({
         ...section,
         data: section.data
           .map((item, idx) => ({ item, idx }))
+          .filter(({ item }) => sectionFilter.size === 0 || sectionFilter.has(item.depth1 || ''))
           .filter(({ item }) => showIncomplete ? true : (item.progressPc ?? 0) !== 0)
           .filter(({ item }) => {
             const p = item.progressPc ?? 0;
@@ -227,6 +227,20 @@ export default function App() {
     ),
     [tableData]
   );
+
+  // 아이템의 depth1 카테고리를 등장 순서대로 모아 카운트
+  const depth1Categories = useMemo(() => {
+    const order: string[] = [];
+    const counts = new Map<string, number>();
+    rawTableData.forEach(section => {
+      section.data.forEach(item => {
+        const key = item.depth1 || '';
+        if (!counts.has(key)) order.push(key);
+        counts.set(key, (counts.get(key) ?? 0) + 1);
+      });
+    });
+    return order.map(key => ({ key, count: counts.get(key) ?? 0 }));
+  }, [rawTableData]);
   flatLengthRef.current = flatCards.length;
 
   const sectionStartIndices = useMemo(() => {
@@ -459,10 +473,11 @@ export default function App() {
               {!sidebarCollapsed && (
                 <>
                   <Typography sx={{ fontSize: 11, color: 'text.secondary', letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, px: '12px', py: '10px', mt: '14px' }}>섹션</Typography>
-                  {rawTableData.map((section, i) => {
-                    const isActive = sectionFilter.has(section.depth1);
+                  {depth1Categories.map(({ key, count }, i) => {
+                    const isActive = sectionFilter.has(key);
+                    const label = key || '(미분류)';
                     return (
-                      <Box key={i} onClick={() => toggleSectionFilter(section.depth1)} className="reveal-right" style={{ animationDelay: `${260 + i * 40}ms` }} sx={{
+                      <Box key={key || `__empty_${i}`} onClick={() => toggleSectionFilter(key)} className="reveal-right" style={{ animationDelay: `${260 + i * 40}ms` }} sx={{
                         display: 'flex', alignItems: 'center', gap: '12px', px: '12px', py: '8px', borderRadius: '8px', cursor: 'pointer', position: 'relative',
                         bgcolor: isActive ? 'rgb(var(--palette-primary-mainChannel) / 0.08)' : 'transparent',
                         color: isActive ? 'primary.main' : 'text.secondary',
@@ -470,8 +485,8 @@ export default function App() {
                         '&::before': isActive ? { content: '""', position: 'absolute', left: 0, top: '50%', transform: 'translate(-16px,-50%)', width: 3, height: 18, borderRadius: '0 2px 2px 0', bgcolor: 'primary.main' } : {},
                       }}>
                         <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: isActive ? 'primary.main' : 'grey.400', flexShrink: 0 }} />
-                        <Typography sx={{ fontSize: 13, flex: 1, color: 'inherit', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: isActive ? 600 : 500 }} title={section.depth1}>{section.depth1}</Typography>
-                        <Box sx={{ fontSize: 10, fontWeight: 700, color: isActive ? 'primary.main' : 'text.disabled', bgcolor: isActive ? 'rgb(var(--palette-primary-mainChannel) / 0.16)' : 'rgb(var(--palette-grey-500Channel) / 0.12)', px: '6px', py: '2px', borderRadius: '6px', lineHeight: 1.4 }}>{section.data.length}</Box>
+                        <Typography sx={{ fontSize: 13, flex: 1, color: 'inherit', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: isActive ? 600 : 500 }} title={label}>{label}</Typography>
+                        <Box sx={{ fontSize: 10, fontWeight: 700, color: isActive ? 'primary.main' : 'text.disabled', bgcolor: isActive ? 'rgb(var(--palette-primary-mainChannel) / 0.16)' : 'rgb(var(--palette-grey-500Channel) / 0.12)', px: '6px', py: '2px', borderRadius: '6px', lineHeight: 1.4 }}>{count}</Box>
                       </Box>
                     );
                   })}
