@@ -78,3 +78,21 @@ html[data-color-scheme='dark'] body {
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
 }
+
+/* Contrast='hot' (Apparent) — 좌측 사이드바만 다크 톤 강제 */
+html[data-contrast='hot'] .app-left-nav {
+  --palette-background-paper: rgba(20, 26, 33, 0.92);
+  --palette-text-primary: #FFFFFF;
+  --palette-text-secondary: rgba(255, 255, 255, 0.72);
+  --palette-text-disabled: rgba(255, 255, 255, 0.4);
+  --palette-grey-500Channel: 145 158 171;
+  --palette-action-active: rgba(255, 255, 255, 0.56);
+  --palette-action-hover: rgba(255, 255, 255, 0.08);
+  --palette-action-selected: rgba(255, 255, 255, 0.12);
+  --palette-divider: rgba(255, 255, 255, 0.12);
+  border-right-color: rgba(255, 255, 255, 0.08) !important;
+}
+html[data-contrast='hot'] .app-left-nav,
+html[data-contrast='hot'] .app-left-nav * {
+  border-color: rgba(255, 255, 255, 0.08);
+}

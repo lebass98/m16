@@ -95,6 +95,14 @@ export default function App() {
     return isFontFamilyKey(v) ? v : 'Pretendard';
   });
   useEffect(() => { localStorage.setItem('fontFamily', fontFamily); }, [fontFamily]);
+  const [contrast, setContrast] = useState<'default' | 'hot'>(() => {
+    const v = localStorage.getItem('contrast');
+    return v === 'hot' ? 'hot' : 'default';
+  });
+  useEffect(() => {
+    localStorage.setItem('contrast', contrast);
+    document.documentElement.setAttribute('data-contrast', contrast);
+  }, [contrast]);
 
   // 선택된 preset · 폰트로 theme override 생성
   const themeOverrides = useMemo(() => ({
@@ -426,7 +434,7 @@ export default function App() {
         {/* 데스크탑: Minimals UI 대시보드 레이아웃 */}
         <Box sx={{ display: { xs: 'none', md: 'flex' }, flexDirection: 'row', minHeight: '100vh', bgcolor: 'transparent', position: 'relative' }}>
           {/* (1) 좌측 화이트 사이드바 (Minimals 스타일) */}
-          <Box sx={{ width: sidebarCollapsed ? 88 : 260, transition: 'width 0.25s ease', flexShrink: 0, bgcolor: 'background.paper', backdropFilter: 'var(--glass-blur)', WebkitBackdropFilter: 'var(--glass-blur)', color: 'text.primary', display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, height: '100vh', overflowY: 'auto', overflowX: 'hidden', borderRight: '1px solid rgba(255,255,255,0.18)' }}>
+          <Box className="app-left-nav" sx={{ width: sidebarCollapsed ? 88 : 260, transition: 'width 0.25s ease', flexShrink: 0, bgcolor: 'background.paper', backdropFilter: 'var(--glass-blur)', WebkitBackdropFilter: 'var(--glass-blur)', color: 'text.primary', display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, height: '100vh', overflowY: 'auto', overflowX: 'hidden', borderRight: '1px solid rgba(255,255,255,0.18)' }}>
             <Tooltip title={sidebarCollapsed ? site.title : ''} placement="right" arrow>
               <Box onClick={() => setSiteModalOpen(true)} sx={{ display: 'flex', alignItems: 'center', gap: '12px', m: '16px', p: '12px', borderRadius: '12px', bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.08)', cursor: 'pointer', justifyContent: sidebarCollapsed ? 'center' : 'flex-start', '&:hover': { bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.16)' } }}>
                 <Box sx={{ width: 40, height: 40, borderRadius: '10px', bgcolor: 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'background.paper', fontSize: 16, fontWeight: 800, flexShrink: 0 }}>
@@ -1067,6 +1075,8 @@ export default function App() {
         onChangeFontSize={setFontSize}
         fontFamily={fontFamily}
         onSelectFontFamily={setFontFamily}
+        contrast={contrast}
+        onSelectContrast={setContrast}
       />
     </ThemeProvider>
   );

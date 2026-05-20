@@ -40,6 +40,9 @@ interface Props {
   onChangeFontSize: (value: number) => void;
   fontFamily: FontFamilyKey;
   onSelectFontFamily: (key: FontFamilyKey) => void;
+  // Color (좌측 사이드바 대비)
+  contrast: 'default' | 'hot';
+  onSelectContrast: (v: 'default' | 'hot') => void;
 }
 
 interface ToggleCardProps {
@@ -95,6 +98,49 @@ function ToggleCard({ icon, label, value, onChange, selected, disabledHint }: To
   );
 }
 
+function ContrastIcon({ selected }: { selected: boolean }) {
+  // 작은 사이드 패널이 있는 디바이스(=좌측 사이드바) 모양 아이콘.
+  // 선택 시: primary.main 컬러로 강조, 비선택 시: 회색
+  const accent = selected ? 'currentColor' : '#919EAB';
+  const stroke = selected ? 'currentColor' : '#919EAB';
+  return (
+    <Box sx={{ color: selected ? 'primary.main' : 'text.disabled', display: 'inline-flex' }}>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3" y="4" width="18" height="16" rx="3" stroke={stroke} strokeWidth="1.6" />
+        <rect x="3" y="4" width="6" height="16" rx="3" fill={accent} opacity={selected ? 0.9 : 0.55} />
+      </svg>
+    </Box>
+  );
+}
+
+function ContrastCard({ label, selected, onClick }: { label: string; selected: boolean; onClick: () => void }) {
+  return (
+    <Box
+      onClick={onClick}
+      sx={(theme) => ({
+        cursor: 'pointer',
+        bgcolor: selected ? 'background.paper' : 'transparent',
+        border: '1px solid',
+        borderColor: selected ? alpha(theme.palette.primary.main, 0.32) : 'rgb(var(--palette-grey-500Channel) / 0.16)',
+        boxShadow: selected ? '0 2px 8px 0 rgb(var(--palette-grey-500Channel) / 0.12)' : 'none',
+        borderRadius: '12px',
+        px: '16px',
+        py: '12px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        transition: 'background 0.15s, border-color 0.15s, box-shadow 0.15s',
+        '&:hover': { borderColor: alpha(theme.palette.primary.main, 0.4) },
+      })}
+    >
+      <ContrastIcon selected={selected} />
+      <Typography sx={{ fontSize: 14, fontWeight: 700, color: selected ? 'text.primary' : 'text.disabled' }}>
+        {label}
+      </Typography>
+    </Box>
+  );
+}
+
 function SectionLabel({ children, info }: { children: React.ReactNode; info?: string }) {
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px', mb: '10px', mt: '20px' }}>
@@ -121,6 +167,7 @@ export default function SettingsDrawer({
   preset, onSelectPreset,
   fontSize, onChangeFontSize,
   fontFamily, onSelectFontFamily,
+  contrast, onSelectContrast,
 }: Props) {
   const theme = useTheme();
 
@@ -215,6 +262,21 @@ export default function SettingsDrawer({
             value={rightSidebarHidden}
             onChange={onToggleRightSidebar}
             disabledHint="우측 정보/활동 패널을 숨겨 본문 영역을 넓게 사용"
+          />
+        </Box>
+
+        {/* Color — 좌측 사이드바 대비 (Integrate / Apparent) */}
+        <SectionLabel info="좌측 사이드바를 다크 톤으로 전환">Color</SectionLabel>
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+          <ContrastCard
+            label="Integrate"
+            selected={contrast === 'default'}
+            onClick={() => onSelectContrast('default')}
+          />
+          <ContrastCard
+            label="Apparent"
+            selected={contrast === 'hot'}
+            onClick={() => onSelectContrast('hot')}
           />
         </Box>
 
