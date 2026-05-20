@@ -2,6 +2,7 @@ import { Dialog, Box, Typography, IconButton } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
+import PathPreviewIcons from './PathPreviewIcons';
 
 export interface SearchHit {
   globalIdx: number;
@@ -21,13 +22,15 @@ interface Props {
   results: SearchHit[];
   totalCount: number;
   onSelect?: (hit: SearchHit) => void;
+  onSubmit?: (q: string) => void;     // Enter 시 메인 리스트 필터 적용
+  previewEnabled?: boolean;
 }
 
 /**
  * Cmd/Ctrl+K 스타일 검색 모달.
  * 이미지 참고: 상단에 검색 input + ESC chip, 하단에 결과 리스트 (title / path / section badge).
  */
-export default function SearchDialog({ open, onClose, query, onQueryChange, results, totalCount, onSelect }: Props) {
+export default function SearchDialog({ open, onClose, query, onQueryChange, results, totalCount, onSelect, onSubmit, previewEnabled = true }: Props) {
   const theme = useTheme();
 
   return (
@@ -56,6 +59,13 @@ export default function SearchDialog({ open, onClose, query, onQueryChange, resu
           autoFocus
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && query.trim()) {
+              e.preventDefault();
+              if (onSubmit) onSubmit(query.trim());
+              onClose();
+            }
+          }}
           placeholder="Search..."
           sx={{
             flex: 1, border: 'none', outline: 'none', bgcolor: 'transparent',
@@ -148,6 +158,15 @@ export default function SearchDialog({ open, onClose, query, onQueryChange, resu
                   })} title={hit.section}>
                     {hit.section || 'Overview'}
                   </Box>
+                  {/* PC / Tablet / Mobile 미리보기 아이콘 (호버 시 미리보기) */}
+                  {hit.href && (
+                    <Box
+                      onClick={(e) => e.stopPropagation()}
+                      sx={{ flexShrink: 0 }}
+                    >
+                      <PathPreviewIcons path={hit.href} previewEnabled={previewEnabled} />
+                    </Box>
+                  )}
                 </Box>
               );
             })}

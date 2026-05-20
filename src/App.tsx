@@ -1038,6 +1038,8 @@ export default function App() {
         onQueryChange={setSearchQuery}
         results={searchHits}
         totalCount={totalCount}
+        previewEnabled={previewEnabled}
+        onSubmit={(q) => { setSearchFilter(q); setSearchOpen(false); setSearchQuery(''); }}
       />
 
       <SettingsDrawer
