@@ -27,7 +27,7 @@ export default function MobileTopControls({
 }: Props) {
   const ctrlBtnSx = { p: '4px', color: darkMode ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.6)' };
   const ctrlPanelSx = {
-    bgcolor: darkMode ? 'rgba(30,30,50,0.85)' : 'rgba(255,255,255,0.75)',
+    bgcolor: darkMode ? 'rgba(23,23,23,0.85)' : 'rgba(255,255,255,0.75)',
     border: darkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
   };
   const toggleBtnSx = (active: boolean) => ({

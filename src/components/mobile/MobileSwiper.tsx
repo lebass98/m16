@@ -49,7 +49,7 @@ export default function MobileSwiper({
             <Box component="span" sx={{ fontSize: 12, opacity: 0.7 }}>{(currentCard?.cardIdx ?? 0) + 1} / {currentCard?.sectionTotal}</Box>
             <Box component="span" sx={{ fontSize: 12, opacity: 0.7 }}>▼</Box>
           </Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', py: '6px', px: '10px', bgcolor: darkMode ? 'rgba(10,10,30,0.85)' : 'rgba(20,20,50,0.75)', flexShrink: 0 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', py: '6px', px: '10px', bgcolor: darkMode ? 'rgba(10,10,10,0.85)' : 'rgba(20,20,50,0.75)', flexShrink: 0 }}>
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '5px' }}>
               {tableData.map((_, i) => (
                 <Box

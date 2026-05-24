@@ -99,11 +99,23 @@ export default function App() {
   const { bookmarks, toggle: toggleBookmark } = useBookmarks();
 
   // --- 테마 override ---
+  // 다크 모드는 Minimals 기본 푸른빛(grey #1C252E·#141A21·#28323D) 대신
+  // 푸른 톤 제거한 중성 흑색 팔레트를 사용한다.
   const themeOverrides = useMemo(() => ({
     colorSchemes: {
       light: {
         palette: {
           primary: createPaletteChannel(PRESETS[preset]),
+        },
+      },
+      dark: {
+        palette: {
+          primary: createPaletteChannel(PRESETS[preset]),
+          background: createPaletteChannel({
+            paper: '#171717',     // 카드 배경 — 거의 검정
+            default: '#0a0a0a',   // 최하단 배경 — 가장 깊은 흑색
+            neutral: '#262626',   // 강조 영역
+          }),
         },
       },
     },
