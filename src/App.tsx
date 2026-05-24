@@ -39,6 +39,7 @@ import { useScrollSnapIndex } from './hooks/useScrollSnapIndex';
 import { useFilters } from './hooks/useFilters';
 import { useDialogs } from './hooks/useDialogs';
 import { useBookmarks } from './hooks/useBookmarks';
+import { useFuseSearch } from './hooks/useFuseSearch';
 
 import './App.css';
 
@@ -126,7 +127,7 @@ export default function App() {
     rawTableData,
     showIncomplete: filters.showIncomplete,
     sectionFilter: filters.sectionFilter,
-    progressRange: filters.progressRange,
+    progressRange: filters.debouncedProgressRange,
     sortBy,
     searchFilter: filters.searchFilter,
   });
@@ -135,33 +136,27 @@ export default function App() {
   const currentSectionIdx = currentCard?.sectionIdx ?? 0;
   const latestDate = useMemo(() => getLatestDate(tableData), [tableData]);
 
-  // --- 검색 결과 (모달용) ---
-  const searchHits: SearchHit[] = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return [];
-    return flatCards
-      .map((card, globalIdx) => ({ ...card, globalIdx }))
-      .filter(({ item }) =>
-        [item.pageTitle, item.id, item.depth1, item.depth2, item.depth3, item.note]
-          .some((v) => v?.toLowerCase().includes(q)),
-      )
-      .slice(0, 30)
-      .map((c) => {
-        let pathDisplay = c.item.id || c.item.path || '';
-        if (c.item.path) {
-          try { pathDisplay = new URL(c.item.path).pathname; } catch { pathDisplay = c.item.path; }
-        }
-        return {
-          globalIdx: c.globalIdx,
-          pageTitle: c.item.pageTitle,
-          id: c.item.id,
-          pathDisplay,
-          section: c.sectionTitle,
-          href: c.item.path || undefined,
-          progress: c.item.progressPc ?? 0,
-        };
-      });
-  }, [searchQuery, flatCards]);
+  // --- 검색 결과 (모달용) — Fuse.js 기반 fuzzy 매칭 ---
+  const fuseResults = useFuseSearch(flatCards, searchQuery, 30);
+  const searchHits: SearchHit[] = useMemo(
+    () => fuseResults.map((c) => {
+      const globalIdx = flatCards.indexOf(c);
+      let pathDisplay = c.item.id || c.item.path || '';
+      if (c.item.path) {
+        try { pathDisplay = new URL(c.item.path).pathname; } catch { pathDisplay = c.item.path; }
+      }
+      return {
+        globalIdx,
+        pageTitle: c.item.pageTitle,
+        id: c.item.id,
+        pathDisplay,
+        section: c.sectionTitle,
+        href: c.item.path || undefined,
+        progress: c.item.progressPc ?? 0,
+      };
+    }),
+    [fuseResults, flatCards],
+  );
 
   // --- 모바일 스크롤 스냅 ---
   const scrollContainerRef = useRef<HTMLDivElement>(null);

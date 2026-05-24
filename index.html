@@ -7,6 +7,25 @@
     <link rel="stylesheet" as="style" crossorigin
       href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <title>워드앤코드 퍼블리싱 프로젝트</title>
+    <script>
+      // 다크모드/콘트라스트/폰트크기 pre-paint — React 부팅 전에 적용해 깜빡임 방지
+      (function () {
+        try {
+          var ls = window.localStorage;
+          var dark = ls.getItem('darkMode') === 'true';
+          var contrast = ls.getItem('contrast') === 'hot' ? 'hot' : 'default';
+          document.documentElement.setAttribute('data-color-scheme', dark ? 'dark' : 'light');
+          document.documentElement.setAttribute('data-contrast', contrast);
+          var fs = Number(ls.getItem('fontSize'));
+          if (fs >= 12 && fs <= 20 && fs !== 16) {
+            var scale = fs / 16;
+            if (typeof CSS !== 'undefined' && CSS.supports && CSS.supports('zoom', '1')) {
+              document.documentElement.style.zoom = String(scale);
+            }
+          }
+        } catch (e) { /* localStorage 차단 환경 — 디폴트로 진행 */ }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

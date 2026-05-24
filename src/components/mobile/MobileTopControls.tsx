@@ -51,20 +51,20 @@ export default function MobileTopControls({
   return (
     <>
       <Box sx={{ display: { xs: 'flex', md: 'none' }, position: 'fixed', top: 6, left: 10, zIndex: 1200, alignItems: 'center', backdropFilter: 'blur(8px)', borderRadius: '20px', px: '4px', py: '2px', boxShadow: '0 2px 8px rgba(0,0,0,0.12)', ...ctrlPanelSx }}>
-        <IconButton size="small" onClick={onOpenSearch} sx={ctrlBtnSx} title="검색">
+        <IconButton size="small" onClick={onOpenSearch} sx={ctrlBtnSx} title="검색" aria-label="검색 열기">
           <SearchIcon sx={{ fontSize: 18 }} />
         </IconButton>
-        <IconButton size="small" onClick={onOpenDashboard} sx={ctrlBtnSx} title="완성도">
+        <IconButton size="small" onClick={onOpenDashboard} sx={ctrlBtnSx} title="완성도" aria-label="완성도 대시보드 열기">
           <BarChartIcon sx={{ fontSize: 18 }} />
         </IconButton>
-        <IconButton size="small" onClick={onToggleDarkMode} sx={ctrlBtnSx} title="다크모드">
+        <IconButton size="small" onClick={onToggleDarkMode} sx={ctrlBtnSx} title="다크모드" aria-label={darkMode ? '라이트 모드로 전환' : '다크 모드로 전환'} aria-pressed={darkMode}>
           {darkMode ? <LightModeIcon sx={{ fontSize: 18 }} /> : <DarkModeIcon sx={{ fontSize: 18 }} />}
         </IconButton>
       </Box>
 
       <Box sx={{ display: { xs: 'flex', md: 'none' }, position: 'fixed', top: 6, right: 10, zIndex: 1200, alignItems: 'center', gap: '4px', backdropFilter: 'blur(8px)', borderRadius: '20px', px: '4px', py: '3px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', ...ctrlPanelSx }}>
-        <Box component="button" type="button" onClick={onTogglePreview} sx={toggleBtnSx(previewEnabled)}>미리보기</Box>
-        <Box component="button" type="button" onClick={onToggleIncomplete} sx={toggleBtnSx(showIncomplete)}>미완료 보기</Box>
+        <Box component="button" type="button" onClick={onTogglePreview} aria-pressed={previewEnabled} sx={toggleBtnSx(previewEnabled)}>미리보기</Box>
+        <Box component="button" type="button" onClick={onToggleIncomplete} aria-pressed={showIncomplete} sx={toggleBtnSx(showIncomplete)}>미완료 보기</Box>
       </Box>
     </>
   );

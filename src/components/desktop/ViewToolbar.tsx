@@ -70,7 +70,7 @@ export default function ViewToolbar({
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px', bgcolor: 'rgb(var(--palette-info-mainChannel) / 0.16)', color: 'info.dark', px: '10px', py: '4px', borderRadius: '8px', fontSize: 12 }}>
             <SearchIcon sx={{ fontSize: 13 }} />
             <Typography sx={{ fontSize: 12, fontWeight: 700, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'inherit' }} title={searchFilter}>{searchFilter}</Typography>
-            <IconButton size="small" onClick={onClearSearchFilter} sx={{ p: '0px', color: 'inherit', ml: '2px' }}>
+            <IconButton size="small" onClick={onClearSearchFilter} aria-label="검색 필터 지우기" sx={{ p: '0px', color: 'inherit', ml: '2px' }}>
               <CloseIcon sx={{ fontSize: 14 }} />
             </IconButton>
           </Box>

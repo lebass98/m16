@@ -26,6 +26,7 @@ export default function TopHeader({ siteTitle, darkMode, settingsOpen, onOpenSea
         <Tooltip title="검색 (Cmd/Ctrl+K)" arrow>
           <IconButton
             onClick={onOpenSearch}
+            aria-label="검색 열기 (Cmd 또는 Ctrl + K)"
             sx={{ width: 40, height: 40, color: 'text.secondary', '&:hover': { bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.08)', color: 'text.primary' } }}
           >
             <SearchIcon sx={{ fontSize: 24 }} />
@@ -34,6 +35,8 @@ export default function TopHeader({ siteTitle, darkMode, settingsOpen, onOpenSea
         <Tooltip title="설정" arrow>
           <IconButton
             onClick={onOpenSettings}
+            aria-label="설정 패널 열기"
+            aria-expanded={settingsOpen}
             sx={(theme) => ({
               width: 40, height: 40,
               color: settingsOpen ? 'primary.main' : 'text.secondary',
@@ -47,6 +50,8 @@ export default function TopHeader({ siteTitle, darkMode, settingsOpen, onOpenSea
         <Tooltip title={darkMode ? '라이트 모드' : '다크 모드'} arrow>
           <IconButton
             onClick={onToggleDarkMode}
+            aria-label={darkMode ? '라이트 모드로 전환' : '다크 모드로 전환'}
+            aria-pressed={darkMode}
             sx={{ width: 40, height: 40, color: 'text.secondary', '&:hover': { bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.08)', color: 'text.primary' } }}
           >
             {darkMode ? <LightModeIcon sx={{ fontSize: 24 }} /> : <DarkModeIcon sx={{ fontSize: 24 }} />}

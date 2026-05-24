@@ -16,7 +16,7 @@ export default function DashboardDialog({ open, onClose, totalCount, overallPc, 
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs" slotProps={{ paper: { sx: { m: 2, maxHeight: '85vh' } } }}>
       <Box sx={{ p: '14px 16px', borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Typography sx={{ fontSize: 16, fontWeight: 700 }}>완성도 요약</Typography>
-        <IconButton size="small" onClick={onClose}><CloseIcon sx={{ fontSize: 18 }} /></IconButton>
+        <IconButton size="small" onClick={onClose} aria-label="완성도 요약 닫기"><CloseIcon sx={{ fontSize: 18 }} /></IconButton>
       </Box>
       <Box sx={{ overflowY: 'auto', p: '12px 16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <Box sx={{ p: '12px 14px', bgcolor: 'action.hover', borderRadius: '10px' }}>

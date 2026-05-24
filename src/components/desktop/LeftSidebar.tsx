@@ -108,6 +108,8 @@ export default function LeftSidebar({
       <Tooltip title={collapsed ? '사이드바 펼치기' : '사이드바 접기'} placement="right" arrow>
         <IconButton
           onClick={onToggleCollapsed}
+          aria-label={collapsed ? '사이드바 펼치기' : '사이드바 접기'}
+          aria-expanded={!collapsed}
           sx={{
             position: 'fixed',
             top: 28,
