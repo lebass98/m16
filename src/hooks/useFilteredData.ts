@@ -109,14 +109,10 @@ export function useFilteredData({
     return order.map((key) => ({ key, count: counts.get(key) ?? 0 }));
   }, [rawTableData]);
 
-  const sectionStartIndices = useMemo(() => {
-    let idx = 0;
-    return tableData.map((section) => {
-      const start = idx;
-      idx += section.data.length;
-      return start;
-    });
-  }, [tableData]);
+  const sectionStartIndices = useMemo(
+    () => tableData.map((_, i) => tableData.slice(0, i).reduce((sum, s) => sum + s.data.length, 0)),
+    [tableData],
+  );
 
   const totalCount = useMemo(
     () => tableData.reduce((sum, s) => sum + s.data.length, 0),

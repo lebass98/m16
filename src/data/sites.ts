@@ -1,6 +1,5 @@
 import type { TableSection } from '../types';
 import { tableData } from './tableData';
-// import { tableDataEpaa } from './tableData_epaa';
 
 export interface SiteConfig {
   key: string;
@@ -31,5 +30,4 @@ export const sites: SiteConfig[] = [
     description: '가족 지원 서비스 URL 목록',
     // sheetCsvUrl: '여기에 게시된 CSV URL',
   },
-  // { key: 'epaa', title: '전국경제진흥원협의회', data: tableDataEpaa, color: '#5a9e6a', description: '경제 진흥 서비스 URL 목록' },
 ];

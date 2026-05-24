@@ -86,7 +86,7 @@ function PCModalContent({ src }: { src: string }) {
       if (containerRef.current) containerRef.current.style.height = `${Math.round(contentH * scale)}px`;
     };
     return () => { if (iframe) iframe.onload = null; };
-  }, [src, scale]);
+  }, [src, scale, FALLBACK_H]);
 
   return (
     <div className="hide-scrollbar" style={{ width: MODAL_PC_W, maxHeight: '80vh', overflowY: 'auto', background: '#fff' }}>
@@ -128,7 +128,7 @@ function TabletModalContent({ src }: { src: string }) {
       if (containerRef.current) containerRef.current.style.height = `${Math.round(contentH * scale)}px`;
     };
     return () => { if (iframe) iframe.onload = null; };
-  }, [src, scale]);
+  }, [src, scale, FALLBACK_H]);
 
   return (
     <div className="hide-scrollbar" style={{ width: MODAL_TABLET_W, maxHeight: '80vh', overflowY: 'auto', background: '#fff' }}>

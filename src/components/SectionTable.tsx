@@ -278,7 +278,7 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
       renderCell: (params) => {
         if (!params.value) return null;
         let p = params.value as string;
-        try { p = new URL(p).pathname; } catch {}
+        try { p = new URL(p).pathname; } catch { /* relative path */ }
         return (
           <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: '8px' }}>
             <Box
@@ -644,7 +644,7 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
                     item.updatedAt && { label: '업데이트', value: item.updatedAt, href: undefined, emphasis: item.updatedAt === latestDate },
                     item.end && { label: '완료일', value: item.end, href: undefined, emphasis: item.end === latestDate },
                     item.note && { label: '비고', value: item.note, href: undefined, emphasis: false },
-                  ].filter(Boolean).map((chip: any, k, arr) => (
+                  ].filter((c): c is { label: string; value: string; href: string | undefined; emphasis: boolean } => Boolean(c)).map((chip, k, arr) => (
                     <Box key={k} sx={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0 }}>
                       <Typography sx={{ color: '#999', fontSize: 11, whiteSpace: 'nowrap' }}>{chip.label}</Typography>
                       {chip.href ? (
