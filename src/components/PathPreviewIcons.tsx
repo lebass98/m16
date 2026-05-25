@@ -26,6 +26,9 @@ const MODAL_PC_W = 1280;
 const MODAL_TABLET_W = 1024;
 const MODAL_MOBILE_OUTER_W = 375;
 const MODAL_MOBILE_INNER_W = 375;
+// iframe 내부 페이지가 그리는 스크롤바를 시각적으로 가리기 위해 iframe을 이 만큼 더 넓게 만들고
+// 부모 컨테이너의 overflow:hidden으로 우측 끝을 잘라낸다. (cross-origin이라 내부 CSS 주입 불가)
+const SCROLLBAR_WIDTH = 18;
 
 
 
@@ -68,6 +71,8 @@ function MobilePreviewFrame({ src }: { src: string }) {
 function PCModalContent({ src }: { src: string }) {
   const scale = MODAL_PC_W / IFRAME_W;
   const FALLBACK_H = IFRAME_H * 5;
+  // 내부 페이지 스크롤바를 가리기 위해 iframe coord 기준으로 넓힐 폭 (scale 보정)
+  const extraIframeW = SCROLLBAR_WIDTH / scale;
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -89,14 +94,14 @@ function PCModalContent({ src }: { src: string }) {
   }, [src, scale, FALLBACK_H]);
 
   return (
-    <div className="hide-scrollbar" style={{ width: MODAL_PC_W, maxHeight: '80vh', overflowY: 'auto', background: '#fff' }}>
+    <div className="hide-scrollbar" style={{ width: MODAL_PC_W, maxHeight: '80vh', overflowY: 'auto', background: '#fff', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
       <div ref={containerRef} style={{ width: MODAL_PC_W, height: Math.round(FALLBACK_H * scale), position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
-        <div ref={wrapperRef} style={{ position: 'absolute', top: 0, left: 0, width: IFRAME_W, height: FALLBACK_H, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+        <div ref={wrapperRef} style={{ position: 'absolute', top: 0, left: 0, width: IFRAME_W + extraIframeW, height: FALLBACK_H, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
           <iframe
             ref={iframeRef}
             src={src}
             title="PC modal preview"
-            style={{ display: 'block', width: IFRAME_W, height: FALLBACK_H, border: 'none', pointerEvents: 'none' }}
+            style={{ display: 'block', width: IFRAME_W + extraIframeW, height: FALLBACK_H, border: 'none', pointerEvents: 'none' }}
             tabIndex={-1}
           />
         </div>
@@ -110,6 +115,7 @@ function TabletModalContent({ src }: { src: string }) {
   const IFRAME_H = 768;
   const scale = MODAL_TABLET_W / IFRAME_W;
   const FALLBACK_H = IFRAME_H * 5;
+  const extraIframeW = SCROLLBAR_WIDTH / scale;
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -131,15 +137,25 @@ function TabletModalContent({ src }: { src: string }) {
   }, [src, scale, FALLBACK_H]);
 
   return (
-    <div className="hide-scrollbar" style={{ width: MODAL_TABLET_W, maxHeight: '80vh', overflowY: 'auto', background: '#fff' }}>
+    <div
+      className="hide-scrollbar"
+      style={{
+        width: MODAL_TABLET_W,
+        maxHeight: '80vh',
+        overflowY: 'auto',
+        background: '#fff',
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
+      }}
+    >
       <div ref={containerRef} style={{ width: MODAL_TABLET_W, height: Math.round(FALLBACK_H * scale), position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
-        <div ref={wrapperRef} style={{ position: 'absolute', top: 0, left: 0, width: IFRAME_W, height: FALLBACK_H, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+        <div ref={wrapperRef} style={{ position: 'absolute', top: 0, left: 0, width: IFRAME_W + extraIframeW, height: FALLBACK_H, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
           <iframe
             ref={iframeRef}
             src={src}
             title="Tablet modal preview"
             scrolling="no"
-            style={{ display: 'block', width: IFRAME_W, height: FALLBACK_H, border: 'none', pointerEvents: 'none' }}
+            style={{ display: 'block', width: IFRAME_W + extraIframeW, height: FALLBACK_H, border: 'none', pointerEvents: 'none' }}
             tabIndex={-1}
           />
         </div>
@@ -168,14 +184,15 @@ function MobileModalContent({ src }: { src: string }) {
   }, [src]);
 
   return (
-    <div ref={outerRef} className="hide-scrollbar" style={{ width: MODAL_MOBILE_OUTER_W, maxHeight: '80vh', overflowY: 'auto', background: '#fff' }}>
-      <div style={{ width: MODAL_MOBILE_INNER_W, margin: '0 auto' }}>
+    <div ref={outerRef} className="hide-scrollbar" style={{ width: MODAL_MOBILE_OUTER_W, maxHeight: '80vh', overflowY: 'auto', background: '#fff', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      {/* inner는 가시 영역(375)이고 iframe은 SCROLLBAR_WIDTH 만큼 넓혀 우측 스크롤바를 잘라낸다 */}
+      <div style={{ width: MODAL_MOBILE_INNER_W, margin: '0 auto', overflow: 'hidden' }}>
         <iframe
           ref={iframeRef}
           src={src}
           title="Mobile modal preview"
           scrolling="no"
-          style={{ display: 'block', width: MODAL_MOBILE_INNER_W, height: FALLBACK_H, border: 'none', pointerEvents: 'none' }}
+          style={{ display: 'block', width: MODAL_MOBILE_INNER_W + SCROLLBAR_WIDTH, height: FALLBACK_H, border: 'none', pointerEvents: 'none' }}
           tabIndex={-1}
         />
       </div>
@@ -307,6 +324,14 @@ export default function PathPreviewIcons({ path, previewEnabled = true }: Props)
         open={!!clicked}
         onClose={() => setClicked(null)}
         maxWidth={false}
+        sx={{
+          // MUI Dialog의 외부 스크롤 컨테이너가 보이는 스크롤바를 그리는 것을 막음
+          '& .MuiDialog-container': {
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+            '&::-webkit-scrollbar': { display: 'none', width: 0, height: 0 },
+          },
+        }}
         slotProps={{
           paper: {
             sx: {
