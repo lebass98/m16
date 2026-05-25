@@ -182,10 +182,17 @@ export default function SettingsDrawer({
       anchor="right"
       open={open}
       onClose={onClose}
+      // 모든 디바이스에서 우측 슬라이드 인 애니메이션을 명시. MUI 기본은 250ms,
+      // 320/260으로 살짝 늘려 더 또렷한 슬라이드 효과. prefers-reduced-motion은
+      // App.css의 글로벌 미디어 쿼리가 0.01ms로 덮어쓰므로 접근성도 자동 대응.
+      transitionDuration={{ enter: 320, exit: 260 }}
       slotProps={{
         paper: {
           sx: {
-            width: DRAWER_WIDTH,
+            // 모바일: 화면의 88% — 슬라이드 거리가 시각적으로 보이고
+            // 닫기 위한 좌측 backdrop 영역 확보. sm 이상은 고정 360px.
+            width: { xs: '88vw', sm: DRAWER_WIDTH },
+            maxWidth: DRAWER_WIDTH,
             bgcolor: 'background.paper',
             borderTopLeftRadius: '16px',
             borderBottomLeftRadius: '16px',
