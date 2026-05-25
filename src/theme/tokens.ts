@@ -42,6 +42,22 @@ export const progressColors = {
 };
 
 /**
+ * Minimals UI 디자인 시스템의 카드 그림자 토큰.
+ * - cardShadow: 기본 (살짝 떠 있는 느낌)
+ * - cardShadowHover: 호버 시 더 깊은 그림자 (인터랙티브 카드용)
+ * 라이트/다크 모드별 분기 — 다크는 더 짙은 검정 기반.
+ */
+export const cardShadow = (mode: 'light' | 'dark'): string =>
+  mode === 'dark'
+    ? '0 0 2px 0 rgba(0, 0, 0, 0.5), 0 12px 24px -4px rgba(0, 0, 0, 0.4)'
+    : '0 0 2px 0 rgba(145, 158, 171, 0.20), 0 12px 24px -4px rgba(145, 158, 171, 0.12)';
+
+export const cardShadowHover = (mode: 'light' | 'dark'): string =>
+  mode === 'dark'
+    ? '0 0 2px 0 rgba(0, 0, 0, 0.6), 0 24px 48px -8px rgba(0, 0, 0, 0.5)'
+    : '0 0 2px 0 rgba(145, 158, 171, 0.20), 0 24px 48px -8px rgba(145, 158, 171, 0.20)';
+
+/**
  * StatusBadge(작업중/완료/제거 등) 색상 토큰.
  * StatusType별 (배경, 텍스트) 조합. 다크 모드는 약간 톤 조정.
  */

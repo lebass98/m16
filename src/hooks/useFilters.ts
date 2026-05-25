@@ -17,12 +17,19 @@ export interface FiltersState {
   clearSearchFilter: () => void;
 }
 
-export function useFilters(): FiltersState {
-  const [searchFilter, setSearchFilter] = useState('');
-  const [progressRange, setProgressRange] = useState<number[]>([0, 100]);
+interface InitialFilters {
+  searchFilter?: string;
+  progressRange?: [number, number];
+  showIncomplete?: boolean;
+  sectionFilter?: Set<string>;
+}
+
+export function useFilters(initial: InitialFilters = {}): FiltersState {
+  const [searchFilter, setSearchFilter] = useState(initial.searchFilter ?? '');
+  const [progressRange, setProgressRange] = useState<number[]>(initial.progressRange ?? [0, 100]);
   const debouncedProgressRange = useDebouncedValue(progressRange, 100);
-  const [showIncomplete, setShowIncomplete] = useState(false);
-  const [sectionFilter, setSectionFilter] = useState<Set<string>>(new Set());
+  const [showIncomplete, setShowIncomplete] = useState(initial.showIncomplete ?? false);
+  const [sectionFilter, setSectionFilter] = useState<Set<string>>(initial.sectionFilter ?? new Set());
 
   const toggleSectionFilter = useCallback((key: string) => {
     setSectionFilter((prev) => {

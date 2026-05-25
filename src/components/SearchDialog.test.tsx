@@ -19,7 +19,7 @@ describe('SearchDialog', () => {
         totalCount={0}
       />,
     );
-    expect(screen.queryByPlaceholderText('Search...')).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText(/^Search\.\.\./)).not.toBeInTheDocument();
   });
 
   it('query가 비어있으면 안내 문구를 보여준다', () => {
@@ -79,11 +79,12 @@ describe('SearchDialog', () => {
         totalCount={0}
       />,
     );
-    fireEvent.change(screen.getByPlaceholderText('Search...'), { target: { value: 'abc' } });
+    fireEvent.change(screen.getByPlaceholderText(/^Search\.\.\./), { target: { value: 'abc' } });
     expect(onQueryChange).toHaveBeenCalledWith('abc');
   });
 
-  it('Enter 누르면 onSubmit 호출 + onClose 호출', () => {
+  it('결과가 있을 때 Enter → onSelect(첫 결과) + onClose', () => {
+    const onSelect = vi.fn();
     const onSubmit = vi.fn();
     const onClose = vi.fn();
     render(
@@ -95,11 +96,51 @@ describe('SearchDialog', () => {
         results={HITS}
         totalCount={42}
         onSubmit={onSubmit}
+        onSelect={onSelect}
       />,
     );
-    fireEvent.keyDown(screen.getByPlaceholderText('Search...'), { key: 'Enter' });
-    expect(onSubmit).toHaveBeenCalledWith('홈');
+    fireEvent.keyDown(screen.getByPlaceholderText(/^Search\.\.\./), { key: 'Enter' });
+    expect(onSelect).toHaveBeenCalledWith(HITS[0]);
+    expect(onSubmit).not.toHaveBeenCalled();
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it('결과가 없을 때 Enter → onSubmit(query) + onClose', () => {
+    const onSubmit = vi.fn();
+    const onClose = vi.fn();
+    render(
+      <SearchDialog
+        open
+        onClose={onClose}
+        query="없는검색어"
+        onQueryChange={() => {}}
+        results={[]}
+        totalCount={42}
+        onSubmit={onSubmit}
+      />,
+    );
+    fireEvent.keyDown(screen.getByPlaceholderText(/^Search\.\.\./), { key: 'Enter' });
+    expect(onSubmit).toHaveBeenCalledWith('없는검색어');
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('↓ 키로 highlight 이동 후 Enter → 해당 결과 onSelect', () => {
+    const onSelect = vi.fn();
+    render(
+      <SearchDialog
+        open
+        onClose={() => {}}
+        query="검색"
+        onQueryChange={() => {}}
+        results={HITS}
+        totalCount={42}
+        onSelect={onSelect}
+      />,
+    );
+    const input = screen.getByPlaceholderText(/^Search\.\.\./);
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(onSelect).toHaveBeenCalledWith(HITS[1]);
   });
 
   it('결과 항목 클릭 시 onSelect 호출', () => {

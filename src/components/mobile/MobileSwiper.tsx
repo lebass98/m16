@@ -19,6 +19,11 @@ interface Props {
   scrollContainerRef: RefObject<HTMLDivElement | null>;
   onOpenSectionModal: () => void;
   onSelectSection: (sectionIdx: number) => void;
+  bookmarks: Set<string>;
+  onToggleBookmark: (id: string) => void;
+  selectMode: boolean;
+  selected: Set<string>;
+  onToggleSelect: (id: string) => void;
 }
 
 export default function MobileSwiper({
@@ -35,6 +40,11 @@ export default function MobileSwiper({
   scrollContainerRef,
   onOpenSectionModal,
   onSelectSection,
+  bookmarks,
+  onToggleBookmark,
+  selectMode,
+  selected,
+  onToggleSelect,
 }: Props) {
   return (
     <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
@@ -80,7 +90,17 @@ export default function MobileSwiper({
             <Box ref={scrollContainerRef} sx={{ display: 'flex', flexDirection: 'row', flex: 1, overflowX: 'auto', '&::-webkit-scrollbar': { display: 'none' }, scrollbarWidth: 'none', scrollSnapType: 'x mandatory' }}>
               {flatCards.map((card, i) => (
                 <Box key={i} className="card-enter" sx={{ flexShrink: 0, width: '100%', height: '100%', p: '12px', display: 'flex', flexDirection: 'column', boxSizing: 'border-box', scrollSnapAlign: 'center', animationDelay: `${i * 0.05}s` }}>
-                  <MobileCard item={card.item} cardNumber={card.cardIdx + 1} latestDate={latestDate} hideUi={hideUi} />
+                  <MobileCard
+                    item={card.item}
+                    cardNumber={card.cardIdx + 1}
+                    latestDate={latestDate}
+                    hideUi={hideUi}
+                    isBookmarked={bookmarks.has(card.item.id)}
+                    onToggleBookmark={onToggleBookmark}
+                    selectMode={selectMode}
+                    isSelected={selected.has(card.item.id)}
+                    onToggleSelect={onToggleSelect}
+                  />
                 </Box>
               ))}
             </Box>

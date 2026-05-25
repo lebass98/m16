@@ -8,6 +8,7 @@ import LightModeIcon from '@mui/icons-material/LightMode';
 import KeyboardOutlinedIcon from '@mui/icons-material/KeyboardOutlined';
 import ChecklistIcon from '@mui/icons-material/Checklist';
 import HistoryIcon from '@mui/icons-material/History';
+import LinkIcon from '@mui/icons-material/Link';
 
 interface Props {
   siteTitle: string;
@@ -21,11 +22,12 @@ interface Props {
   onOpenShortcuts: () => void;
   onToggleSelectMode: () => void;
   onOpenHistory: () => void;
+  onCopyShareLink: () => void;
   /** 액션 영역 우측에 추가로 끼워넣을 슬롯 (예: ExportMenu) */
   rightSlot?: ReactNode;
 }
 
-export default function TopHeader({ siteTitle, darkMode, settingsOpen, selectMode, hasHistory, onOpenSearch, onOpenSettings, onToggleDarkMode, onOpenShortcuts, onToggleSelectMode, onOpenHistory, rightSlot }: Props) {
+export default function TopHeader({ siteTitle, darkMode, settingsOpen, selectMode, hasHistory, onOpenSearch, onOpenSettings, onToggleDarkMode, onOpenShortcuts, onToggleSelectMode, onOpenHistory, onCopyShareLink, rightSlot }: Props) {
   return (
     <Box sx={{ bgcolor: 'rgb(var(--palette-background-paperChannel) / 0.8)', backdropFilter: 'blur(20px)', borderBottom: '1px dashed rgb(var(--palette-grey-500Channel) / 0.2)', px: { md: '16px', lg: '32px' }, py: '14px', display: 'flex', alignItems: 'center', gap: { md: '12px', lg: '20px' }, position: 'sticky', top: 0, zIndex: 10 }}>
       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -47,6 +49,15 @@ export default function TopHeader({ siteTitle, darkMode, settingsOpen, selectMod
             })}
           >
             <ChecklistIcon sx={{ fontSize: 24 }} />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="현재 보기 공유 링크 복사 (필터·정렬 포함)" arrow>
+          <IconButton
+            onClick={onCopyShareLink}
+            aria-label="현재 보기 공유 링크 복사"
+            sx={{ width: 40, height: 40, color: 'text.secondary', '&:hover': { bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.08)', color: 'text.primary' } }}
+          >
+            <LinkIcon sx={{ fontSize: 24 }} />
           </IconButton>
         </Tooltip>
         {hasHistory && (

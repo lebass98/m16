@@ -1,5 +1,7 @@
-import { Card, Box, Typography } from '@mui/material';
+import { Card, Box, Typography, IconButton, Checkbox } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
 import type { TableItem } from '../types';
 import ProgressBar from './ProgressBar';
 import PreviewFrame from './PreviewFrame';
@@ -10,11 +12,18 @@ interface Props {
   cardNumber: number;
   latestDate: string;
   hideUi: boolean;
+  /** 북마크 상태와 토글 — 미제공 시 북마크 버튼 숨김 */
+  isBookmarked?: boolean;
+  onToggleBookmark?: (id: string) => void;
+  /** 선택 모드 — true면 체크박스 노출, 탭으로 선택 토글 */
+  selectMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: (id: string) => void;
 }
 
 const emphasisSx = { fontWeight: 700, color: '#ff706e' };
 
-export default function MobileCard({ item, cardNumber, latestDate, hideUi }: Props) {
+export default function MobileCard({ item, cardNumber, latestDate, hideUi, isBookmarked = false, onToggleBookmark, selectMode = false, isSelected = false, onToggleSelect }: Props) {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
 
@@ -33,13 +42,34 @@ export default function MobileCard({ item, cardNumber, latestDate, hideUi }: Pro
         boxShadow: isDark ? '0 16px 48px 0 rgba(0,0,0,0.5)' : '0 16px 48px 0 rgba(31, 38, 135, 0.15)',
       },
     }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px', p: '8px 12px', bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255, 255, 255, 0.4)', borderBottom: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(255, 255, 255, 0.5)', flexShrink: 0 }}>
-        <Box sx={{ flexShrink: 0, width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: isDark ? '#4a7ab5' : '#333', color: '#fff', borderRadius: '50%', fontSize: 11, fontWeight: 700 }}>
-          {cardNumber}
-        </Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', p: '8px 12px', bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255, 255, 255, 0.4)', borderBottom: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(255, 255, 255, 0.5)', flexShrink: 0 }}>
+        {selectMode && onToggleSelect ? (
+          <Checkbox
+            checked={isSelected}
+            onChange={() => onToggleSelect(item.id)}
+            size="small"
+            slotProps={{ input: { 'aria-label': `${item.pageTitle || item.id} 선택` } }}
+            sx={{ p: '2px', flexShrink: 0 }}
+          />
+        ) : (
+          <Box sx={{ flexShrink: 0, width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: isDark ? '#4a7ab5' : '#333', color: '#fff', borderRadius: '50%', fontSize: 11, fontWeight: 700 }}>
+            {cardNumber}
+          </Box>
+        )}
         <Typography sx={{ flex: 1, fontSize: 14, fontWeight: 600, color: isDark ? 'rgba(255,255,255,0.9)' : '#111', wordBreak: 'break-all' }}>
           {item.pageTitle || item.id}
         </Typography>
+        {onToggleBookmark && (
+          <IconButton
+            size="small"
+            onClick={(e) => { e.stopPropagation(); onToggleBookmark(item.id); }}
+            aria-label={isBookmarked ? '북마크 해제' : '북마크 추가'}
+            aria-pressed={isBookmarked}
+            sx={{ p: '4px', flexShrink: 0, color: isBookmarked ? 'primary.main' : (isDark ? 'rgba(255,255,255,0.5)' : 'text.secondary') }}
+          >
+            {isBookmarked ? <BookmarkIcon sx={{ fontSize: 18 }} /> : <BookmarkBorderIcon sx={{ fontSize: 18 }} />}
+          </IconButton>
+        )}
         <Box sx={{ display: 'flex', gap: '8px' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
             <Typography sx={{ fontSize: 10, color: isDark ? 'rgba(255,255,255,0.5)' : '#666', lineHeight: 1 }}>PC</Typography>

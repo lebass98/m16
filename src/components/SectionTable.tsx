@@ -1,15 +1,16 @@
 import { useMemo } from 'react';
-import { Paper, Box, Typography, Card, IconButton, Tooltip, Checkbox } from '@mui/material';
+import { Paper, Box, Typography, Card, IconButton, Tooltip, Checkbox, useTheme } from '@mui/material';
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import ArrowOutwardIcon from '@mui/icons-material/ArrowOutward';
 import StickyNote2OutlinedIcon from '@mui/icons-material/StickyNote2Outlined';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import type { TableItem, TableSection } from '../types';
 import ProgressBar from './ProgressBar';
 import PathPreviewIcons, { CopyPathButton } from './PathPreviewIcons';
 import PreviewFrame from './PreviewFrame';
-import { glassPanelSx } from '../theme/tokens';
+import { glassPanelSx, cardShadow, cardShadowHover } from '../theme/tokens';
 
 // Minimals UI 팔레트
 const COLORS = {
@@ -29,8 +30,7 @@ const COLORS = {
   gray900: 'text.primary',
 } as const;
 
-const MINIMALS_SHADOW = '0 0 2px 0 rgba(145, 158, 171, 0.20), 0 12px 24px -4px rgba(145, 158, 171, 0.12)';
-const MINIMALS_SHADOW_HOVER = '0 0 2px 0 rgba(145, 158, 171, 0.20), 0 24px 48px -8px rgba(145, 158, 171, 0.20)';
+// 카드 그림자는 theme/tokens.ts의 cardShadow/cardShadowHover를 사용 (다크 모드 분기 포함).
 
 function getStatusColor(progress: number, isLatest: boolean): string {
   if (progress >= 100) return COLORS.success;
@@ -46,7 +46,7 @@ const DEVICE_DIMS = {
 } as const;
 type DeviceKey = keyof typeof DEVICE_DIMS;
 
-function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmark, latestDate, cardIndex = 0, device = 'pc', selectMode = false, isSelected = false, onToggleSelect }: {
+function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmark, latestDate, cardIndex = 0, device = 'pc', selectMode = false, isSelected = false, onToggleSelect, onOpenFullscreen }: {
   item: TableItem;
   section: TableSection;
   sectionIndex: number;
@@ -59,7 +59,10 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
   selectMode?: boolean;
   isSelected?: boolean;
   onToggleSelect?: (id: string) => void;
+  onOpenFullscreen?: (item: TableItem) => void;
 }) {
+  const { palette } = useTheme();
+  const mode = palette.mode;
   const baseDelay = Math.min(cardIndex, 16) * 55;
   const inner = (k: number) => ({ animationDelay: `${baseDelay + 120 + k * 60}ms` });
   const isLatest = !!item.updatedAt && item.updatedAt === latestDate;
@@ -78,13 +81,13 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        // Minimals UI 디자인 시스템 shadow — 기본 glass-shadow보다 부드러운 hover 효과 강조용
-        boxShadow: MINIMALS_SHADOW,
+        // 다크 모드에서도 충분히 보이도록 모드별 분기된 토큰 사용
+        boxShadow: cardShadow(mode),
         color: COLORS.gray900,
         transition: 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease',
         '&:hover': {
           transform: 'translateY(-4px)',
-          boxShadow: MINIMALS_SHADOW_HOVER,
+          boxShadow: cardShadowHover(mode),
           zIndex: 2,
         },
       }}>
@@ -104,6 +107,23 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
             <Box sx={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
               <PreviewFrame key={device} src={item.path} displayWidth="100%" fillHeight iframeWidth={dims.w} iframeHeight={dims.h} />
             </Box>
+            {onOpenFullscreen && (
+              <Tooltip title="전체화면 미리보기" arrow placement="left">
+                <IconButton
+                  size="small"
+                  onClick={(e) => { e.stopPropagation(); onOpenFullscreen(item); }}
+                  aria-label="전체화면 미리보기 열기"
+                  sx={{
+                    position: 'absolute', bottom: 12, right: 12, zIndex: 3,
+                    bgcolor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)',
+                    width: 32, height: 32,
+                    '&:hover': { bgcolor: 'background.paper' },
+                  }}
+                >
+                  <FullscreenIcon sx={{ fontSize: 18, color: COLORS.gray700 }} />
+                </IconButton>
+              </Tooltip>
+            )}
             {/* 날짜 pill + 북마크/선택 오버레이 */}
             <Box sx={{ position: 'absolute', top: 12, left: 12, right: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 3 }}>
               <Box sx={{ bgcolor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)', color: COLORS.gray900, px: '10px', py: '4px', borderRadius: '8px', fontSize: 11, fontWeight: 600, lineHeight: 1.4 }}>
@@ -247,6 +267,12 @@ interface Props {
   selectMode?: boolean;
   selected?: Set<string>;
   onToggleSelect?: (id: string) => void;
+  /** Shift+Click 범위 선택 — anchor부터 target까지의 id를 일괄 추가. */
+  onRangeSelect?: (orderedIds: string[], target: string) => void;
+  /** 썸네일 카드의 전체화면 버튼 클릭 핸들러. */
+  onOpenFullscreen?: (item: TableItem) => void;
+  /** 노트 편집 시작 — id로 항목을 찾아 다이얼로그 오픈. */
+  onEditNote?: (item: TableItem) => void;
 }
 
 const emphasisSx = { fontWeight: 700, color: '#ff706e' };
@@ -255,13 +281,17 @@ const emphasisSx = { fontWeight: 700, color: '#ff706e' };
  * 데스크탑(md+) 전용 섹션 테이블. 리스트(DataGrid) 또는 썸네일 그리드 두 가지 viewMode를 지원.
  * 모바일 분기(`display: { xs: ..., md: 'none' }`)는 SectionTableMobile로 분리되어 있다.
  */
-export default function SectionTable({ section, sectionIndex, latestDate, onHeaderClick, previewEnabled = true, viewMode = 'list', thumbnailDevice = 'pc', thumbnailCols = 3, bookmarks = new Set(), onToggleBookmark, selectMode = false, selected = new Set(), onToggleSelect }: Props) {
+export default function SectionTable({ section, sectionIndex, latestDate, onHeaderClick, previewEnabled = true, viewMode = 'list', thumbnailDevice = 'pc', thumbnailCols = 3, bookmarks = new Set(), onToggleBookmark, selectMode = false, selected = new Set(), onToggleSelect, onRangeSelect, onOpenFullscreen, onEditNote }: Props) {
+  const { palette } = useTheme();
+  const mode = palette.mode;
   const rows = useMemo(
     () => section.data.map((item, j) => ({ ...item, _rowId: j, _no: j + 1 })),
     [section.data]
   );
 
   const columns = useMemo<GridColDef[]>(() => {
+    // 현재 섹션의 id 순서 (Shift+Click 범위 계산용)
+    const sectionIds = section.data.map((d) => d.id);
     const selectCol: GridColDef = {
       field: '_select',
       headerName: '',
@@ -275,10 +305,17 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
         return (
           <Checkbox
             checked={checked}
-            onChange={() => onToggleSelect?.(id)}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (e.shiftKey && onRangeSelect) {
+                e.preventDefault();
+                onRangeSelect(sectionIds, id);
+              } else {
+                onToggleSelect?.(id);
+              }
+            }}
             size="small"
-            slotProps={{ input: { 'aria-label': `${id} 선택` } }}
+            slotProps={{ input: { 'aria-label': `${id} 선택 (Shift+Click 범위)` } }}
             sx={{ p: '4px' }}
           />
         );
@@ -408,7 +445,32 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
       sortable: false,
       renderCell: (params) => {
         const note = (params.value as string) ?? '';
-        if (!note.trim()) return null;
+        const item = params.row as TableItem;
+        const hasNote = !!note.trim();
+        // 노트가 있으면 호버 시 미리보기 + 클릭 시 편집, 없으면 클릭 시 추가
+        const icon = (
+          <Box
+            onClick={(e) => {
+              e.stopPropagation();
+              onEditNote?.(item);
+            }}
+            sx={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              width: 28, height: 28, borderRadius: '8px',
+              color: hasNote ? 'text.secondary' : 'text.disabled',
+              transition: 'background-color 0.15s, color 0.15s',
+              cursor: onEditNote ? 'pointer' : (hasNote ? 'help' : 'default'),
+              '&:hover': onEditNote ? { bgcolor: 'rgb(var(--palette-primary-mainChannel) / 0.12)', color: 'primary.main' } : {},
+            }}
+            role={onEditNote ? 'button' : undefined}
+            aria-label={onEditNote ? (hasNote ? '노트 편집' : '노트 추가') : undefined}
+            tabIndex={onEditNote ? 0 : undefined}
+            onKeyDown={onEditNote ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onEditNote(item); } } : undefined}
+          >
+            <StickyNote2OutlinedIcon sx={{ fontSize: 16, opacity: hasNote ? 1 : 0.4 }} />
+          </Box>
+        );
+        if (!hasNote) return icon;
         return (
           <Tooltip
             title={
@@ -420,23 +482,14 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
             arrow
             slotProps={{ tooltip: { sx: { bgcolor: 'rgb(33,33,33)', '& .MuiTooltip-arrow': { color: 'rgb(33,33,33)' } } } }}
           >
-            <Box sx={{
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              width: 28, height: 28, borderRadius: '8px',
-              color: 'text.secondary',
-              transition: 'background-color 0.15s, color 0.15s',
-              cursor: 'help',
-              '&:hover': { bgcolor: 'rgb(var(--palette-primary-mainChannel) / 0.12)', color: 'primary.main' },
-            }}>
-              <StickyNote2OutlinedIcon sx={{ fontSize: 16 }} />
-            </Box>
+            {icon}
           </Tooltip>
         );
       },
     },
     ];
     return selectMode ? [selectCol, ...cols] : cols;
-  }, [latestDate, previewEnabled, selectMode, selected, onToggleSelect]);
+  }, [latestDate, previewEnabled, selectMode, selected, onToggleSelect, onEditNote, onRangeSelect, section.data]);
 
   return (
     <Paper
@@ -445,7 +498,7 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
       sx={{
         ...glassPanelSx,
         overflow: 'hidden',
-        boxShadow: MINIMALS_SHADOW,
+        boxShadow: cardShadow(mode),
         display: 'flex',
         flexDirection: 'column',
         transition: 'box-shadow 0.28s ease',
@@ -553,6 +606,7 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
             selectMode={selectMode}
             isSelected={selected.has(item.id)}
             onToggleSelect={onToggleSelect}
+            onOpenFullscreen={onOpenFullscreen}
           />
         ))}
       </Box>

@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useLayoutEffect, useRef, useCallback, lazy, Suspense } from 'react';
-import { Box, useMediaQuery } from '@mui/material';
+import { Box, Snackbar, useMediaQuery } from '@mui/material';
 import { createPaletteChannel } from 'minimal-shared/utils';
 
 import { sites } from './data/sites';
@@ -9,16 +9,18 @@ import SectionTable from './components/SectionTable';
 import type { SearchHit } from './components/SearchDialog';
 import StateMessage from './components/StateMessage';
 import ExportMenu from './components/ExportMenu';
+import RefreshButton from './components/RefreshButton';
 
 import LeftSidebar from './components/desktop/LeftSidebar';
 import TopHeader from './components/desktop/TopHeader';
 import FilterBar from './components/desktop/FilterBar';
 import ViewToolbar, { type DesktopView, type ThumbnailDevice, type ThumbnailCols } from './components/desktop/ViewToolbar';
 import RightPanel from './components/desktop/RightPanel';
-import ActiveFilterChips from './components/desktop/ActiveFilterChips';
+import ActiveFilterChips from './components/ActiveFilterChips';
 
-import MobileTopControls from './components/mobile/MobileTopControls';
-import MobileHeader from './components/mobile/MobileHeader';
+import MobileTopBar from './components/mobile/MobileTopBar';
+import MobileSiteBanner from './components/mobile/MobileSiteBanner';
+import MobileLeftDrawer from './components/mobile/MobileLeftDrawer';
 import MobileSwiper from './components/mobile/MobileSwiper';
 
 // 다이얼로그·드로워는 첫 진입에 필요 없음 → 지연 로드로 초기 번들에서 분리
@@ -30,6 +32,8 @@ const DashboardDialog = lazy(() => import('./components/dialogs/DashboardDialog'
 const ShortcutHelpDialog = lazy(() => import('./components/dialogs/ShortcutHelpDialog'));
 const ProgressHistoryDialog = lazy(() => import('./components/dialogs/ProgressHistoryDialog'));
 const ComparePreviewDialog = lazy(() => import('./components/dialogs/ComparePreviewDialog'));
+const FullscreenPreviewDialog = lazy(() => import('./components/dialogs/FullscreenPreviewDialog'));
+const NoteEditDialog = lazy(() => import('./components/dialogs/NoteEditDialog'));
 const BulkEditBar = lazy(() => import('./components/BulkEditBar'));
 
 import { ThemeProvider } from './theme/theme-provider';
@@ -51,14 +55,20 @@ import { useFuseSearch } from './hooks/useFuseSearch';
 import { useRecentlyViewed } from './hooks/useRecentlyViewed';
 import { useSelection } from './hooks/useSelection';
 import { useProgressOverrides, applyOverrides } from './hooks/useProgressOverrides';
+import { readUrlState, writeUrlState, shareableUrl } from './utils/urlState';
 
 import './App.css';
+
+// 첫 진입에 한 번만 URL을 읽어 초기값을 결정. 이후엔 우리가 URL을 갱신함.
+const INITIAL_URL_STATE = readUrlState();
 
 export default function App() {
   // --- 사이트 선택 (URL 쿼리 동기화) ---
   const [siteIndex, setSiteIndex] = useState(() => {
-    const key = new URLSearchParams(window.location.search).get('site');
-    if (key) { const i = sites.findIndex((s) => s.key === key); if (i !== -1) return i; }
+    if (INITIAL_URL_STATE.site) {
+      const i = sites.findIndex((s) => s.key === INITIAL_URL_STATE.site);
+      if (i !== -1) return i;
+    }
     return 0;
   });
   const site = sites[siteIndex];
@@ -90,7 +100,7 @@ export default function App() {
   const [contrast, setContrast] = usePersistedState<'default' | 'hot'>('contrast', 'default', {
     validate: (v) => (v === 'hot' ? 'hot' : 'default'),
   });
-  const [sortBy, setSortBy] = usePersistedState<SortKey>('sortBy', 'updated', {
+  const [sortBy, setSortBy] = usePersistedState<SortKey>('sortBy', INITIAL_URL_STATE.sortBy ?? 'updated', {
     validate: (v) => (isSortKey(v) ? v : 'updated'),
   });
 
@@ -111,15 +121,28 @@ export default function App() {
 
   // 다이얼로그 / 필터 / 북마크 / 최근 본 항목 / 선택 / 진행도 오버라이드 — 도메인 훅으로 그룹화
   const dialogs = useDialogs();
-  const filters = useFilters();
+  const filters = useFilters({
+    searchFilter: INITIAL_URL_STATE.searchFilter,
+    progressRange: INITIAL_URL_STATE.progressRange,
+    showIncomplete: INITIAL_URL_STATE.showIncomplete,
+    sectionFilter: INITIAL_URL_STATE.sectionFilter,
+  });
   const { bookmarks, toggle: toggleBookmark } = useBookmarks();
   const { entries: recentlyViewed, record: recordRecent, clear: clearRecent } = useRecentlyViewed();
   const selection = useSelection<string>();
-  const { overrides, history: progressHistory, setProgress, revert, clearAll: clearOverrides } = useProgressOverrides();
+  const { overrides, history: progressHistory, setProgress, setNote, revert, clearAll: clearOverrides } = useProgressOverrides();
 
   // 선택 모드 (휘발성)
   const [selectMode, setSelectMode] = useState(false);
   const exitSelectMode = useCallback(() => { setSelectMode(false); selection.clear(); }, [selection]);
+
+  // 모바일 좌측 햄버거 Drawer 상태 (휘발성, 모바일 전용)
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+
+  // 전체화면 미리보기 — 단일 항목
+  const [fullscreenItem, setFullscreenItem] = useState<import('./types').TableItem | null>(null);
+  // 노트 편집 다이얼로그 — 편집할 항목 id (null이면 닫힘)
+  const [noteEditId, setNoteEditId] = useState<string | null>(null);
 
   // --- 테마 override ---
   // 다크 모드는 Minimals 기본 푸른빛(grey #1C252E·#141A21·#28323D) 대신
@@ -148,7 +171,7 @@ export default function App() {
   }), [preset, fontFamily]);
 
   // --- 데이터: 시트 fetch → 사용자 오버라이드 적용 → 필터/정렬/파생 ---
-  const { data: rawTableData, status: dataStatus, isFallback } = useSiteData(site);
+  const { data: rawTableData, status: dataStatus, isFallback, lastFetched, refresh: refreshData } = useSiteData(site);
   // 사용자가 인앱에서 수정한 진행도(overrides)를 원본에 덮어씌운 뒤 다운스트림 훅에 전달.
   const dataWithOverrides = useMemo(() => applyOverrides(rawTableData, overrides), [rawTableData, overrides]);
   const {
@@ -222,6 +245,36 @@ export default function App() {
     setProgress(updates);
   }, [selection.selected, itemsById, setProgress]);
 
+  // Shift+Click 범위 선택을 위한 anchor 추적 (마지막으로 (toggle/range) 선택한 id)
+  const selectAnchorRef = useRef<string | null>(null);
+  const handleToggleSelect = useCallback((id: string) => {
+    selectAnchorRef.current = id;
+    selection.toggle(id);
+  }, [selection]);
+  const handleRangeSelect = useCallback((orderedIds: string[], target: string) => {
+    selection.selectRange(orderedIds, selectAnchorRef.current, target);
+    selectAnchorRef.current = target;
+  }, [selection]);
+
+  // "현재 결과 전부 선택" — 필터된 tableData의 모든 id를 선택 집합에 추가
+  const selectAllVisible = useCallback(() => {
+    const allIds: string[] = [];
+    for (const section of tableData) for (const it of section.data) allIds.push(it.id);
+    selection.setAll(allIds);
+    selectAnchorRef.current = null;
+  }, [tableData, selection]);
+
+  const deselectAll = useCallback(() => {
+    selection.clear();
+    selectAnchorRef.current = null;
+  }, [selection]);
+
+  // 화면에 보이는 (필터링 통과한) 항목 수
+  const visibleCount = useMemo(
+    () => tableData.reduce((n, s) => n + s.data.length, 0),
+    [tableData],
+  );
+
   const currentCard = flatCards[Math.min(flatIndex, flatCards.length - 1)];
   const currentSectionIdx = currentCard?.sectionIdx ?? 0;
   const latestDate = useMemo(() => getLatestDate(tableData), [tableData]);
@@ -291,15 +344,50 @@ export default function App() {
   // --- 사이트 변경 ---
   // 스크롤 리셋은 siteIndex가 바뀌면 useLayoutEffect에서 동기 수행 — DOM 업데이트 직후, 페인트 전에 실행되어
   // 사용자가 "이전 사이트의 스크롤 위치"를 잠깐이라도 보지 않도록 보장. setTimeout 경합 제거.
+  // URL 갱신은 위쪽 URL 상태 동기화 useEffect가 통합 처리.
   const handleSiteChange = (next: number) => {
     setSiteIndex(next);
     setFlatIndex(0);
-    history.replaceState(null, '', `?site=${sites[next].key}`);
   };
 
   useLayoutEffect(() => {
     scrollContainerRef.current?.scrollTo({ left: 0, behavior: 'instant' });
   }, [siteIndex]);
+
+  // --- URL 상태 동기화 ---
+  // 필터/검색/정렬이 바뀔 때마다 URL 쿼리스트링을 replace로 갱신.
+  // 새로고침해도 동일 보기 유지 + Slack 공유 가능.
+  useEffect(() => {
+    const next = writeUrlState({
+      site: sites[siteIndex]?.key,
+      searchFilter: filters.searchFilter,
+      sectionFilter: filters.sectionFilter,
+      progressRange: [filters.progressRange[0], filters.progressRange[1]],
+      showIncomplete: filters.showIncomplete,
+      sortBy,
+    });
+    if (next !== window.location.search) {
+      history.replaceState(null, '', `${window.location.pathname}${next}`);
+    }
+  }, [siteIndex, filters.searchFilter, filters.sectionFilter, filters.progressRange, filters.showIncomplete, sortBy]);
+
+  // --- 공유 링크 복사 ---
+  const [copyToast, setCopyToast] = useState<string | null>(null);
+  const handleCopyShareLink = useCallback(() => {
+    const url = shareableUrl({
+      site: sites[siteIndex]?.key,
+      searchFilter: filters.searchFilter,
+      sectionFilter: filters.sectionFilter,
+      progressRange: [filters.progressRange[0], filters.progressRange[1]],
+      showIncomplete: filters.showIncomplete,
+      sortBy,
+    });
+    navigator.clipboard?.writeText(url).then(
+      () => setCopyToast('공유 링크 복사됨'),
+      () => setCopyToast('복사 실패 — 권한을 확인해주세요'),
+    );
+    setTimeout(() => setCopyToast(null), 2200);
+  }, [siteIndex, filters.searchFilter, filters.sectionFilter, filters.progressRange, filters.showIncomplete, sortBy]);
 
   const handleMobileSectionSelect = (target: number) => {
     setFlatIndex(target);
@@ -310,23 +398,64 @@ export default function App() {
     <ThemeProvider themeOverrides={themeOverrides} direction={rtl ? 'rtl' : 'ltr'}>
       <Box sx={{ boxSizing: 'border-box', p: 0, pb: { xs: 0, md: 0 }, height: { xs: '100dvh', md: 'auto' }, minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'transparent' }}>
 
-        <MobileTopControls
+        {/* 모바일 상단바 — 좌: 햄버거 / 우: 데스크탑 우측 액션 묶음 */}
+        <MobileTopBar
           darkMode={darkMode}
-          previewEnabled={previewEnabled}
-          showIncomplete={filters.showIncomplete}
-          onOpenSearch={() => dialogs.openDialog('search')}
-          onOpenDashboard={() => dialogs.openDialog('dashboard')}
+          settingsOpen={dialogs.isOpen('settings')}
+          selectMode={selectMode}
+          hasHistory={Object.keys(progressHistory).length > 0}
+          hideUi={hideUi}
+          onOpenDrawer={() => setMobileDrawerOpen(true)}
+          onOpenSearch={openSearch}
+          onCopyShareLink={handleCopyShareLink}
+          onOpenSettings={() => dialogs.openDialog('settings')}
           onToggleDarkMode={() => setDarkMode((d) => !d)}
-          onTogglePreview={() => setPreviewEnabled((p) => !p)}
-          onToggleIncomplete={() => filters.setShowIncomplete((s) => !s)}
+          onOpenShortcuts={openShortcuts}
+          onToggleSelectMode={toggleSelectModeShortcut}
+          onOpenHistory={() => dialogs.openDialog('history')}
+          rightSlot={
+            <>
+              {site.sheetCsvUrl && (
+                <RefreshButton
+                  lastFetched={lastFetched}
+                  loading={dataStatus === 'loading'}
+                  isFallback={isFallback}
+                  onRefresh={refreshData}
+                />
+              )}
+              <ExportMenu
+                siteKey={site.key}
+                siteTitle={site.title}
+                fullData={rawTableData}
+                filteredData={tableData}
+              />
+            </>
+          }
         />
 
-        <MobileHeader
+        {/* 모바일 — 사이트명 배너 (하단 공간) */}
+        <MobileSiteBanner
           siteTitle={site.title}
           totalCount={totalCount}
           hideUi={hideUi}
-          darkMode={darkMode}
           onOpenSiteModal={() => dialogs.openDialog('site')}
+        />
+
+        {/* 모바일 좌측 햄버거 Drawer */}
+        <MobileLeftDrawer
+          open={mobileDrawerOpen}
+          onClose={() => setMobileDrawerOpen(false)}
+          siteTitle={site.title}
+          totalCount={totalCount}
+          depth1Categories={depth1Categories}
+          sectionFilter={filters.sectionFilter}
+          onToggleSectionFilter={filters.toggleSectionFilter}
+          onOpenSiteModal={() => dialogs.openDialog('site')}
+          onOpenDashboard={() => dialogs.openDialog('dashboard')}
+          previewEnabled={previewEnabled}
+          onTogglePreview={() => setPreviewEnabled((p) => !p)}
+          showIncomplete={filters.showIncomplete}
+          onToggleIncomplete={() => filters.setShowIncomplete((s) => !s)}
         />
 
         {/* 데스크탑 레이아웃 */}
@@ -359,13 +488,24 @@ export default function App() {
                 else setSelectMode(true);
               }}
               onOpenHistory={() => dialogs.openDialog('history')}
+              onCopyShareLink={handleCopyShareLink}
               rightSlot={
-                <ExportMenu
-                  siteKey={site.key}
-                  siteTitle={site.title}
-                  fullData={rawTableData}
-                  filteredData={tableData}
-                />
+                <>
+                  {site.sheetCsvUrl && (
+                    <RefreshButton
+                      lastFetched={lastFetched}
+                      loading={dataStatus === 'loading'}
+                      isFallback={isFallback}
+                      onRefresh={refreshData}
+                    />
+                  )}
+                  <ExportMenu
+                    siteKey={site.key}
+                    siteTitle={site.title}
+                    fullData={rawTableData}
+                    filteredData={tableData}
+                  />
+                </>
               }
             />
 
@@ -440,7 +580,10 @@ export default function App() {
                         onToggleBookmark={toggleBookmark}
                         selectMode={selectMode}
                         selected={selection.selected}
-                        onToggleSelect={selection.toggle}
+                        onToggleSelect={handleToggleSelect}
+                        onRangeSelect={handleRangeSelect}
+                        onOpenFullscreen={setFullscreenItem}
+                        onEditNote={(it) => setNoteEditId(it.id)}
                       />
                     ))}
                   </Box>
@@ -464,6 +607,21 @@ export default function App() {
           </Box>
         </Box>
 
+        {/* 모바일 — 활성 필터 칩 (헤더 아래) */}
+        <Box sx={{ display: { xs: 'block', md: 'none' }, px: '10px', py: hasActiveFilters ? '6px' : 0, bgcolor: 'background.paper', borderBottom: hasActiveFilters ? '1px dashed' : 'none', borderColor: 'divider', flexShrink: 0 }}>
+          <ActiveFilterChips
+            searchFilter={filters.searchFilter}
+            sectionFilter={filters.sectionFilter}
+            showIncomplete={filters.showIncomplete}
+            progressRange={filters.progressRange}
+            onClearSearch={() => { setSearchQuery(''); filters.clearSearchFilter(); }}
+            onToggleSection={filters.toggleSectionFilter}
+            onToggleIncomplete={() => filters.setShowIncomplete((s) => !s)}
+            onResetProgress={() => filters.setProgressRange([0, 100])}
+            onClearAll={resetAllFilters}
+          />
+        </Box>
+
         {/* 모바일 뷰 */}
         <MobileSwiper
           previewEnabled={previewEnabled}
@@ -479,6 +637,11 @@ export default function App() {
           scrollContainerRef={scrollContainerRef}
           onOpenSectionModal={() => dialogs.openDialog('section')}
           onSelectSection={handleMobileSectionSelect}
+          bookmarks={bookmarks}
+          onToggleBookmark={toggleBookmark}
+          selectMode={selectMode}
+          selected={selection.selected}
+          onToggleSelect={handleToggleSelect}
         />
 
         {/* 다이얼로그들 — 닫혀있을 때는 마운트하지 않아 청크 fetch 자체를 지연 */}
@@ -512,6 +675,10 @@ export default function App() {
               overallPc={overallPc}
               overallMo={overallMo}
               dashboardStats={dashboardStats}
+              recentlyViewed={recentlyViewed}
+              flatCards={flatCards}
+              onItemOpen={openExternal}
+              progressHistory={progressHistory}
             />
           )}
 
@@ -540,16 +707,51 @@ export default function App() {
               items={selectedItems.slice(0, 4)}
             />
           )}
+
+          {fullscreenItem && (
+            <FullscreenPreviewDialog
+              open
+              onClose={() => setFullscreenItem(null)}
+              item={fullscreenItem}
+            />
+          )}
+
+          {noteEditId && (() => {
+            // 현재 표시값(오버라이드 적용된)을 dialog의 초깃값으로,
+            // 원본 시트 값을 "원본으로 되돌리기" 비교 대상으로 사용.
+            const currentItem = itemsById.get(noteEditId) ?? null;
+            // 원본은 rawTableData에서 찾는다 (overrides 적용 전).
+            let originalNote = '';
+            for (const section of rawTableData) {
+              const found = section.data.find((d) => d.id === noteEditId);
+              if (found) { originalNote = found.note ?? ''; break; }
+            }
+            const hasOverride = overrides[noteEditId]?.note !== undefined;
+            return (
+              <NoteEditDialog
+                key={noteEditId}
+                open
+                item={currentItem}
+                originalNote={originalNote}
+                hasOverride={hasOverride}
+                onClose={() => setNoteEditId(null)}
+                onSave={(id, note) => setNote(id, note)}
+              />
+            );
+          })()}
         </Suspense>
 
         {/* 일괄 편집 툴바 — 선택 모드 + 1개 이상 선택 시에만 표시 */}
         <Suspense fallback={null}>
-          {selectMode && selection.size > 0 && (
+          {selectMode && (
             <BulkEditBar
               selectedCount={selection.size}
+              visibleCount={visibleCount}
               onCancel={exitSelectMode}
               onApply={applyBulkProgress}
               onCompare={() => dialogs.openDialog('compare')}
+              onSelectAllVisible={selectAllVisible}
+              onDeselectAll={deselectAll}
               canCompare={selection.size >= 2 && selection.size <= 4}
             />
           )}
@@ -603,6 +805,14 @@ export default function App() {
           />
         )}
       </Suspense>
+
+      <Snackbar
+        open={!!copyToast}
+        message={copyToast ?? ''}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        onClose={() => setCopyToast(null)}
+        autoHideDuration={2200}
+      />
     </ThemeProvider>
   );
 }

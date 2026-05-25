@@ -92,3 +92,27 @@ html[data-contrast='hot'] .app-left-nav,
 html[data-contrast='hot'] .app-left-nav * {
   border-color: rgba(255, 255, 255, 0.08);
 }
+
+/*
+ * ErrorBoundary 폴백 UI용 토큰.
+ * ErrorBoundary는 ThemeProvider 바깥에 위치할 수 있어 MUI 팔레트를 못 쓰므로
+ * data-color-scheme 분기로 직접 CSS 변수를 노출 → 컴포넌트가 var()로 사용.
+ */
+:root {
+  --eb-bg: linear-gradient(135deg, #f5f7fb 0%, #e8eef7 100%);
+  --eb-text: #333333;
+  --eb-text-muted: #666666;
+  --eb-accent: #4a7ab5;
+  --eb-card-bg: #ffffff;
+  --eb-card-border: #fde2e2;
+  --eb-error-text: #aa3333;
+}
+html[data-color-scheme='dark'] {
+  --eb-bg: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  --eb-text: #e6e6e6;
+  --eb-text-muted: #a0a0a0;
+  --eb-accent: #6b9ad8;
+  --eb-card-bg: #1c1c1c;
+  --eb-card-border: rgba(255, 100, 100, 0.3);
+  --eb-error-text: #ff8a8a;
+}

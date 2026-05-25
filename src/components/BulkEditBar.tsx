@@ -3,6 +3,8 @@ import { Box, Button, Select, MenuItem, Typography, IconButton, Tooltip } from '
 import CloseIcon from '@mui/icons-material/Close';
 import CompareIcon from '@mui/icons-material/Compare';
 import SaveIcon from '@mui/icons-material/Save';
+import DoneAllIcon from '@mui/icons-material/DoneAll';
+import DeselectIcon from '@mui/icons-material/Deselect';
 import type { ProgressValue } from '../types';
 
 const PROGRESS_OPTIONS: { value: ProgressValue | 'noop'; label: string }[] = [
@@ -17,9 +19,13 @@ const PROGRESS_OPTIONS: { value: ProgressValue | 'noop'; label: string }[] = [
 
 interface Props {
   selectedCount: number;
+  /** 현재 필터 결과 항목 수 — "전체 선택"이 모두 선택했는지 비교에 사용. */
+  visibleCount: number;
   onCancel: () => void;
   onApply: (nextPc?: ProgressValue, nextMo?: ProgressValue) => void;
   onCompare: () => void;
+  onSelectAllVisible: () => void;
+  onDeselectAll: () => void;
   /** 비교는 2~4개에서만 활성화. */
   canCompare: boolean;
 }
@@ -28,7 +34,7 @@ interface Props {
  * 화면 하단에 sticky로 고정되는 일괄 편집 툴바.
  * 선택된 항목 수, PC/MO 진행도 변경 셀렉트, 비교/적용/취소 액션.
  */
-export default function BulkEditBar({ selectedCount, onCancel, onApply, onCompare, canCompare }: Props) {
+export default function BulkEditBar({ selectedCount, visibleCount, onCancel, onApply, onCompare, onSelectAllVisible, onDeselectAll, canCompare }: Props) {
   const [nextPc, setNextPc] = useState<ProgressValue | 'noop'>('noop');
   const [nextMo, setNextMo] = useState<ProgressValue | 'noop'>('noop');
 
@@ -72,8 +78,37 @@ export default function BulkEditBar({ selectedCount, onCancel, onApply, onCompar
         <Box component="span" sx={{ bgcolor: 'primary.main', color: 'background.paper', borderRadius: '6px', px: '8px', py: '2px', fontSize: 12 }}>
           {selectedCount}
         </Box>
-        개 선택
+        / {visibleCount} 선택
       </Typography>
+
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <Tooltip title={`현재 결과 ${visibleCount}개 모두 선택`} arrow>
+          <span>
+            <IconButton
+              size="small"
+              onClick={onSelectAllVisible}
+              disabled={visibleCount === 0 || selectedCount === visibleCount}
+              aria-label="현재 결과 모두 선택"
+              sx={{ color: 'text.secondary' }}
+            >
+              <DoneAllIcon sx={{ fontSize: 18 }} />
+            </IconButton>
+          </span>
+        </Tooltip>
+        <Tooltip title="모든 선택 해제 (선택 모드 유지)" arrow>
+          <span>
+            <IconButton
+              size="small"
+              onClick={onDeselectAll}
+              disabled={selectedCount === 0}
+              aria-label="모든 선택 해제"
+              sx={{ color: 'text.secondary' }}
+            >
+              <DeselectIcon sx={{ fontSize: 18 }} />
+            </IconButton>
+          </span>
+        </Tooltip>
+      </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
         <Typography sx={{ fontSize: 11, color: 'text.secondary', fontWeight: 700 }}>PC</Typography>

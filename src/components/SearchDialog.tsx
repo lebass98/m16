@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { Dialog, Box, Typography, IconButton } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
@@ -32,6 +33,52 @@ interface Props {
  */
 export default function SearchDialog({ open, onClose, query, onQueryChange, results, totalCount, onSelect, onSubmit, previewEnabled = true }: Props) {
   const theme = useTheme();
+  // 키보드 네비게이션 — 화살표로 highlightIdx 이동, Enter로 onSelect
+  const [highlightIdx, setHighlightIdx] = useState(0);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  // 결과 수가 줄면 highlightIdx가 범위를 벗어날 수 있어 매 렌더에서 clamp.
+  // setState를 effect에서 호출하면 cascading render 경고가 나므로 derived state로 처리.
+  const effectiveIdx = results.length > 0 ? Math.min(highlightIdx, results.length - 1) : 0;
+
+  // effectiveIdx가 변하면 해당 항목이 보이도록 스크롤. JSDOM에는 scrollIntoView가 없어 guard.
+  useEffect(() => {
+    const el = listRef.current?.querySelector<HTMLElement>(`[data-hit-idx="${effectiveIdx}"]`);
+    if (el && typeof el.scrollIntoView === 'function') {
+      el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }, [effectiveIdx]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // 쿼리 변경 시 highlight를 첫 항목으로 리셋 (effect 대신 handler에서 직접)
+    setHighlightIdx(0);
+    onQueryChange(e.target.value);
+  };
+
+  const handleInputKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (results.length > 0 && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+      e.preventDefault();
+      const next = e.key === 'ArrowDown' ? effectiveIdx + 1 : effectiveIdx - 1;
+      setHighlightIdx((next + results.length) % results.length);
+      return;
+    }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      // 결과가 있고 effectiveIdx 항목이 존재 → 그 항목 선택
+      const hit = results[effectiveIdx];
+      if (hit) {
+        if (onSelect) onSelect(hit);
+        else if (hit.href) window.open(hit.href, '_blank');
+        onClose();
+        return;
+      }
+      // 결과가 없거나 highlight 무효 → 쿼리를 그대로 메인 리스트 필터로 적용
+      if (query.trim() && onSubmit) {
+        onSubmit(query.trim());
+        onClose();
+      }
+    }
+  };
 
   return (
     <Dialog
@@ -58,15 +105,11 @@ export default function SearchDialog({ open, onClose, query, onQueryChange, resu
           component="input"
           autoFocus
           value={query}
-          onChange={(e) => onQueryChange(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && query.trim()) {
-              e.preventDefault();
-              if (onSubmit) onSubmit(query.trim());
-              onClose();
-            }
-          }}
-          placeholder="Search..."
+          onChange={handleInputChange}
+          onKeyDown={handleInputKey}
+          placeholder="Search... (↑↓ 이동 · Enter 선택)"
+          aria-controls="search-results-list"
+          aria-activedescendant={results.length > 0 ? `search-hit-${effectiveIdx}` : undefined}
           sx={{
             flex: 1, border: 'none', outline: 'none', bgcolor: 'transparent',
             fontFamily: 'inherit', fontSize: 17, color: 'text.primary',
@@ -98,7 +141,7 @@ export default function SearchDialog({ open, onClose, query, onQueryChange, resu
       </Box>
 
       {/* 결과 리스트 */}
-      <Box sx={{ maxHeight: '60vh', overflowY: 'auto', py: '8px' }}>
+      <Box ref={listRef} id="search-results-list" role="listbox" sx={{ maxHeight: '60vh', overflowY: 'auto', py: '8px' }}>
         {query.trim() === '' ? (
           <Box sx={{ px: '24px', py: '40px', textAlign: 'center' }}>
             <Typography sx={{ fontSize: 13, color: 'text.disabled' }}>
@@ -121,21 +164,28 @@ export default function SearchDialog({ open, onClose, query, onQueryChange, resu
               const statusKey = isDone ? 'success' : hit.progress === 0 ? 'error' : 'primary';
               const statusColor = `${statusKey}.main`;
               const isLast = i === results.length - 1;
+              const isActive = i === effectiveIdx;
               return (
                 <Box
                   key={hit.globalIdx}
+                  id={`search-hit-${i}`}
+                  role="option"
+                  aria-selected={isActive}
+                  data-hit-idx={i}
                   onClick={() => {
                     if (onSelect) onSelect(hit);
                     else if (hit.href) window.open(hit.href, '_blank');
                     onClose();
                   }}
+                  onMouseEnter={() => setHighlightIdx(i)}
                   sx={{
                     display: 'flex', alignItems: 'center', gap: '14px',
                     px: '24px', py: '12px',
                     cursor: 'pointer',
                     borderBottom: isLast ? 'none' : '1px dashed rgb(var(--palette-grey-500Channel) / 0.2)',
                     transition: 'background 0.15s',
-                    '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.08) },
+                    bgcolor: isActive ? alpha(theme.palette.primary.main, 0.12) : 'transparent',
+                    '&:hover': { bgcolor: alpha(theme.palette.primary.main, isActive ? 0.16 : 0.08) },
                   }}
                 >
                   <Box sx={{ flex: 1, minWidth: 0 }}>

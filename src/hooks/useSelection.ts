@@ -42,6 +42,31 @@ export function useSelection<T>() {
 
   const setAll = useCallback((ids: T[]) => setSelected(new Set(ids)), []);
 
+  /**
+   * orderedIds 배열 안에서 anchor~target 사이의 모든 id를 일괄 선택 추가.
+   * Shift+Click 범위 선택용. anchor가 없거나 둘 중 하나가 배열에 없으면 target만 토글.
+   */
+  const selectRange = useCallback((orderedIds: T[], anchor: T | null, target: T) => {
+    setSelected((prev) => {
+      if (anchor === null || anchor === target) {
+        const next = new Set(prev);
+        if (next.has(target)) next.delete(target); else next.add(target);
+        return next;
+      }
+      const aIdx = orderedIds.indexOf(anchor);
+      const tIdx = orderedIds.indexOf(target);
+      if (aIdx < 0 || tIdx < 0) {
+        const next = new Set(prev);
+        if (next.has(target)) next.delete(target); else next.add(target);
+        return next;
+      }
+      const [from, to] = aIdx < tIdx ? [aIdx, tIdx] : [tIdx, aIdx];
+      const next = new Set(prev);
+      for (let i = from; i <= to; i++) next.add(orderedIds[i]);
+      return next;
+    });
+  }, []);
+
   return {
     selected,
     has,
@@ -50,6 +75,7 @@ export function useSelection<T>() {
     remove,
     clear,
     setAll,
+    selectRange,
     size: selected.size,
   };
 }
