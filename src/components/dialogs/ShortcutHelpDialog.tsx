@@ -13,7 +13,8 @@ const SHORTCUTS: { keys: string[]; description: string }[] = [
   { keys: [MOD, 'K'],   description: '검색 다이얼로그 열기' },
   { keys: ['/'],         description: '검색 다이얼로그 열기 (modifier 없이)' },
   { keys: ['?'],         description: '이 도움말 열기' },
-  { keys: ['Esc'],       description: '열려있는 다이얼로그 닫기' },
+  { keys: ['E'],         description: '선택 모드 토글 (일괄 편집)' },
+  { keys: ['Esc'],       description: '선택 해제 / 다이얼로그 닫기' },
 ];
 
 function Kbd({ children }: { children: React.ReactNode }) {

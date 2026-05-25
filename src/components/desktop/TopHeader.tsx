@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Box, Typography, Tooltip, IconButton } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
@@ -5,18 +6,26 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import KeyboardOutlinedIcon from '@mui/icons-material/KeyboardOutlined';
+import ChecklistIcon from '@mui/icons-material/Checklist';
+import HistoryIcon from '@mui/icons-material/History';
 
 interface Props {
   siteTitle: string;
   darkMode: boolean;
   settingsOpen: boolean;
+  selectMode: boolean;
+  hasHistory: boolean;
   onOpenSearch: () => void;
   onOpenSettings: () => void;
   onToggleDarkMode: () => void;
   onOpenShortcuts: () => void;
+  onToggleSelectMode: () => void;
+  onOpenHistory: () => void;
+  /** 액션 영역 우측에 추가로 끼워넣을 슬롯 (예: ExportMenu) */
+  rightSlot?: ReactNode;
 }
 
-export default function TopHeader({ siteTitle, darkMode, settingsOpen, onOpenSearch, onOpenSettings, onToggleDarkMode, onOpenShortcuts }: Props) {
+export default function TopHeader({ siteTitle, darkMode, settingsOpen, selectMode, hasHistory, onOpenSearch, onOpenSettings, onToggleDarkMode, onOpenShortcuts, onToggleSelectMode, onOpenHistory, rightSlot }: Props) {
   return (
     <Box sx={{ bgcolor: 'rgb(var(--palette-background-paperChannel) / 0.8)', backdropFilter: 'blur(20px)', borderBottom: '1px dashed rgb(var(--palette-grey-500Channel) / 0.2)', px: { md: '16px', lg: '32px' }, py: '14px', display: 'flex', alignItems: 'center', gap: { md: '12px', lg: '20px' }, position: 'sticky', top: 0, zIndex: 10 }}>
       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -25,6 +34,33 @@ export default function TopHeader({ siteTitle, darkMode, settingsOpen, onOpenSea
       </Box>
       <Box sx={{ flex: 1 }} />
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <Tooltip title={selectMode ? '선택 모드 종료' : '선택 모드 시작 (일괄 편집·비교)'} arrow>
+          <IconButton
+            onClick={onToggleSelectMode}
+            aria-label={selectMode ? '선택 모드 종료' : '선택 모드 시작'}
+            aria-pressed={selectMode}
+            sx={(theme) => ({
+              width: 40, height: 40,
+              color: selectMode ? 'primary.main' : 'text.secondary',
+              bgcolor: selectMode ? alpha(theme.palette.primary.main, 0.12) : 'transparent',
+              '&:hover': { bgcolor: selectMode ? alpha(theme.palette.primary.main, 0.16) : 'rgb(var(--palette-grey-500Channel) / 0.08)', color: selectMode ? 'primary.main' : 'text.primary' },
+            })}
+          >
+            <ChecklistIcon sx={{ fontSize: 24 }} />
+          </IconButton>
+        </Tooltip>
+        {hasHistory && (
+          <Tooltip title="진행도 변경 히스토리" arrow>
+            <IconButton
+              onClick={onOpenHistory}
+              aria-label="진행도 변경 히스토리 열기"
+              sx={{ width: 40, height: 40, color: 'text.secondary', '&:hover': { bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.08)', color: 'text.primary' } }}
+            >
+              <HistoryIcon sx={{ fontSize: 24 }} />
+            </IconButton>
+          </Tooltip>
+        )}
+        {rightSlot}
         <Tooltip title="검색 (Cmd/Ctrl+K 또는 /)" arrow>
           <IconButton
             onClick={onOpenSearch}

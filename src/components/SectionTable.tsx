@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Paper, Box, Typography, Card, IconButton, Tooltip } from '@mui/material';
+import { Paper, Box, Typography, Card, IconButton, Tooltip, Checkbox } from '@mui/material';
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
@@ -9,6 +9,7 @@ import type { TableItem, TableSection } from '../types';
 import ProgressBar from './ProgressBar';
 import PathPreviewIcons, { CopyPathButton } from './PathPreviewIcons';
 import PreviewFrame from './PreviewFrame';
+import { glassPanelSx } from '../theme/tokens';
 
 // Minimals UI 팔레트
 const COLORS = {
@@ -45,7 +46,7 @@ const DEVICE_DIMS = {
 } as const;
 type DeviceKey = keyof typeof DEVICE_DIMS;
 
-function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmark, latestDate, cardIndex = 0, device = 'pc' }: {
+function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmark, latestDate, cardIndex = 0, device = 'pc', selectMode = false, isSelected = false, onToggleSelect }: {
   item: TableItem;
   section: TableSection;
   sectionIndex: number;
@@ -55,6 +56,9 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
   cardIndex?: number;
   /** 부모(상단 토글)에서 일괄 제어하는 미리보기 디바이스 */
   device?: DeviceKey;
+  selectMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: (id: string) => void;
 }) {
   const baseDelay = Math.min(cardIndex, 16) * 55;
   const inner = (k: number) => ({ animationDelay: `${baseDelay + 120 + k * 60}ms` });
@@ -70,14 +74,11 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
       className="card-enter"
       style={{ animationDelay: `${baseDelay}ms` }}
       sx={{
-        borderRadius: '16px',
+        ...glassPanelSx,
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        bgcolor: 'background.paper',
-        backdropFilter: 'var(--glass-blur)',
-        WebkitBackdropFilter: 'var(--glass-blur)',
-        border: '1px solid rgba(255,255,255,0.18)',
+        // Minimals UI 디자인 시스템 shadow — 기본 glass-shadow보다 부드러운 hover 효과 강조용
         boxShadow: MINIMALS_SHADOW,
         color: COLORS.gray900,
         transition: 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease',
@@ -103,20 +104,40 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
             <Box sx={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
               <PreviewFrame key={device} src={item.path} displayWidth="100%" fillHeight iframeWidth={dims.w} iframeHeight={dims.h} />
             </Box>
-            {/* 날짜 pill + 북마크 오버레이 */}
+            {/* 날짜 pill + 북마크/선택 오버레이 */}
             <Box sx={{ position: 'absolute', top: 12, left: 12, right: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 3 }}>
               <Box sx={{ bgcolor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)', color: COLORS.gray900, px: '10px', py: '4px', borderRadius: '8px', fontSize: 11, fontWeight: 600, lineHeight: 1.4 }}>
                 {item.start || '날짜 미정'}
               </Box>
-              <IconButton
-                size="small"
-                onClick={(e) => { e.stopPropagation(); onToggleBookmark?.(item.id); }}
-                sx={{ bgcolor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)', width: 32, height: 32, '&:hover': { bgcolor: 'background.paper' } }}
-              >
-                {isBookmarked
-                  ? <BookmarkIcon sx={{ fontSize: 16, color: COLORS.primary }} />
-                  : <BookmarkBorderIcon sx={{ fontSize: 16, color: COLORS.gray700 }} />}
-              </IconButton>
+              <Box sx={{ display: 'flex', gap: '4px' }}>
+                {selectMode && (
+                  <Checkbox
+                    checked={isSelected}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={() => onToggleSelect?.(item.id)}
+                    size="small"
+                    slotProps={{ input: { 'aria-label': `${item.pageTitle || item.id} 선택` } }}
+                    sx={{
+                      bgcolor: 'rgba(255,255,255,0.95)',
+                      backdropFilter: 'blur(8px)',
+                      width: 32, height: 32,
+                      borderRadius: '8px',
+                      p: 0,
+                      '&:hover': { bgcolor: 'background.paper' },
+                    }}
+                  />
+                )}
+                <IconButton
+                  size="small"
+                  onClick={(e) => { e.stopPropagation(); onToggleBookmark?.(item.id); }}
+                  sx={{ bgcolor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)', width: 32, height: 32, '&:hover': { bgcolor: 'background.paper' } }}
+                  aria-label={isBookmarked ? '북마크 해제' : '북마크 추가'}
+                >
+                  {isBookmarked
+                    ? <BookmarkIcon sx={{ fontSize: 16, color: COLORS.primary }} />
+                    : <BookmarkBorderIcon sx={{ fontSize: 16, color: COLORS.gray700 }} />}
+                </IconButton>
+              </Box>
             </Box>
           </>
         ) : (
@@ -222,6 +243,10 @@ interface Props {
   thumbnailCols?: 2 | 3 | 4 | 5;
   bookmarks?: Set<string>;
   onToggleBookmark?: (id: string) => void;
+  /** 선택 모드 — true면 체크박스 컬럼/카드 토글 노출. */
+  selectMode?: boolean;
+  selected?: Set<string>;
+  onToggleSelect?: (id: string) => void;
 }
 
 const emphasisSx = { fontWeight: 700, color: '#ff706e' };
@@ -230,13 +255,37 @@ const emphasisSx = { fontWeight: 700, color: '#ff706e' };
  * 데스크탑(md+) 전용 섹션 테이블. 리스트(DataGrid) 또는 썸네일 그리드 두 가지 viewMode를 지원.
  * 모바일 분기(`display: { xs: ..., md: 'none' }`)는 SectionTableMobile로 분리되어 있다.
  */
-export default function SectionTable({ section, sectionIndex, latestDate, onHeaderClick, previewEnabled = true, viewMode = 'list', thumbnailDevice = 'pc', thumbnailCols = 3, bookmarks = new Set(), onToggleBookmark }: Props) {
+export default function SectionTable({ section, sectionIndex, latestDate, onHeaderClick, previewEnabled = true, viewMode = 'list', thumbnailDevice = 'pc', thumbnailCols = 3, bookmarks = new Set(), onToggleBookmark, selectMode = false, selected = new Set(), onToggleSelect }: Props) {
   const rows = useMemo(
     () => section.data.map((item, j) => ({ ...item, _rowId: j, _no: j + 1 })),
     [section.data]
   );
 
-  const columns = useMemo<GridColDef[]>(() => [
+  const columns = useMemo<GridColDef[]>(() => {
+    const selectCol: GridColDef = {
+      field: '_select',
+      headerName: '',
+      width: 44,
+      align: 'center',
+      headerAlign: 'center',
+      sortable: false,
+      renderCell: (params) => {
+        const id = (params.row as { id: string }).id;
+        const checked = selected.has(id);
+        return (
+          <Checkbox
+            checked={checked}
+            onChange={() => onToggleSelect?.(id)}
+            onClick={(e) => e.stopPropagation()}
+            size="small"
+            slotProps={{ input: { 'aria-label': `${id} 선택` } }}
+            sx={{ p: '4px' }}
+          />
+        );
+      },
+    };
+
+    const cols: GridColDef[] = [
     {
       field: '_no',
       headerName: 'No',
@@ -385,19 +434,17 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
         );
       },
     },
-  ], [latestDate, previewEnabled]);
+    ];
+    return selectMode ? [selectCol, ...cols] : cols;
+  }, [latestDate, previewEnabled, selectMode, selected, onToggleSelect]);
 
   return (
     <Paper
       id={`section-${sectionIndex}`}
       elevation={0}
       sx={{
-        borderRadius: '16px',
+        ...glassPanelSx,
         overflow: 'hidden',
-        bgcolor: 'background.paper',
-        backdropFilter: 'var(--glass-blur)',
-        WebkitBackdropFilter: 'var(--glass-blur)',
-        border: '1px solid rgba(255,255,255,0.18)',
         boxShadow: MINIMALS_SHADOW,
         display: 'flex',
         flexDirection: 'column',
@@ -503,6 +550,9 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
             latestDate={latestDate}
             cardIndex={j}
             device={thumbnailDevice}
+            selectMode={selectMode}
+            isSelected={selected.has(item.id)}
+            onToggleSelect={onToggleSelect}
           />
         ))}
       </Box>

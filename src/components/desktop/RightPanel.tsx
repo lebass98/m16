@@ -1,7 +1,14 @@
-import { Box, Typography, LinearProgress } from '@mui/material';
+import { Box, Typography, LinearProgress, IconButton, Tooltip } from '@mui/material';
 import { alpha } from '@mui/material/styles';
+import HistoryIcon from '@mui/icons-material/History';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import type { FlatCard, DashboardStat } from '../../hooks/useFilteredData';
 import GlassCard from '../GlassCard';
+
+interface RecentEntry {
+  id: string;
+  viewedAt: string;
+}
 
 interface Props {
   hidden: boolean;
@@ -12,6 +19,21 @@ interface Props {
   bookmarks: Set<string>;
   dashboardStats: DashboardStat[];
   totalCount: number;
+  recentlyViewed: RecentEntry[];
+  onClearRecentlyViewed: () => void;
+  /** 카드 클릭 시 호출 — 외부 링크를 열기 전에 '최근 본' 로그를 남기기 위함 */
+  onItemOpen: (id: string, path?: string) => void;
+}
+
+/** "2시간 전" 같은 상대 시간 라벨. */
+function relativeTime(iso: string): string {
+  const t = new Date(iso).getTime();
+  if (!Number.isFinite(t)) return '';
+  const diffSec = Math.round((Date.now() - t) / 1000);
+  if (diffSec < 60) return '방금';
+  if (diffSec < 3600) return `${Math.floor(diffSec / 60)}분 전`;
+  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}시간 전`;
+  return `${Math.floor(diffSec / 86400)}일 전`;
 }
 
 type StatusKey = 'success' | 'info' | 'error' | 'primary';
@@ -25,7 +47,18 @@ export default function RightPanel({
   bookmarks,
   dashboardStats,
   totalCount,
+  recentlyViewed,
+  onClearRecentlyViewed,
+  onItemOpen,
 }: Props) {
+  // 최근 본 항목을 flatCards와 조인 (id 매칭). 매칭 실패한 항목은 스킵.
+  const recentCards = recentlyViewed
+    .map((e) => {
+      const card = flatCards.find((c) => c.item.id === e.id);
+      return card ? { card, viewedAt: e.viewedAt } : null;
+    })
+    .filter((x): x is { card: FlatCard; viewedAt: string } => x !== null)
+    .slice(0, 5);
   return (
     <Box
       component="aside"
@@ -73,7 +106,7 @@ export default function RightPanel({
               const isLatest = card.item.updatedAt === latestDate;
               const isDone = (card.item.progressPc ?? 0) >= 100;
               const statusKey: StatusKey = isDone ? 'success' : isLatest ? 'info' : (card.item.progressPc ?? 0) === 0 ? 'error' : 'primary';
-              const openItem = () => { if (card.item.path) window.open(card.item.path, '_blank', 'noopener,noreferrer'); };
+              const openItem = () => onItemOpen(card.item.id, card.item.path);
               const interactive = !!card.item.path;
               return (
                 <Box
@@ -111,7 +144,7 @@ export default function RightPanel({
           <Typography sx={{ fontSize: 16, fontWeight: 700, color: 'text.primary', mb: '16px' }}>북마크 <Box component="span" sx={{ color: 'text.secondary', fontWeight: 500 }}>({bookmarks.size})</Box></Typography>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {flatCards.filter((c) => bookmarks.has(c.item.id)).slice(0, 5).map((card, i) => {
-              const openItem = () => { if (card.item.path) window.open(card.item.path, '_blank', 'noopener,noreferrer'); };
+              const openItem = () => onItemOpen(card.item.id, card.item.path);
               const interactive = !!card.item.path;
               return (
                 <Box
@@ -139,8 +172,61 @@ export default function RightPanel({
         </GlassCard>
       )}
 
+      {/* 최근 본 항목 */}
+      {recentCards.length > 0 && (
+        <GlassCard className="reveal-up" style={{ animationDelay: '280ms' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: '14px' }}>
+            <Typography sx={{ fontSize: 16, fontWeight: 700, color: 'text.primary', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <HistoryIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+              최근 본
+            </Typography>
+            <Tooltip title="기록 비우기" arrow>
+              <IconButton size="small" onClick={onClearRecentlyViewed} aria-label="최근 본 항목 기록 비우기" sx={{ color: 'text.disabled', '&:hover': { color: 'error.main' } }}>
+                <DeleteOutlineIcon sx={{ fontSize: 16 }} />
+              </IconButton>
+            </Tooltip>
+          </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {recentCards.map(({ card, viewedAt }, i) => {
+              const openItem = () => onItemOpen(card.item.id, card.item.path);
+              const interactive = !!card.item.path;
+              return (
+                <Box
+                  key={card.item.id}
+                  onClick={openItem}
+                  onKeyDown={interactive ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openItem(); } } : undefined}
+                  role={interactive ? 'link' : undefined}
+                  tabIndex={interactive ? 0 : undefined}
+                  aria-label={interactive ? `${card.item.pageTitle || card.item.id} 다시 열기` : undefined}
+                  sx={{
+                    display: 'flex', alignItems: 'center', gap: '12px',
+                    cursor: interactive ? 'pointer' : 'default',
+                    '&:hover': { '& .recent-title': { color: 'primary.main' } },
+                    '&:focus-visible': interactive ? { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2, borderRadius: '8px' } : {},
+                  }}
+                  style={{ animationDelay: `${320 + i * 60}ms` }}
+                  className="reveal-right"
+                >
+                  <Box aria-hidden="true" sx={{ width: 32, height: 32, borderRadius: '8px', bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: 'text.secondary', flexShrink: 0 }}>
+                    {(card.sectionTitle?.charAt(0) || '?').toUpperCase()}
+                  </Box>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography className="recent-title" sx={{ fontSize: 13, fontWeight: 600, color: 'text.primary', lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', transition: 'color 0.2s' }}>
+                      {card.item.pageTitle || card.item.id}
+                    </Typography>
+                    <Typography sx={{ fontSize: 11, color: 'text.disabled', lineHeight: 1.4, mt: '2px' }}>
+                      {relativeTime(viewedAt)}
+                    </Typography>
+                  </Box>
+                </Box>
+              );
+            })}
+          </Box>
+        </GlassCard>
+      )}
+
       {/* 완성도 요약 */}
-      <GlassCard className="reveal-up" style={{ animationDelay: '320ms' }}>
+      <GlassCard className="reveal-up" style={{ animationDelay: '360ms' }}>
         <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', mb: '16px' }}>
           <Typography sx={{ fontSize: 16, fontWeight: 700, color: 'text.primary' }}>완성도 요약</Typography>
           <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>{totalCount} pages</Typography>

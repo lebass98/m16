@@ -3,6 +3,7 @@ import type { TableSection } from '../../types';
 import ProgressBar from '../ProgressBar';
 import PreviewFrame from '../PreviewFrame';
 import { CopyPathButton } from '../PathPreviewIcons';
+import { glassPanelSx } from '../../theme/tokens';
 
 interface Props {
   section: TableSection;
@@ -34,13 +35,8 @@ export default function SectionTableMobile({
       id={`section-${sectionIndex}`}
       elevation={0}
       sx={{
-        borderRadius: '16px',
+        ...glassPanelSx,
         overflow: 'hidden',
-        bgcolor: 'background.paper',
-        backdropFilter: 'var(--glass-blur)',
-        WebkitBackdropFilter: 'var(--glass-blur)',
-        border: '1px solid rgba(255,255,255,0.18)',
-        boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
         display: 'flex',
         flexDirection: 'column',
         flex: previewEnabled ? 1 : 'none',

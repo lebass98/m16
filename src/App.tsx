@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
+import { useMemo, useState, useEffect, useLayoutEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { Box, useMediaQuery } from '@mui/material';
 import { createPaletteChannel } from 'minimal-shared/utils';
 
@@ -8,12 +8,14 @@ import { PREVIEW_SCROLL_DIR_EVENT } from './types/events';
 import SectionTable from './components/SectionTable';
 import type { SearchHit } from './components/SearchDialog';
 import StateMessage from './components/StateMessage';
+import ExportMenu from './components/ExportMenu';
 
 import LeftSidebar from './components/desktop/LeftSidebar';
 import TopHeader from './components/desktop/TopHeader';
 import FilterBar from './components/desktop/FilterBar';
 import ViewToolbar, { type DesktopView, type ThumbnailDevice, type ThumbnailCols } from './components/desktop/ViewToolbar';
 import RightPanel from './components/desktop/RightPanel';
+import ActiveFilterChips from './components/desktop/ActiveFilterChips';
 
 import MobileTopControls from './components/mobile/MobileTopControls';
 import MobileHeader from './components/mobile/MobileHeader';
@@ -26,6 +28,9 @@ const SitePickerDialog = lazy(() => import('./components/dialogs/SitePickerDialo
 const SectionPickerDialog = lazy(() => import('./components/dialogs/SectionPickerDialog'));
 const DashboardDialog = lazy(() => import('./components/dialogs/DashboardDialog'));
 const ShortcutHelpDialog = lazy(() => import('./components/dialogs/ShortcutHelpDialog'));
+const ProgressHistoryDialog = lazy(() => import('./components/dialogs/ProgressHistoryDialog'));
+const ComparePreviewDialog = lazy(() => import('./components/dialogs/ComparePreviewDialog'));
+const BulkEditBar = lazy(() => import('./components/BulkEditBar'));
 
 import { ThemeProvider } from './theme/theme-provider';
 import { PRESETS, isPresetKey, type PresetKey } from './theme/presets';
@@ -43,6 +48,9 @@ import { useFilters } from './hooks/useFilters';
 import { useDialogs } from './hooks/useDialogs';
 import { useBookmarks } from './hooks/useBookmarks';
 import { useFuseSearch } from './hooks/useFuseSearch';
+import { useRecentlyViewed } from './hooks/useRecentlyViewed';
+import { useSelection } from './hooks/useSelection';
+import { useProgressOverrides, applyOverrides } from './hooks/useProgressOverrides';
 
 import './App.css';
 
@@ -101,10 +109,17 @@ export default function App() {
   const [previewEnabled, setPreviewEnabled] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // 다이얼로그 / 필터 / 북마크는 도메인 훅으로 그룹화
+  // 다이얼로그 / 필터 / 북마크 / 최근 본 항목 / 선택 / 진행도 오버라이드 — 도메인 훅으로 그룹화
   const dialogs = useDialogs();
   const filters = useFilters();
   const { bookmarks, toggle: toggleBookmark } = useBookmarks();
+  const { entries: recentlyViewed, record: recordRecent, clear: clearRecent } = useRecentlyViewed();
+  const selection = useSelection<string>();
+  const { overrides, history: progressHistory, setProgress, revert, clearAll: clearOverrides } = useProgressOverrides();
+
+  // 선택 모드 (휘발성)
+  const [selectMode, setSelectMode] = useState(false);
+  const exitSelectMode = useCallback(() => { setSelectMode(false); selection.clear(); }, [selection]);
 
   // --- 테마 override ---
   // 다크 모드는 Minimals 기본 푸른빛(grey #1C252E·#141A21·#28323D) 대신
@@ -132,8 +147,10 @@ export default function App() {
     },
   }), [preset, fontFamily]);
 
-  // --- 데이터: 시트 fetch → 필터/정렬/파생 ---
+  // --- 데이터: 시트 fetch → 사용자 오버라이드 적용 → 필터/정렬/파생 ---
   const { data: rawTableData, status: dataStatus, isFallback } = useSiteData(site);
+  // 사용자가 인앱에서 수정한 진행도(overrides)를 원본에 덮어씌운 뒤 다운스트림 훅에 전달.
+  const dataWithOverrides = useMemo(() => applyOverrides(rawTableData, overrides), [rawTableData, overrides]);
   const {
     tableData,
     flatCards,
@@ -144,7 +161,7 @@ export default function App() {
     overallPc,
     overallMo,
   } = useFilteredData({
-    rawTableData,
+    rawTableData: dataWithOverrides,
     showIncomplete: filters.showIncomplete,
     sectionFilter: filters.sectionFilter,
     progressRange: filters.debouncedProgressRange,
@@ -160,6 +177,50 @@ export default function App() {
     filters.progressRange[0] !== 0 ||
     filters.progressRange[1] !== 100
   );
+
+  const resetAllFilters = useCallback(() => {
+    setSearchQuery('');
+    filters.clearSearchFilter();
+    filters.clearSectionFilter();
+    filters.setShowIncomplete(false);
+    filters.setProgressRange([0, 100]);
+  }, [filters]);
+
+  // 외부 링크 열기 + "최근 본" 기록을 한 번에 처리. RightPanel/SearchDialog가 이 헬퍼를 사용.
+  const openExternal = useCallback((id: string, path?: string) => {
+    if (id) recordRecent(id);
+    if (path) window.open(path, '_blank', 'noopener,noreferrer');
+  }, [recordRecent]);
+
+  // 전체 항목을 id로 빠르게 찾기 위한 맵 (선택된 id → 원본 TableItem).
+  // overrides가 적용된 dataWithOverrides에서 찾아 BulkEdit 시 currentPc/currentMo도 얻음.
+  const itemsById = useMemo(() => {
+    const map = new Map<string, import('./types').TableItem>();
+    for (const section of dataWithOverrides) {
+      for (const it of section.data) map.set(it.id, it);
+    }
+    return map;
+  }, [dataWithOverrides]);
+
+  // 선택된 항목 배열 (id 순서 유지). overrides 적용된 값을 사용.
+  const selectedItems = useMemo(() =>
+    Array.from(selection.selected).map((id) => itemsById.get(id)).filter((x): x is import('./types').TableItem => !!x),
+  [selection.selected, itemsById]);
+
+  const applyBulkProgress = useCallback((nextPc?: import('./types').ProgressValue, nextMo?: import('./types').ProgressValue) => {
+    if (nextPc === undefined && nextMo === undefined) return;
+    const updates = Array.from(selection.selected).map((id) => {
+      const it = itemsById.get(id);
+      return {
+        id,
+        currentPc: it?.progressPc ?? null,
+        currentMo: it?.progressMobile ?? null,
+        nextPc,
+        nextMo,
+      };
+    });
+    setProgress(updates);
+  }, [selection.selected, itemsById, setProgress]);
 
   const currentCard = flatCards[Math.min(flatIndex, flatCards.length - 1)];
   const currentSectionIdx = currentCard?.sectionIdx ?? 0;
@@ -215,19 +276,30 @@ export default function App() {
   // --- 키보드 단축키 ---
   const openSearch = useCallback(() => dialogs.openDialog('search'), [dialogs]);
   const openShortcuts = useCallback(() => dialogs.openDialog('shortcuts'), [dialogs]);
+  const toggleSelectModeShortcut = useCallback(() => {
+    if (selectMode) exitSelectMode(); else setSelectMode(true);
+  }, [selectMode, exitSelectMode]);
+  const escSelectShortcut = useCallback(() => {
+    if (selectMode) exitSelectMode();
+  }, [selectMode, exitSelectMode]);
   useKeyboardShortcut('k', openSearch);                          // Cmd/Ctrl+K — 검색
   useKeyboardShortcut('/', openSearch, { modifier: false });     // / — 검색 (modifier 없이)
   useKeyboardShortcut('?', openShortcuts, { modifier: false, shift: true }); // ? (Shift+/) — 단축키 도움말
+  useKeyboardShortcut('e', toggleSelectModeShortcut, { modifier: false });   // e — 선택 모드 토글
+  useKeyboardShortcut('Escape', escSelectShortcut, { modifier: false });     // Esc — 선택 모드 종료
 
   // --- 사이트 변경 ---
+  // 스크롤 리셋은 siteIndex가 바뀌면 useLayoutEffect에서 동기 수행 — DOM 업데이트 직후, 페인트 전에 실행되어
+  // 사용자가 "이전 사이트의 스크롤 위치"를 잠깐이라도 보지 않도록 보장. setTimeout 경합 제거.
   const handleSiteChange = (next: number) => {
     setSiteIndex(next);
     setFlatIndex(0);
     history.replaceState(null, '', `?site=${sites[next].key}`);
-    setTimeout(() => {
-      scrollContainerRef.current?.scrollTo({ left: 0, behavior: 'instant' });
-    }, 0);
   };
+
+  useLayoutEffect(() => {
+    scrollContainerRef.current?.scrollTo({ left: 0, behavior: 'instant' });
+  }, [siteIndex]);
 
   const handleMobileSectionSelect = (target: number) => {
     setFlatIndex(target);
@@ -276,10 +348,25 @@ export default function App() {
               siteTitle={site.title}
               darkMode={darkMode}
               settingsOpen={dialogs.isOpen('settings')}
+              selectMode={selectMode}
+              hasHistory={Object.keys(progressHistory).length > 0}
               onOpenSearch={openSearch}
               onOpenSettings={() => dialogs.openDialog('settings')}
               onToggleDarkMode={() => setDarkMode((d) => !d)}
               onOpenShortcuts={openShortcuts}
+              onToggleSelectMode={() => {
+                if (selectMode) exitSelectMode();
+                else setSelectMode(true);
+              }}
+              onOpenHistory={() => dialogs.openDialog('history')}
+              rightSlot={
+                <ExportMenu
+                  siteKey={site.key}
+                  siteTitle={site.title}
+                  fullData={rawTableData}
+                  filteredData={tableData}
+                />
+              }
             />
 
             <Box sx={{ flex: 1, display: 'flex', gap: { md: '16px', lg: '24px' }, p: { md: '16px', lg: '24px 32px' }, minHeight: 0 }}>
@@ -290,6 +377,18 @@ export default function App() {
                   latestDate={latestDate}
                   progressRange={filters.progressRange}
                   onChangeProgressRange={filters.setProgressRange}
+                />
+
+                <ActiveFilterChips
+                  searchFilter={filters.searchFilter}
+                  sectionFilter={filters.sectionFilter}
+                  showIncomplete={filters.showIncomplete}
+                  progressRange={filters.progressRange}
+                  onClearSearch={() => { setSearchQuery(''); filters.clearSearchFilter(); }}
+                  onToggleSection={filters.toggleSectionFilter}
+                  onToggleIncomplete={() => filters.setShowIncomplete((s) => !s)}
+                  onResetProgress={() => filters.setProgressRange([0, 100])}
+                  onClearAll={resetAllFilters}
                 />
 
                 <ViewToolbar
@@ -313,16 +412,7 @@ export default function App() {
                     <StateMessage
                       kind="no-results"
                       description="검색어를 비우거나 진행도·섹션 필터를 완화해보세요."
-                      action={{
-                        label: '필터 초기화',
-                        onClick: () => {
-                          setSearchQuery('');
-                          filters.clearSearchFilter();
-                          filters.clearSectionFilter();
-                          filters.setShowIncomplete(false);
-                          filters.setProgressRange([0, 100]);
-                        },
-                      }}
+                      action={{ label: '필터 초기화', onClick: resetAllFilters }}
                     />
                   ) : (
                     <StateMessage kind="empty" />
@@ -348,6 +438,9 @@ export default function App() {
                         thumbnailCols={thumbnailCols}
                         bookmarks={bookmarks}
                         onToggleBookmark={toggleBookmark}
+                        selectMode={selectMode}
+                        selected={selection.selected}
+                        onToggleSelect={selection.toggle}
                       />
                     ))}
                   </Box>
@@ -363,6 +456,9 @@ export default function App() {
                 bookmarks={bookmarks}
                 dashboardStats={dashboardStats}
                 totalCount={totalCount}
+                recentlyViewed={recentlyViewed}
+                onClearRecentlyViewed={clearRecent}
+                onItemOpen={openExternal}
               />
             </Box>
           </Box>
@@ -425,6 +521,38 @@ export default function App() {
               onClose={() => dialogs.closeDialog('shortcuts')}
             />
           )}
+
+          {dialogs.isOpen('history') && (
+            <ProgressHistoryDialog
+              open
+              onClose={() => dialogs.closeDialog('history')}
+              history={progressHistory}
+              itemLabel={(id) => itemsById.get(id)?.pageTitle || id}
+              onRevert={revert}
+              onClearAll={() => { clearOverrides(); dialogs.closeDialog('history'); }}
+            />
+          )}
+
+          {dialogs.isOpen('compare') && selectedItems.length >= 2 && (
+            <ComparePreviewDialog
+              open
+              onClose={() => dialogs.closeDialog('compare')}
+              items={selectedItems.slice(0, 4)}
+            />
+          )}
+        </Suspense>
+
+        {/* 일괄 편집 툴바 — 선택 모드 + 1개 이상 선택 시에만 표시 */}
+        <Suspense fallback={null}>
+          {selectMode && selection.size > 0 && (
+            <BulkEditBar
+              selectedCount={selection.size}
+              onCancel={exitSelectMode}
+              onApply={applyBulkProgress}
+              onCompare={() => dialogs.openDialog('compare')}
+              canCompare={selection.size >= 2 && selection.size <= 4}
+            />
+          )}
         </Suspense>
 
       </Box>
@@ -440,6 +568,7 @@ export default function App() {
             totalCount={totalCount}
             previewEnabled={previewEnabled}
             onSubmit={(q) => { filters.setSearchFilter(q); dialogs.closeDialog('search'); setSearchQuery(''); }}
+            onSelect={(hit) => { if (hit.href) openExternal(hit.id, hit.href); }}
           />
         )}
 

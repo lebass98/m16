@@ -12,58 +12,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { sites } from '../src/data/sites.ts';
-import type { TableSection } from '../src/types/index.ts';
-
-const COLUMNS = [
-  'section',
-  'pageTitle',
-  'id',
-  'depth1',
-  'depth2',
-  'depth3',
-  'path',
-  'progressPc',
-  'progressMobile',
-  'start',
-  'updatedAt',
-  'end',
-  'note',
-  'depthOnly',
-] as const;
-
-function csvEscape(value: unknown): string {
-  if (value === undefined || value === null) return '';
-  const str = String(value);
-  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-    return `"${str.replace(/"/g, '""')}"`;
-  }
-  return str;
-}
-
-function sectionsToCsv(sections: TableSection[]): string {
-  const lines: string[] = [COLUMNS.join(',')];
-  for (const section of sections) {
-    for (const item of section.data) {
-      lines.push([
-        csvEscape(section.depth1),
-        csvEscape(item.pageTitle),
-        csvEscape(item.id),
-        csvEscape(item.depth1),
-        csvEscape(item.depth2),
-        csvEscape(item.depth3),
-        csvEscape(item.path),
-        csvEscape(item.progressPc),
-        csvEscape(item.progressMobile),
-        csvEscape(item.start),
-        csvEscape(item.updatedAt),
-        csvEscape(item.end),
-        csvEscape(item.note),
-        csvEscape(item.depthOnly ?? ''),
-      ].join(','));
-    }
-  }
-  return lines.join('\n');
-}
+import { sectionsToCsv } from '../src/utils/exportData.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const outDir = join(here, '..', 'exports');
