@@ -61,7 +61,7 @@ export default function ViewToolbar({
     <Box className="reveal-up" style={{ animationDelay: '100ms' }} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
         <Typography sx={{ fontSize: 24, fontWeight: 800, color: 'text.primary', letterSpacing: '-0.01em' }}>
-          {searchFilter ? '검색 결과' : 'Recommended pages'}
+          {searchFilter ? '검색 결과' : '페이지 목록'}
         </Typography>
         <Box sx={{ bgcolor: 'rgb(var(--palette-primary-mainChannel) / 0.16)', color: 'primary.main', px: '10px', py: '4px', borderRadius: '8px', fontSize: 12, fontWeight: 700 }}>
           {totalCount}
