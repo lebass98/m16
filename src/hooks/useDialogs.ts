@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 
-type DialogKey = 'site' | 'section' | 'dashboard' | 'settings' | 'search';
+type DialogKey = 'site' | 'section' | 'dashboard' | 'settings' | 'search' | 'shortcuts';
 
 /**
  * 다이얼로그/드로어 열림 상태를 한 곳에서 관리.
@@ -13,6 +13,7 @@ export function useDialogs() {
     dashboard: false,
     settings: false,
     search: false,
+    shortcuts: false,
   });
 
   const isOpen = useCallback((key: DialogKey) => open[key], [open]);

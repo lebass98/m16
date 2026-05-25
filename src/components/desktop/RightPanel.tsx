@@ -27,14 +27,18 @@ export default function RightPanel({
   totalCount,
 }: Props) {
   return (
-    <Box sx={{
-      width: { md: 280, lg: 320 }, flexShrink: 0,
-      display: hidden ? 'none' : 'flex', flexDirection: 'column', gap: 'var(--card-gap, 20px)',
-      position: 'sticky',
-      top: 88,
-      alignSelf: 'flex-start',
-      overflow: 'visible',
-    }}>
+    <Box
+      component="aside"
+      aria-label="진행도 요약 패널"
+      sx={{
+        width: { md: 280, lg: 320 }, flexShrink: 0,
+        display: hidden ? 'none' : 'flex', flexDirection: 'column', gap: 'var(--card-gap, 20px)',
+        position: 'sticky',
+        top: 88,
+        alignSelf: 'flex-start',
+        overflow: 'visible',
+      }}
+    >
       {/* 통계 카드 */}
       <GlassCard className="reveal-up" style={{ animationDelay: '80ms' }} sx={{ position: 'relative', overflow: 'hidden' }}>
         <Box sx={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: '50%', bgcolor: 'rgb(var(--palette-primary-mainChannel) / 0.08)' }} />
@@ -46,7 +50,12 @@ export default function RightPanel({
           </Box>
         </Box>
         <Typography sx={{ position: 'relative', fontSize: 13, color: 'text.secondary', mb: '14px' }}>모바일 진행도 <Box component="span" sx={{ color: 'text.primary', fontWeight: 700 }}>{overallMo}%</Box></Typography>
-        <LinearProgress variant="determinate" value={overallPc} sx={{ height: 6, borderRadius: 3, bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.16)', '& .MuiLinearProgress-bar': { bgcolor: 'primary.main', borderRadius: 3 } }} />
+        <LinearProgress
+          variant="determinate"
+          value={overallPc}
+          aria-label={`전체 PC 진행도 ${overallPc}%`}
+          sx={{ height: 6, borderRadius: 3, bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.16)', '& .MuiLinearProgress-bar': { bgcolor: 'primary.main', borderRadius: 3 } }}
+        />
       </GlassCard>
 
       {/* 최근 업데이트 활동 */}
@@ -64,9 +73,26 @@ export default function RightPanel({
               const isLatest = card.item.updatedAt === latestDate;
               const isDone = (card.item.progressPc ?? 0) >= 100;
               const statusKey: StatusKey = isDone ? 'success' : isLatest ? 'info' : (card.item.progressPc ?? 0) === 0 ? 'error' : 'primary';
+              const openItem = () => { if (card.item.path) window.open(card.item.path, '_blank', 'noopener,noreferrer'); };
+              const interactive = !!card.item.path;
               return (
-                <Box key={i} className="reveal-right" style={{ animationDelay: `${220 + i * 60}ms` }} sx={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: card.item.path ? 'pointer' : 'default', '&:hover': card.item.path ? { '& .activity-title': { color: 'primary.main' } } : {} }} onClick={() => { if (card.item.path) window.open(card.item.path, '_blank', 'noopener,noreferrer'); }}>
-                  <Box sx={(theme) => ({ width: 40, height: 40, borderRadius: '10px', bgcolor: alpha(theme.palette[statusKey].main, 0.12), color: `${statusKey}.main`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, flexShrink: 0 })}>
+                <Box
+                  key={i}
+                  className="reveal-right"
+                  style={{ animationDelay: `${220 + i * 60}ms` }}
+                  onClick={openItem}
+                  onKeyDown={interactive ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openItem(); } } : undefined}
+                  role={interactive ? 'link' : undefined}
+                  tabIndex={interactive ? 0 : undefined}
+                  aria-label={interactive ? `${card.item.pageTitle || card.item.id} 새 탭에서 열기` : undefined}
+                  sx={{
+                    display: 'flex', alignItems: 'center', gap: '12px',
+                    cursor: interactive ? 'pointer' : 'default',
+                    '&:hover': interactive ? { '& .activity-title': { color: 'primary.main' } } : {},
+                    '&:focus-visible': interactive ? { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2, borderRadius: '8px' } : {},
+                  }}
+                >
+                  <Box aria-hidden="true" sx={(theme) => ({ width: 40, height: 40, borderRadius: '10px', bgcolor: alpha(theme.palette[statusKey].main, 0.12), color: `${statusKey}.main`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, flexShrink: 0 })}>
                     {(card.sectionTitle?.charAt(0) || '?').toUpperCase()}
                   </Box>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -84,14 +110,31 @@ export default function RightPanel({
         <GlassCard className="reveal-up" style={{ animationDelay: '240ms' }}>
           <Typography sx={{ fontSize: 16, fontWeight: 700, color: 'text.primary', mb: '16px' }}>북마크 <Box component="span" sx={{ color: 'text.secondary', fontWeight: 500 }}>({bookmarks.size})</Box></Typography>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {flatCards.filter((c) => bookmarks.has(c.item.id)).slice(0, 5).map((card, i) => (
-              <Box key={i} onClick={() => { if (card.item.path) window.open(card.item.path, '_blank', 'noopener,noreferrer'); }} sx={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: card.item.path ? 'pointer' : 'default', '&:hover': { '& .bm-title': { color: 'primary.main' } } }}>
-                <Box sx={{ width: 36, height: 36, borderRadius: '10px', bgcolor: 'rgb(var(--palette-primary-mainChannel) / 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'primary.main', flexShrink: 0 }}>
-                  {(card.sectionTitle?.charAt(0) || '?').toUpperCase()}
+            {flatCards.filter((c) => bookmarks.has(c.item.id)).slice(0, 5).map((card, i) => {
+              const openItem = () => { if (card.item.path) window.open(card.item.path, '_blank', 'noopener,noreferrer'); };
+              const interactive = !!card.item.path;
+              return (
+                <Box
+                  key={i}
+                  onClick={openItem}
+                  onKeyDown={interactive ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openItem(); } } : undefined}
+                  role={interactive ? 'link' : undefined}
+                  tabIndex={interactive ? 0 : undefined}
+                  aria-label={interactive ? `북마크된 ${card.item.pageTitle || card.item.id} 새 탭에서 열기` : undefined}
+                  sx={{
+                    display: 'flex', alignItems: 'center', gap: '12px',
+                    cursor: interactive ? 'pointer' : 'default',
+                    '&:hover': { '& .bm-title': { color: 'primary.main' } },
+                    '&:focus-visible': interactive ? { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2, borderRadius: '8px' } : {},
+                  }}
+                >
+                  <Box aria-hidden="true" sx={{ width: 36, height: 36, borderRadius: '10px', bgcolor: 'rgb(var(--palette-primary-mainChannel) / 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'primary.main', flexShrink: 0 }}>
+                    {(card.sectionTitle?.charAt(0) || '?').toUpperCase()}
+                  </Box>
+                  <Typography className="bm-title" sx={{ fontSize: 13, color: 'text.primary', fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', transition: 'color 0.2s' }}>{card.item.pageTitle || card.item.id}</Typography>
                 </Box>
-                <Typography className="bm-title" sx={{ fontSize: 13, color: 'text.primary', fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', transition: 'color 0.2s' }}>{card.item.pageTitle || card.item.id}</Typography>
-              </Box>
-            ))}
+              );
+            })}
           </Box>
         </GlassCard>
       )}
@@ -112,12 +155,22 @@ export default function RightPanel({
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Typography sx={{ fontSize: 10, color: 'text.secondary', fontWeight: 700, width: 22, flexShrink: 0, letterSpacing: '0.04em' }}>PC</Typography>
-                  <LinearProgress variant="determinate" value={stat.avgPc} sx={{ flex: 1, height: 5, borderRadius: 3, bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.16)', '& .MuiLinearProgress-bar': { bgcolor: stat.avgPc === 100 ? 'success.main' : 'primary.main', borderRadius: 3 } }} />
+                  <LinearProgress
+                    variant="determinate"
+                    value={stat.avgPc}
+                    aria-label={`${stat.title} PC 평균 진행도 ${stat.avgPc}%`}
+                    sx={{ flex: 1, height: 5, borderRadius: 3, bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.16)', '& .MuiLinearProgress-bar': { bgcolor: stat.avgPc === 100 ? 'success.main' : 'primary.main', borderRadius: 3 } }}
+                  />
                   <Typography sx={{ fontSize: 11, fontWeight: 700, color: stat.avgPc === 100 ? 'success.main' : 'primary.main', width: 32, textAlign: 'right', flexShrink: 0 }}>{stat.avgPc}%</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Typography sx={{ fontSize: 10, color: 'text.secondary', fontWeight: 700, width: 22, flexShrink: 0, letterSpacing: '0.04em' }}>MO</Typography>
-                  <LinearProgress variant="determinate" value={stat.avgMo} sx={{ flex: 1, height: 5, borderRadius: 3, bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.16)', '& .MuiLinearProgress-bar': { bgcolor: stat.avgMo === 100 ? 'success.main' : 'info.main', borderRadius: 3 } }} />
+                  <LinearProgress
+                    variant="determinate"
+                    value={stat.avgMo}
+                    aria-label={`${stat.title} 모바일 평균 진행도 ${stat.avgMo}%`}
+                    sx={{ flex: 1, height: 5, borderRadius: 3, bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.16)', '& .MuiLinearProgress-bar': { bgcolor: stat.avgMo === 100 ? 'success.main' : 'info.main', borderRadius: 3 } }}
+                  />
                   <Typography sx={{ fontSize: 11, fontWeight: 700, color: stat.avgMo === 100 ? 'success.main' : 'info.main', width: 32, textAlign: 'right', flexShrink: 0 }}>{stat.avgMo}%</Typography>
                 </Box>
               </Box>

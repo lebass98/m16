@@ -1,14 +1,13 @@
-import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
-import { Box } from '@mui/material';
+import { useMemo, useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
+import { Box, useMediaQuery } from '@mui/material';
 import { createPaletteChannel } from 'minimal-shared/utils';
 
 import { sites } from './data/sites';
 import { PREVIEW_SCROLL_DIR_EVENT } from './types/events';
 
 import SectionTable from './components/SectionTable';
-import SettingsDrawer from './components/SettingsDrawer';
-import SearchDialog, { type SearchHit } from './components/SearchDialog';
-import GlassCard from './components/GlassCard';
+import type { SearchHit } from './components/SearchDialog';
+import StateMessage from './components/StateMessage';
 
 import LeftSidebar from './components/desktop/LeftSidebar';
 import TopHeader from './components/desktop/TopHeader';
@@ -20,9 +19,13 @@ import MobileTopControls from './components/mobile/MobileTopControls';
 import MobileHeader from './components/mobile/MobileHeader';
 import MobileSwiper from './components/mobile/MobileSwiper';
 
-import SitePickerDialog from './components/dialogs/SitePickerDialog';
-import SectionPickerDialog from './components/dialogs/SectionPickerDialog';
-import DashboardDialog from './components/dialogs/DashboardDialog';
+// 다이얼로그·드로워는 첫 진입에 필요 없음 → 지연 로드로 초기 번들에서 분리
+const SearchDialog = lazy(() => import('./components/SearchDialog'));
+const SettingsDrawer = lazy(() => import('./components/SettingsDrawer'));
+const SitePickerDialog = lazy(() => import('./components/dialogs/SitePickerDialog'));
+const SectionPickerDialog = lazy(() => import('./components/dialogs/SectionPickerDialog'));
+const DashboardDialog = lazy(() => import('./components/dialogs/DashboardDialog'));
+const ShortcutHelpDialog = lazy(() => import('./components/dialogs/ShortcutHelpDialog'));
 
 import { ThemeProvider } from './theme/theme-provider';
 import { PRESETS, isPresetKey, type PresetKey } from './theme/presets';
@@ -87,6 +90,11 @@ export default function App() {
   useEffect(() => { document.documentElement.setAttribute('data-contrast', contrast); }, [contrast]);
   useEffect(() => { applyFontScale(fontSize); }, [fontSize]);
 
+  // 데스크탑 레이아웃은 md(900px)+에서 활성화되지만, 900~1199px(=lg 미만) 구간에서는
+  // LeftSidebar+RightPanel이 콘텐츠 영역을 양쪽에서 압박한다. lg 미만에서는 강제 축소·숨김.
+  const isLargeUp = useMediaQuery('(min-width:1200px)');
+  const forceCompact = !isLargeUp;
+
   // --- 세션 휘발성 UI 상태 ---
   const [flatIndex, setFlatIndex] = useState(0);
   const [hideUi, setHideUi] = useState(false);
@@ -125,7 +133,7 @@ export default function App() {
   }), [preset, fontFamily]);
 
   // --- 데이터: 시트 fetch → 필터/정렬/파생 ---
-  const rawTableData = useSiteData(site);
+  const { data: rawTableData, status: dataStatus, isFallback } = useSiteData(site);
   const {
     tableData,
     flatCards,
@@ -143,6 +151,15 @@ export default function App() {
     sortBy,
     searchFilter: filters.searchFilter,
   });
+
+  // 필터링이 적용 중인지 여부 (어떤 결과가 0인지 판단할 때 사용)
+  const hasActiveFilters = (
+    filters.sectionFilter.size > 0 ||
+    filters.searchFilter.trim() !== '' ||
+    filters.showIncomplete ||
+    filters.progressRange[0] !== 0 ||
+    filters.progressRange[1] !== 100
+  );
 
   const currentCard = flatCards[Math.min(flatIndex, flatCards.length - 1)];
   const currentSectionIdx = currentCard?.sectionIdx ?? 0;
@@ -195,8 +212,12 @@ export default function App() {
     return () => window.removeEventListener(PREVIEW_SCROLL_DIR_EVENT, handleDir);
   }, []);
 
-  // --- 키보드: Cmd/Ctrl + K → 검색 ---
-  useKeyboardShortcut('k', useCallback(() => dialogs.openDialog('search'), [dialogs]));
+  // --- 키보드 단축키 ---
+  const openSearch = useCallback(() => dialogs.openDialog('search'), [dialogs]);
+  const openShortcuts = useCallback(() => dialogs.openDialog('shortcuts'), [dialogs]);
+  useKeyboardShortcut('k', openSearch);                          // Cmd/Ctrl+K — 검색
+  useKeyboardShortcut('/', openSearch, { modifier: false });     // / — 검색 (modifier 없이)
+  useKeyboardShortcut('?', openShortcuts, { modifier: false, shift: true }); // ? (Shift+/) — 단축키 도움말
 
   // --- 사이트 변경 ---
   const handleSiteChange = (next: number) => {
@@ -247,6 +268,7 @@ export default function App() {
             depth1Categories={depth1Categories}
             sectionFilter={filters.sectionFilter}
             onToggleSectionFilter={filters.toggleSectionFilter}
+            forceCollapsed={forceCompact}
           />
 
           <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
@@ -254,9 +276,10 @@ export default function App() {
               siteTitle={site.title}
               darkMode={darkMode}
               settingsOpen={dialogs.isOpen('settings')}
-              onOpenSearch={() => dialogs.openDialog('search')}
+              onOpenSearch={openSearch}
               onOpenSettings={() => dialogs.openDialog('settings')}
               onToggleDarkMode={() => setDarkMode((d) => !d)}
+              onOpenShortcuts={openShortcuts}
             />
 
             <Box sx={{ flex: 1, display: 'flex', gap: { md: '16px', lg: '24px' }, p: { md: '16px', lg: '24px 32px' }, minHeight: 0 }}>
@@ -283,10 +306,36 @@ export default function App() {
                   onClearSearchFilter={() => { setSearchQuery(''); filters.clearSearchFilter(); }}
                 />
 
-                {tableData.length === 0 ? (
-                  <GlassCard sx={{ py: '80px', textAlign: 'center', color: 'text.disabled', fontSize: 14 }}>표시할 항목이 없습니다</GlassCard>
+                {dataStatus === 'loading' && rawTableData.length === 0 ? (
+                  <StateMessage kind="loading" />
+                ) : tableData.length === 0 ? (
+                  hasActiveFilters ? (
+                    <StateMessage
+                      kind="no-results"
+                      description="검색어를 비우거나 진행도·섹션 필터를 완화해보세요."
+                      action={{
+                        label: '필터 초기화',
+                        onClick: () => {
+                          setSearchQuery('');
+                          filters.clearSearchFilter();
+                          filters.clearSectionFilter();
+                          filters.setShowIncomplete(false);
+                          filters.setProgressRange([0, 100]);
+                        },
+                      }}
+                    />
+                  ) : (
+                    <StateMessage kind="empty" />
+                  )
                 ) : (
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    {isFallback && (
+                      <StateMessage
+                        kind="error"
+                        title="원격 데이터 로드 실패"
+                        description="시트를 불러오지 못해 기본 데이터로 표시하고 있어요."
+                      />
+                    )}
                     {tableData.map((section, i) => (
                       <SectionTable
                         key={i}
@@ -306,7 +355,7 @@ export default function App() {
               </Box>
 
               <RightPanel
-                hidden={rightSidebarHidden}
+                hidden={rightSidebarHidden || forceCompact}
                 overallPc={overallPc}
                 overallMo={overallMo}
                 flatCards={flatCards}
@@ -336,74 +385,95 @@ export default function App() {
           onSelectSection={handleMobileSectionSelect}
         />
 
-        {/* 다이얼로그들 */}
-        <SitePickerDialog
-          open={dialogs.isOpen('site')}
-          onClose={() => dialogs.closeDialog('site')}
-          sites={sites}
-          selectedIndex={siteIndex}
-          onSelect={handleSiteChange}
-        />
+        {/* 다이얼로그들 — 닫혀있을 때는 마운트하지 않아 청크 fetch 자체를 지연 */}
+        <Suspense fallback={null}>
+          {dialogs.isOpen('site') && (
+            <SitePickerDialog
+              open
+              onClose={() => dialogs.closeDialog('site')}
+              sites={sites}
+              selectedIndex={siteIndex}
+              onSelect={handleSiteChange}
+            />
+          )}
 
-        <SectionPickerDialog
-          open={dialogs.isOpen('section')}
-          onClose={() => dialogs.closeDialog('section')}
-          tableData={tableData}
-          currentSectionIdx={currentSectionIdx}
-          sectionStartIndices={sectionStartIndices}
-          onSelect={handleMobileSectionSelect}
-        />
+          {dialogs.isOpen('section') && (
+            <SectionPickerDialog
+              open
+              onClose={() => dialogs.closeDialog('section')}
+              tableData={tableData}
+              currentSectionIdx={currentSectionIdx}
+              sectionStartIndices={sectionStartIndices}
+              onSelect={handleMobileSectionSelect}
+            />
+          )}
 
-        <DashboardDialog
-          open={dialogs.isOpen('dashboard')}
-          onClose={() => dialogs.closeDialog('dashboard')}
-          totalCount={totalCount}
-          overallPc={overallPc}
-          overallMo={overallMo}
-          dashboardStats={dashboardStats}
-        />
+          {dialogs.isOpen('dashboard') && (
+            <DashboardDialog
+              open
+              onClose={() => dialogs.closeDialog('dashboard')}
+              totalCount={totalCount}
+              overallPc={overallPc}
+              overallMo={overallMo}
+              dashboardStats={dashboardStats}
+            />
+          )}
+
+          {dialogs.isOpen('shortcuts') && (
+            <ShortcutHelpDialog
+              open
+              onClose={() => dialogs.closeDialog('shortcuts')}
+            />
+          )}
+        </Suspense>
 
       </Box>
 
-      <SearchDialog
-        open={dialogs.isOpen('search')}
-        onClose={() => { dialogs.closeDialog('search'); setSearchQuery(''); }}
-        query={searchQuery}
-        onQueryChange={setSearchQuery}
-        results={searchHits}
-        totalCount={totalCount}
-        previewEnabled={previewEnabled}
-        onSubmit={(q) => { filters.setSearchFilter(q); dialogs.closeDialog('search'); setSearchQuery(''); }}
-      />
+      <Suspense fallback={null}>
+        {dialogs.isOpen('search') && (
+          <SearchDialog
+            open
+            onClose={() => { dialogs.closeDialog('search'); setSearchQuery(''); }}
+            query={searchQuery}
+            onQueryChange={setSearchQuery}
+            results={searchHits}
+            totalCount={totalCount}
+            previewEnabled={previewEnabled}
+            onSubmit={(q) => { filters.setSearchFilter(q); dialogs.closeDialog('search'); setSearchQuery(''); }}
+          />
+        )}
 
-      <SettingsDrawer
-        open={dialogs.isOpen('settings')}
-        onClose={() => dialogs.closeDialog('settings')}
-        darkMode={darkMode}
-        onToggleDarkMode={() => setDarkMode((d) => !d)}
-        previewEnabled={previewEnabled}
-        onTogglePreview={() => setPreviewEnabled((p) => !p)}
-        showIncomplete={filters.showIncomplete}
-        onToggleIncomplete={() => filters.setShowIncomplete((s) => !s)}
-        rightSidebarHidden={rightSidebarHidden}
-        onToggleRightSidebar={() => setRightSidebarHidden((h) => !h)}
-        rtl={rtl}
-        onToggleRtl={() => setRtl((r) => !r)}
-        onReset={() => {
-          if (window.confirm('모든 설정을 초기화하고 페이지를 새로고침할까요?')) {
-            localStorage.clear();
-            window.location.reload();
-          }
-        }}
-        preset={preset}
-        onSelectPreset={setPreset}
-        fontSize={fontSize}
-        onChangeFontSize={setFontSize}
-        fontFamily={fontFamily}
-        onSelectFontFamily={setFontFamily}
-        contrast={contrast}
-        onSelectContrast={setContrast}
-      />
+        {dialogs.isOpen('settings') && (
+          <SettingsDrawer
+            open
+            onClose={() => dialogs.closeDialog('settings')}
+            darkMode={darkMode}
+            onToggleDarkMode={() => setDarkMode((d) => !d)}
+            previewEnabled={previewEnabled}
+            onTogglePreview={() => setPreviewEnabled((p) => !p)}
+            showIncomplete={filters.showIncomplete}
+            onToggleIncomplete={() => filters.setShowIncomplete((s) => !s)}
+            rightSidebarHidden={rightSidebarHidden}
+            onToggleRightSidebar={() => setRightSidebarHidden((h) => !h)}
+            rtl={rtl}
+            onToggleRtl={() => setRtl((r) => !r)}
+            onReset={() => {
+              if (window.confirm('모든 설정을 초기화하고 페이지를 새로고침할까요?')) {
+                localStorage.clear();
+                window.location.reload();
+              }
+            }}
+            preset={preset}
+            onSelectPreset={setPreset}
+            fontSize={fontSize}
+            onChangeFontSize={setFontSize}
+            fontFamily={fontFamily}
+            onSelectFontFamily={setFontFamily}
+            contrast={contrast}
+            onSelectContrast={setContrast}
+          />
+        )}
+      </Suspense>
     </ThemeProvider>
   );
 }

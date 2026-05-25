@@ -39,6 +39,9 @@ export default function FilterBar({ sectionFilterCount, sortBy, latestDate, prog
           min={0}
           max={100}
           step={20}
+          getAriaLabel={(idx) => (idx === 0 ? '진행도 최소값' : '진행도 최대값')}
+          getAriaValueText={(v) => `${v}%`}
+          valueLabelFormat={(v) => `${v}%`}
           sx={{ color: 'primary.main', flex: 1, height: 4, '& .MuiSlider-thumb': { width: 14, height: 14, bgcolor: 'primary.main', '&:hover, &.Mui-focusVisible': { boxShadow: '0 0 0 6px rgb(var(--palette-primary-mainChannel) / 0.16)' } }, '& .MuiSlider-track': { border: 'none' }, '& .MuiSlider-rail': { bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.32)', opacity: 1 } }}
         />
       </Box>

@@ -1,7 +1,7 @@
 import type { RefObject } from 'react';
 import { Box, Typography } from '@mui/material';
 import MobileCard from '../MobileCard';
-import SectionTable from '../SectionTable';
+import SectionTableMobile from './SectionTableMobile';
 import type { TableSection } from '../../types';
 import type { FlatCard } from '../../hooks/useFilteredData';
 
@@ -85,15 +85,19 @@ export default function MobileSwiper({
               ))}
             </Box>
           ) : (
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, color: '#999', fontSize: 14 }}>데이터가 없습니다</Box>
+            <Box role="status" aria-live="polite" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, color: 'text.disabled', fontSize: 14, px: '20px', textAlign: 'center' }}>
+              조건에 맞는 결과가 없어요. 필터를 완화해보세요.
+            </Box>
           )}
         </>
       ) : (
         <Box sx={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', p: '10px', '&::-webkit-scrollbar': { display: 'none' }, scrollbarWidth: 'none' }}>
           {tableData.length > 0 ? tableData.map((section, i) => (
-            <SectionTable key={i} section={section} sectionIndex={i} latestDate={latestDate} hideUi={hideUi} previewEnabled={false} />
+            <SectionTableMobile key={i} section={section} sectionIndex={i} latestDate={latestDate} hideUi={hideUi} previewEnabled={false} />
           )) : (
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, color: '#999', fontSize: 14 }}>데이터가 없습니다</Box>
+            <Box role="status" aria-live="polite" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, color: 'text.disabled', fontSize: 14, px: '20px', textAlign: 'center' }}>
+              조건에 맞는 결과가 없어요. 필터를 완화해보세요.
+            </Box>
           )}
         </Box>
       )}

@@ -13,6 +13,7 @@ export interface FiltersState {
   setShowIncomplete: React.Dispatch<React.SetStateAction<boolean>>;
   sectionFilter: Set<string>;
   toggleSectionFilter: (key: string) => void;
+  clearSectionFilter: () => void;
   clearSearchFilter: () => void;
 }
 
@@ -32,12 +33,13 @@ export function useFilters(): FiltersState {
   }, []);
 
   const clearSearchFilter = useCallback(() => setSearchFilter(''), []);
+  const clearSectionFilter = useCallback(() => setSectionFilter(new Set()), []);
 
   return {
     searchFilter, setSearchFilter,
     progressRange, setProgressRange, debouncedProgressRange,
     showIncomplete, setShowIncomplete,
-    sectionFilter, toggleSectionFilter,
+    sectionFilter, toggleSectionFilter, clearSectionFilter,
     clearSearchFilter,
   };
 }

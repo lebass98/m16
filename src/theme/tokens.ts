@@ -24,3 +24,44 @@ export const glassPanelSx: SxProps<Theme> = {
   borderRadius: '16px',
   boxShadow: 'var(--glass-shadow)',
 };
+
+/**
+ * 진행도(ProgressBar / LinearProgress / Chip) 색상 토큰.
+ * 다크 모드는 useTheme().palette.mode === 'dark'로 분기해 사용.
+ *
+ * 사용 예:
+ *   const { palette } = useTheme();
+ *   const fill = progressColors.fill(palette.mode);
+ */
+export const progressColors = {
+  done: '#22c55e',                                              // 100% — 라이트/다크 공통 (대비 충분)
+  fill: (mode: 'light' | 'dark') => (mode === 'dark' ? '#3b8fd6' : '#066cb3'),
+  empty: (mode: 'light' | 'dark') => (mode === 'dark' ? 'rgba(255,255,255,0.12)' : '#e0e0e0'),
+  pcAccent: (mode: 'light' | 'dark') => (mode === 'dark' ? '#6b9ad8' : '#4a7ab5'),
+  moAccent: (mode: 'light' | 'dark') => (mode === 'dark' ? '#a3c3e8' : '#7c9fd4'),
+};
+
+/**
+ * StatusBadge(작업중/완료/제거 등) 색상 토큰.
+ * StatusType별 (배경, 텍스트) 조합. 다크 모드는 약간 톤 조정.
+ */
+type StatusToken = { bg: string; fg: string };
+const statusTokensLight: Record<'ing' | 'end' | 'except' | 'moding' | 'stay' | 'pc', StatusToken> = {
+  ing:    { bg: '#ffb01a', fg: '#000' },
+  end:    { bg: '#bfff11', fg: '#000' },
+  except: { bg: '#dddddd', fg: '#000' },
+  moding: { bg: '#ff4594', fg: '#fff' },
+  stay:   { bg: '#dddddd', fg: '#000' },
+  pc:     { bg: '#0c1844', fg: '#fff' },
+};
+const statusTokensDark: Record<'ing' | 'end' | 'except' | 'moding' | 'stay' | 'pc', StatusToken> = {
+  ing:    { bg: '#d99000', fg: '#000' },
+  end:    { bg: '#9fdc00', fg: '#000' },
+  except: { bg: '#4a4a4a', fg: '#fff' },
+  moding: { bg: '#e63a82', fg: '#fff' },
+  stay:   { bg: '#4a4a4a', fg: '#fff' },
+  pc:     { bg: '#2c3e6e', fg: '#fff' },
+};
+export function statusColor(key: keyof typeof statusTokensLight, mode: 'light' | 'dark'): StatusToken {
+  return (mode === 'dark' ? statusTokensDark : statusTokensLight)[key];
+}
