@@ -23,8 +23,12 @@ export interface UrlState {
 export function readUrlState(search: string = window.location.search): UrlState {
   const params = new URLSearchParams(search);
 
-  const minRaw = Number(params.get('min'));
-  const maxRaw = Number(params.get('max'));
+  // 파라미터가 없으면 전체 범위 [0,100]이 기본. Number(null)===0 이라 absent를 명시적으로 구분해야
+  // max가 0으로 잡혀 진행도 100% 항목이 전부 걸러지는 문제를 피한다.
+  const minParam = params.get('min');
+  const maxParam = params.get('max');
+  const minRaw = minParam === null ? 0 : Number(minParam);
+  const maxRaw = maxParam === null ? 100 : Number(maxParam);
   const min = Number.isFinite(minRaw) && minRaw >= 0 && minRaw <= 100 ? minRaw : 0;
   const max = Number.isFinite(maxRaw) && maxRaw >= 0 && maxRaw <= 100 ? maxRaw : 100;
 
