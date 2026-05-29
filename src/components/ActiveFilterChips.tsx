@@ -33,7 +33,7 @@ export default function ActiveFilterChips({
   const hasSearch = searchFilter.trim() !== '';
   const hasSections = sectionFilter.size > 0;
   const hasProgress = progressRange[0] !== 0 || progressRange[1] !== 100;
-  const hasAny = hasSearch || hasSections || showIncomplete || hasProgress;
+  const hasAny = hasSearch || hasSections || !showIncomplete || hasProgress;
 
   if (!hasAny) return null;
 
@@ -90,9 +90,9 @@ export default function ActiveFilterChips({
         />
       ))}
 
-      {showIncomplete && (
+      {!showIncomplete && (
         <Chip
-          label="미완료만"
+          label="미완료 숨김"
           size="small"
           deleteIcon={<CloseIcon />}
           onDelete={onToggleIncomplete}

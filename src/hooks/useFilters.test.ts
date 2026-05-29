@@ -3,11 +3,11 @@ import { describe, it, expect } from 'vitest';
 import { useFilters } from './useFilters';
 
 describe('useFilters', () => {
-  it('초기 상태: 검색 빈 문자열, 진행도 [0,100], showIncomplete=false, sectionFilter 비어있음', () => {
+  it('초기 상태: 검색 빈 문자열, 진행도 [0,100], showIncomplete=true(미완료 포함), sectionFilter 비어있음', () => {
     const { result } = renderHook(() => useFilters());
     expect(result.current.searchFilter).toBe('');
     expect(result.current.progressRange).toEqual([0, 100]);
-    expect(result.current.showIncomplete).toBe(false);
+    expect(result.current.showIncomplete).toBe(true);
     expect(result.current.sectionFilter.size).toBe(0);
   });
 

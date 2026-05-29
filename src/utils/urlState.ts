@@ -8,7 +8,7 @@ import { isSortKey, type SortKey } from '../constants/sort';
  * - q: 검색어
  * - sections: 섹션 필터 (쉼표 구분)
  * - min, max: 진행도 범위 [0,100]
- * - incomplete: 미완료만 (1)
+ * - incomplete: 미완료 포함 여부. 기본 포함(true), 명시적으로 숨길 때만 0
  * - sort: 정렬 키
  */
 export interface UrlState {
@@ -39,7 +39,8 @@ export function readUrlState(search: string = window.location.search): UrlState 
     searchFilter: params.get('q') ?? '',
     sectionFilter: new Set(sections),
     progressRange: [Math.min(min, max), Math.max(min, max)],
-    showIncomplete: params.get('incomplete') === '1',
+    // 기본은 미완료 포함(true). 파라미터가 없으면 켜진 상태, '0'일 때만 끈다.
+    showIncomplete: params.get('incomplete') !== '0',
     sortBy,
   };
 }
@@ -54,7 +55,7 @@ export function writeUrlState(state: UrlState): string {
   if (state.sectionFilter.size > 0) params.set('sections', Array.from(state.sectionFilter).join(','));
   if (state.progressRange[0] !== 0) params.set('min', String(state.progressRange[0]));
   if (state.progressRange[1] !== 100) params.set('max', String(state.progressRange[1]));
-  if (state.showIncomplete) params.set('incomplete', '1');
+  if (!state.showIncomplete) params.set('incomplete', '0');
   if (state.sortBy) params.set('sort', state.sortBy);
   const qs = params.toString();
   return qs ? `?${qs}` : '';

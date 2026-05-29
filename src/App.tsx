@@ -196,7 +196,7 @@ export default function App() {
   const hasActiveFilters = (
     filters.sectionFilter.size > 0 ||
     filters.searchFilter.trim() !== '' ||
-    filters.showIncomplete ||
+    !filters.showIncomplete ||
     filters.progressRange[0] !== 0 ||
     filters.progressRange[1] !== 100
   );
@@ -205,7 +205,7 @@ export default function App() {
     setSearchQuery('');
     filters.clearSearchFilter();
     filters.clearSectionFilter();
-    filters.setShowIncomplete(false);
+    filters.setShowIncomplete(true);
     filters.setProgressRange([0, 100]);
   }, [filters]);
 
