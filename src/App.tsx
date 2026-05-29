@@ -100,8 +100,8 @@ export default function App() {
   const [contrast, setContrast] = usePersistedState<'default' | 'hot'>('contrast', 'default', {
     validate: (v) => (v === 'hot' ? 'hot' : 'default'),
   });
-  const [sortBy, setSortBy] = usePersistedState<SortKey>('sortBy', INITIAL_URL_STATE.sortBy ?? 'updated', {
-    validate: (v) => (isSortKey(v) ? v : 'updated'),
+  const [sortBy, setSortBy] = usePersistedState<SortKey>('sortBy', INITIAL_URL_STATE.sortBy ?? 'no', {
+    validate: (v) => (isSortKey(v) ? v : 'no'),
   });
 
   useEffect(() => { document.documentElement.setAttribute('data-color-scheme', darkMode ? 'dark' : 'light'); }, [darkMode]);
