@@ -100,7 +100,7 @@ interface TableSection {
 ## 디자인 시스템
 
 - **글래스 카드**: `import GlassCard from 'components/GlassCard'` — 6속성 묶음을 캡슐화. 인라인으로 다시 풀어쓰지 말 것.
-- **썸네일 카드(`SectionTable`의 `RecipeCard`) 액션 버튼**: 북마크·파일 보기·전체화면 미리보기 3개 버튼은 **카드 하단 정보 영역의 제목 줄 우측 상단**에 한 그룹으로 모아 둔다(썸네일 위 오버레이나 풀-폭 CTA로 흩어 놓지 말 것). 공통 스타일은 `roundActionBtnSx`(원형·검정 `#111` 바탕·흰색 아이콘·호버 시 살짝 떠오름)를 재사용하고, 각 버튼은 한국어 `Tooltip`(`arrow`)과 `aria-label`을 단다. `gap: '8px'`로 나란히 배치. 새 카드 액션 버튼을 추가할 땐 이 그룹에 같은 스타일로 넣는다.
+- **썸네일 카드(`SectionTable`의 `RecipeCard`) 액션 버튼**: 북마크·파일 보기·전체화면 미리보기 3개 버튼은 **카드 하단 정보 영역의 제목 줄 우측 상단**에 한 그룹으로 모아 둔다(썸네일 위 오버레이나 풀-폭 CTA로 흩어 놓지 말 것). 공통 스타일은 `roundActionBtnSx`(원형·흰 바탕·`grey.400` 테두리·`grey.600` 아이콘·호버 시 살짝 떠오르며 검정 `#111` 바탕·흰색 아이콘으로 반전)를 재사용하고, 각 버튼은 한국어 `Tooltip`(`arrow`)과 `aria-label`을 단다. 전체화면 미리보기는 `OpenInFullIcon`(대각선 양방향 화살표)을 쓴다. `gap: '8px'`로 나란히 배치. 새 카드 액션 버튼을 추가할 땐 이 그룹에 같은 스타일로 넣는다.
 - **컬러/팔레트**: Minimals UI `var(--palette-*-mainChannel)` 사용. hard-coded hex 지양.
 - **다크 모드**: `data-color-scheme` 속성 + Minimals 자동 전환.
 - **폰트 크기**: 12~20px 슬라이더 → `applyFontScale()`로 `body.zoom` (Firefox는 transform 폴백).
@@ -163,3 +163,13 @@ interface TableSection {
 - **iframe 미리보기**: `X-Frame-Options` / CSP로 차단된 외부 사이트는 빈 화면이 됨 (헬스체크는 향후 과제).
 - **`zoom` 속성**: Chrome/Safari/Edge는 네이티브, Firefox는 `transform: scale` 폴백.
 - **번들 크기**: 빌드 시 1.1MB+ 경고 — Pretendard 폰트와 MUI가 주요 원인. 의존성 위생 검토는 향후 과제.
+
+---
+
+## 변경 이력
+
+### 2026-06-04 — 썸네일 카드 액션 버튼 정비 ([SectionTable.tsx](src/components/SectionTable.tsx))
+
+- 북마크·파일 보기·전체화면 미리보기 버튼을 카드 하단 제목 줄 우측 상단에 원형 그룹으로 통합.
+- 버튼 스타일을 흰 바탕·그레이 테두리·그레이 아이콘으로 변경(호버 시 검정 바탕·흰 아이콘으로 반전).
+- 전체화면 아이콘을 `FullscreenIcon` → `OpenInFullIcon`으로 교체하고 중앙 정렬.

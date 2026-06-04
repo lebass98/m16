@@ -5,7 +5,7 @@ import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import ArrowOutwardIcon from '@mui/icons-material/ArrowOutward';
 import StickyNote2OutlinedIcon from '@mui/icons-material/StickyNote2Outlined';
-import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import OpenInFullIcon from '@mui/icons-material/OpenInFull';
 import type { TableItem, TableSection } from '../types';
 import ProgressBar from './ProgressBar';
 import PathPreviewIcons, { CopyPathButton } from './PathPreviewIcons';
@@ -46,18 +46,22 @@ const DEVICE_DIMS = {
 } as const;
 type DeviceKey = keyof typeof DEVICE_DIMS;
 
-/** 카드 하단 정보 우측 상단의 원형 액션 버튼 공통 스타일 (검정 바탕·흰 아이콘). */
+/** 카드 하단 정보 우측 상단의 원형 액션 버튼 공통 스타일 (흰 바탕·그레이 테두리·그레이 아이콘). */
 const roundActionBtnSx = {
   width: 23.8,
   height: 23.8,
   p: 0,
   flexShrink: 0,
   borderRadius: '50%',
-  bgcolor: '#111',
-  color: '#fff',
-  transition: 'transform 0.15s ease, background 0.2s ease, box-shadow 0.15s ease',
+  bgcolor: 'background.paper',
+  color: 'grey.600',
+  border: '1px solid',
+  borderColor: 'grey.400',
+  transition: 'transform 0.15s ease, background 0.2s ease, box-shadow 0.15s ease, border-color 0.2s ease',
   '&:hover': {
-    bgcolor: '#333',
+    bgcolor: '#111',
+    borderColor: '#111',
+    color: '#fff',
     transform: 'translateY(-1px)',
     boxShadow: '0 4px 10px rgba(0,0,0,0.25)',
   },
@@ -196,7 +200,7 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
                   rel={item.path ? 'noreferrer' : undefined}
                   disabled={!item.path}
                   aria-label="파일 보기"
-                  sx={{ ...roundActionBtnSx, '&.Mui-disabled': { bgcolor: '#111', color: '#fff', opacity: 0.4 } }}
+                  sx={{ ...roundActionBtnSx, '&.Mui-disabled': { bgcolor: 'background.paper', color: 'grey.600', borderColor: 'grey.300', opacity: 0.5 } }}
                 >
                   <ArrowOutwardIcon sx={{ fontSize: 11.2 }} />
                 </IconButton>
@@ -209,9 +213,9 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
                   size="small"
                   onClick={(e) => { e.stopPropagation(); onOpenFullscreen(item); }}
                   aria-label="전체화면 미리보기 열기"
-                  sx={roundActionBtnSx}
+                  sx={{ ...roundActionBtnSx, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                 >
-                  <FullscreenIcon sx={{ fontSize: 12.6 }} />
+                  <OpenInFullIcon sx={{ fontSize: 12, display: 'block' }} />
                 </IconButton>
               </Tooltip>
             )}
