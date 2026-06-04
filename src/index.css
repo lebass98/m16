@@ -16,6 +16,13 @@
   --glass-blur: blur(20px) saturate(180%);
   --glass-border: 1px solid rgba(255, 255, 255, 0.18);
   --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.12);
+
+  /* Light mode variables */
+  --html-bg: linear-gradient(135deg, #f5f7fa 0%, #e8eefc 100%);
+  --blob-color-1: rgba(255, 154, 158, 0.7);
+  --blob-color-2: rgba(120, 198, 255, 0.7);
+  --blob-color-3: rgba(255, 206, 137, 0.6);
+  --blob-color-4: rgba(168, 138, 255, 0.7);
 }
 
 /* Light mode — make paper / default translucent so body gradient shows through */
@@ -30,29 +37,122 @@ html[data-color-scheme='dark'] {
   --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
   --palette-background-paper: rgba(23, 23, 23, 0.7);
   --palette-background-default: transparent;
+
+  /* Dark mode overrides */
+  --html-bg: linear-gradient(135deg, #0a0a0a 0%, #141414 50%, #0a0a0a 100%);
+  --blob-color-1: rgba(255, 99, 132, 0.25);
+  --blob-color-2: rgba(54, 162, 235, 0.25);
+  --blob-color-3: rgba(255, 206, 86, 0.2);
+  --blob-color-4: rgba(153, 102, 255, 0.25);
+}
+
+@keyframes moveLinearGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes floatBlob1 {
+  0% { transform: translate(18vw, 12vh); }
+  25% { transform: translate(30vw, 25vh); }
+  50% { transform: translate(45vw, 10vh); }
+  75% { transform: translate(25vw, 30vh); }
+  100% { transform: translate(18vw, 12vh); }
+}
+
+@keyframes floatBlob2 {
+  0% { transform: translate(82vw, 18vh); }
+  25% { transform: translate(70vw, 30vh); }
+  50% { transform: translate(60vw, 45vh); }
+  75% { transform: translate(85vw, 15vh); }
+  100% { transform: translate(82vw, 18vh); }
+}
+
+@keyframes floatBlob3 {
+  0% { transform: translate(24vw, 88vh); }
+  25% { transform: translate(15vw, 70vh); }
+  50% { transform: translate(35vw, 80vh); }
+  75% { transform: translate(40vw, 65vh); }
+  100% { transform: translate(24vw, 88vh); }
+}
+
+@keyframes floatBlob4 {
+  0% { transform: translate(78vw, 78vh); }
+  25% { transform: translate(85vw, 65vh); }
+  50% { transform: translate(65vw, 85vh); }
+  75% { transform: translate(70vw, 70vh); }
+  100% { transform: translate(78vw, 78vh); }
+}
+
+html {
+  background: var(--html-bg);
+  background-size: 200% 200%;
+  background-attachment: fixed;
+  overflow-x: hidden;
+  animation: moveLinearGradient 12s infinite ease-in-out;
 }
 
 body {
   margin: 0;
   font-size: 16px;
   min-height: 100vh;
-  background:
-    radial-gradient(at 18% 12%, rgba(255, 154, 158, 0.55) 0px, transparent 50%),
-    radial-gradient(at 82% 18%, rgba(120, 198, 255, 0.55) 0px, transparent 50%),
-    radial-gradient(at 24% 88%, rgba(255, 206, 137, 0.45) 0px, transparent 50%),
-    radial-gradient(at 78% 78%, rgba(168, 138, 255, 0.55) 0px, transparent 50%),
-    linear-gradient(135deg, #f5f7fa 0%, #e8eefc 100%);
-  background-attachment: fixed;
+  background: transparent;
 }
 
-html[data-color-scheme='dark'] body {
-  background:
-    radial-gradient(at 18% 12%, rgba(255, 255, 255, 0.04) 0px, transparent 50%),
-    radial-gradient(at 82% 18%, rgba(255, 255, 255, 0.03) 0px, transparent 50%),
-    radial-gradient(at 24% 88%, rgba(255, 255, 255, 0.03) 0px, transparent 50%),
-    radial-gradient(at 78% 78%, rgba(255, 255, 255, 0.04) 0px, transparent 50%),
-    linear-gradient(135deg, #0a0a0a 0%, #141414 50%, #0a0a0a 100%);
-  background-attachment: fixed;
+body::before {
+  content: "";
+  position: fixed;
+  width: 1200px;
+  height: 1200px;
+  top: -600px;
+  left: -600px;
+  z-index: -4;
+  background: radial-gradient(circle, var(--blob-color-1) 0%, transparent 60%);
+  animation: floatBlob1 6s infinite linear;
+  pointer-events: none;
+  user-select: none;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  width: 1200px;
+  height: 1200px;
+  top: -600px;
+  left: -600px;
+  z-index: -3;
+  background: radial-gradient(circle, var(--blob-color-2) 0%, transparent 60%);
+  animation: floatBlob2 5s infinite linear;
+  pointer-events: none;
+  user-select: none;
+}
+
+html::before {
+  content: "";
+  position: fixed;
+  width: 1200px;
+  height: 1200px;
+  top: -600px;
+  left: -600px;
+  z-index: -2;
+  background: radial-gradient(circle, var(--blob-color-3) 0%, transparent 60%);
+  animation: floatBlob3 8s infinite linear;
+  pointer-events: none;
+  user-select: none;
+}
+
+html::after {
+  content: "";
+  position: fixed;
+  width: 1200px;
+  height: 1200px;
+  top: -600px;
+  left: -600px;
+  z-index: -1;
+  background: radial-gradient(circle, var(--blob-color-4) 0%, transparent 60%);
+  animation: floatBlob4 5s infinite linear;
+  pointer-events: none;
+  user-select: none;
 }
 
 #root {
