@@ -46,6 +46,23 @@ const DEVICE_DIMS = {
 } as const;
 type DeviceKey = keyof typeof DEVICE_DIMS;
 
+/** 카드 하단 정보 우측 상단의 원형 액션 버튼 공통 스타일 (검정 바탕·흰 아이콘). */
+const roundActionBtnSx = {
+  width: 23.8,
+  height: 23.8,
+  p: 0,
+  flexShrink: 0,
+  borderRadius: '50%',
+  bgcolor: '#111',
+  color: '#fff',
+  transition: 'transform 0.15s ease, background 0.2s ease, box-shadow 0.15s ease',
+  '&:hover': {
+    bgcolor: '#333',
+    transform: 'translateY(-1px)',
+    boxShadow: '0 4px 10px rgba(0,0,0,0.25)',
+  },
+} as const;
+
 function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmark, latestDate, cardIndex = 0, device = 'pc', selectMode = false, isSelected = false, onToggleSelect, onOpenFullscreen }: {
   item: TableItem;
   section: TableSection;
@@ -107,24 +124,7 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
             <Box sx={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
               <PreviewFrame key={device} src={item.path} displayWidth="100%" fillHeight iframeWidth={dims.w} iframeHeight={dims.h} />
             </Box>
-            {onOpenFullscreen && (
-              <Tooltip title="전체화면 미리보기" arrow placement="left">
-                <IconButton
-                  size="small"
-                  onClick={(e) => { e.stopPropagation(); onOpenFullscreen(item); }}
-                  aria-label="전체화면 미리보기 열기"
-                  sx={{
-                    position: 'absolute', bottom: 12, right: 12, zIndex: 3,
-                    bgcolor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)',
-                    width: 32, height: 32,
-                    '&:hover': { bgcolor: 'background.paper' },
-                  }}
-                >
-                  <FullscreenIcon sx={{ fontSize: 18, color: COLORS.gray700 }} />
-                </IconButton>
-              </Tooltip>
-            )}
-            {/* 날짜 pill + 북마크/선택 오버레이 */}
+            {/* 날짜 pill + 선택 오버레이 (북마크·전체화면·파일보기는 하단 정보 우측 상단으로 이동) */}
             <Box sx={{ position: 'absolute', top: 12, left: 12, right: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 3 }}>
               <Box sx={{ bgcolor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)', color: COLORS.gray900, px: '10px', py: '4px', borderRadius: '8px', fontSize: 11, fontWeight: 600, lineHeight: 1.4 }}>
                 {item.start || '날짜 미정'}
@@ -147,16 +147,6 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
                     }}
                   />
                 )}
-                <IconButton
-                  size="small"
-                  onClick={(e) => { e.stopPropagation(); onToggleBookmark?.(item.id); }}
-                  sx={{ bgcolor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)', width: 32, height: 32, '&:hover': { bgcolor: 'background.paper' } }}
-                  aria-label={isBookmarked ? '북마크 해제' : '북마크 추가'}
-                >
-                  {isBookmarked
-                    ? <BookmarkIcon sx={{ fontSize: 16, color: COLORS.primary }} />
-                    : <BookmarkBorderIcon sx={{ fontSize: 16, color: COLORS.gray700 }} />}
-                </IconButton>
               </Box>
             </Box>
           </>
@@ -169,14 +159,63 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
 
       {/* 정보 영역 */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '14px', p: '20px 22px 22px', bgcolor: 'background.paper' }}>
-        <Box className="reveal-up-sm" style={inner(1)}>
-          <Typography sx={{ fontSize: 11, color: COLORS.gray600, fontWeight: 700, lineHeight: 1.2, mb: '6px', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-            <Box component="span" sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: accent, display: 'inline-block' }} />
-            {section.depth1}
-          </Typography>
-          <Typography sx={{ fontSize: 17, fontWeight: 700, color: COLORS.gray900, lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '-0.01em' }} title={item.pageTitle || item.id}>
-            {item.pageTitle || item.id}
-          </Typography>
+        <Box className="reveal-up-sm" style={inner(1)} sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography sx={{ fontSize: 11, color: COLORS.gray600, fontWeight: 700, lineHeight: 1.2, mb: '6px', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <Box component="span" sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: accent, display: 'inline-block' }} />
+              {section.depth1}
+            </Typography>
+            <Typography sx={{ fontSize: 17, fontWeight: 700, color: COLORS.gray900, lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '-0.01em' }} title={item.pageTitle || item.id}>
+              {item.pageTitle || item.id}
+            </Typography>
+          </Box>
+
+          {/* 우측 상단 액션 버튼 그룹: 북마크 · 파일 보기 · 전체화면 미리보기 (원형·검정 바탕·흰 아이콘) */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, mt: '2px' }}>
+            <Tooltip title={isBookmarked ? '북마크 해제' : '북마크 추가'} arrow>
+              <IconButton
+                size="small"
+                onClick={(e) => { e.stopPropagation(); onToggleBookmark?.(item.id); }}
+                aria-label={isBookmarked ? '북마크 해제' : '북마크 추가'}
+                aria-pressed={isBookmarked}
+                sx={roundActionBtnSx}
+              >
+                {isBookmarked
+                  ? <BookmarkIcon sx={{ fontSize: 11.9 }} />
+                  : <BookmarkBorderIcon sx={{ fontSize: 11.9 }} />}
+              </IconButton>
+            </Tooltip>
+
+            <Tooltip title="파일 보기" arrow>
+              <Box component="span" sx={{ display: 'inline-flex' }}>
+                <IconButton
+                  size="small"
+                  component={item.path ? 'a' : 'button'}
+                  href={item.path || undefined}
+                  target={item.path ? '_blank' : undefined}
+                  rel={item.path ? 'noreferrer' : undefined}
+                  disabled={!item.path}
+                  aria-label="파일 보기"
+                  sx={{ ...roundActionBtnSx, '&.Mui-disabled': { bgcolor: '#111', color: '#fff', opacity: 0.4 } }}
+                >
+                  <ArrowOutwardIcon sx={{ fontSize: 11.2 }} />
+                </IconButton>
+              </Box>
+            </Tooltip>
+
+            {onOpenFullscreen && (
+              <Tooltip title="전체화면 미리보기" arrow>
+                <IconButton
+                  size="small"
+                  onClick={(e) => { e.stopPropagation(); onOpenFullscreen(item); }}
+                  aria-label="전체화면 미리보기 열기"
+                  sx={roundActionBtnSx}
+                >
+                  <FullscreenIcon sx={{ fontSize: 12.6 }} />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Box>
         </Box>
 
         {/* 업뎃 + depth 경로: 같은 줄, 같은 글씨 크기 */}
@@ -196,52 +235,23 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
           </Box>
         )}
 
-        {/* 디바이스 토글 + 작은 PC/MO % (Row 1) + 파일 보기 (Row 2, full width) */}
+        {/* 디바이스 토글 + 작은 PC/MO % (파일 보기·전체화면·북마크는 상단 버튼 그룹으로 이동) */}
         {(() => {
           const pcVal = item.progressPc ?? 0;
           const moVal = item.progressMobile ?? 0;
           const pcColor = pcVal >= 100 ? COLORS.success : pcVal === 0 ? COLORS.error : COLORS.primary;
           const moColor = moVal >= 100 ? COLORS.success : moVal === 0 ? COLORS.error : COLORS.primary;
           return (
-            <Box className="reveal-up-sm" style={inner(5)} sx={{ display: 'flex', flexDirection: 'column', gap: '10px', pt: '4px' }}>
-              {/* Row 1: 디바이스 토글 (좌) + PC/MO % (우) */}
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap', rowGap: '6px' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  {item.path ? <PathPreviewIcons path={item.path} previewEnabled /> : null}
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: 10, lineHeight: 1, color: COLORS.gray600, fontWeight: 600, ml: 'auto' }}>
-                  <Box component="span" sx={{ color: COLORS.gray500, letterSpacing: '0.04em' }}>PC</Box>
-                  <Box component="span" sx={{ color: pcColor, fontWeight: 700 }}>{pcVal}%</Box>
-                  <Box component="span" sx={{ color: COLORS.gray400 }}>·</Box>
-                  <Box component="span" sx={{ color: COLORS.gray500, letterSpacing: '0.04em' }}>MO</Box>
-                  <Box component="span" sx={{ color: moColor, fontWeight: 700 }}>{moVal}%</Box>
-                </Box>
+            <Box className="reveal-up-sm" style={inner(5)} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap', rowGap: '6px', pt: '4px' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                {item.path ? <PathPreviewIcons path={item.path} previewEnabled /> : null}
               </Box>
-
-              {/* Row 2: 파일 보기 — 풀-폭 CTA */}
-              <Box
-                component={item.path ? 'a' : 'button'}
-                href={item.path || undefined}
-                target={item.path ? '_blank' : undefined}
-                rel={item.path ? 'noreferrer' : undefined}
-                sx={{
-                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                  width: '100%',
-                  bgcolor: '#111', color: 'background.paper', textDecoration: 'none',
-                  border: 'none', cursor: item.path ? 'pointer' : 'not-allowed',
-                  opacity: item.path ? 1 : 0.4, fontFamily: 'inherit',
-                  fontSize: 13, fontWeight: 700,
-                  px: '16px', py: '10px', borderRadius: '12px',
-                  lineHeight: 1, transition: 'transform 0.15s, box-shadow 0.15s, background 0.2s',
-                  '&:hover': {
-                    bgcolor: item.path ? '#333' : '#111',
-                    transform: item.path ? 'translateY(-1px)' : 'none',
-                    boxShadow: item.path ? '0 6px 14px rgba(0,0,0,0.18)' : 'none',
-                  },
-                }}
-              >
-                파일 보기
-                <ArrowOutwardIcon sx={{ fontSize: 14 }} />
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: 10, lineHeight: 1, color: COLORS.gray600, fontWeight: 600, ml: 'auto' }}>
+                <Box component="span" sx={{ color: COLORS.gray500, letterSpacing: '0.04em' }}>PC</Box>
+                <Box component="span" sx={{ color: pcColor, fontWeight: 700 }}>{pcVal}%</Box>
+                <Box component="span" sx={{ color: COLORS.gray400 }}>·</Box>
+                <Box component="span" sx={{ color: COLORS.gray500, letterSpacing: '0.04em' }}>MO</Box>
+                <Box component="span" sx={{ color: moColor, fontWeight: 700 }}>{moVal}%</Box>
               </Box>
             </Box>
           );
