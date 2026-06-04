@@ -168,8 +168,19 @@ interface TableSection {
 
 ## 변경 이력
 
-### 2026-06-04 — 썸네일 카드 액션 버튼 정비 ([SectionTable.tsx](src/components/SectionTable.tsx))
+### 2026-06-04
 
+**썸네일 카드 액션 버튼 정비** ([SectionTable.tsx](src/components/SectionTable.tsx))
 - 북마크·파일 보기·전체화면 미리보기 버튼을 카드 하단 제목 줄 우측 상단에 원형 그룹으로 통합.
 - 버튼 스타일을 흰 바탕·그레이 테두리·그레이 아이콘으로 변경(호버 시 검정 바탕·흰 아이콘으로 반전).
 - 전체화면 아이콘을 `FullscreenIcon` → `OpenInFullIcon`으로 교체하고 중앙 정렬.
+
+**미리보기 다이얼로그 다크 뷰어 통일** ([FullscreenPreviewDialog.tsx](src/components/dialogs/FullscreenPreviewDialog.tsx), [ComparePreviewDialog.tsx](src/components/dialogs/ComparePreviewDialog.tsx))
+- 단일/비교 미리보기 창을 어두운 톤으로 통일(헤더 `#161C24`, 배경 `#0B0E11`, 백드롭 `rgba(0,0,0,0.92)`).
+- 타이틀·경로는 흰색/밝은 회색, 디바이스 토글·새 탭·닫기·새로고침 아이콘은 흰색 계열로 가독성 개선.
+
+**배포 캐시 문제 대응** ([public/.htaccess](public/.htaccess), [vite.config.ts](vite.config.ts))
+- "빌드 웹에서 정렬 안 됨" 원인은 코드 버그가 아니라 **브라우저가 잡고 있던 옛 번들 캐시**였음(데스크탑·라이브 실측으로 확인, 시크릿 창에선 정상). 운영 서버 m16.co.kr이 index.html에 캐시 헤더를 안 보내는 게 근본 원인.
+- Apache용 `.htaccess` 추가 → index.html/SW 스크립트는 `no-cache`, 해시 박힌 자산은 1년 영구 캐시. `<IfModule>` 가드로 안전 처리(단 `AllowOverride None`이면 .htaccess 자체가 막힐 수 있으니 업로드 후 200 확인).
+- 실제 적용은 새 `dist/`를 m16.co.kr에 수동 업로드해야 함(GitHub Pages 배포와 별개).
+- vite.config.ts의 잘못된 PWA 주석(`devOptions.enabled: false`인데 "dev에서도 등록"이라 적힘) 수정.

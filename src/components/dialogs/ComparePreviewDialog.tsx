@@ -92,14 +92,17 @@ export default function ComparePreviewDialog({ open, onClose, items }: Props) {
       open={open}
       onClose={onClose}
       fullScreen
-      slotProps={{ paper: { sx: { bgcolor: 'background.default' } } }}
+      slotProps={{
+        paper: { sx: { bgcolor: '#0B0E11' } },
+        backdrop: { sx: { bgcolor: 'rgba(0,0,0,0.92)' } },
+      }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', px: '20px', py: '12px', borderBottom: '1px solid', borderColor: 'divider', flexShrink: 0 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', px: '20px', py: '12px', borderBottom: '1px solid', borderColor: 'rgba(255,255,255,0.12)', bgcolor: '#161C24', flexShrink: 0 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <Typography sx={{ fontSize: 16, fontWeight: 700, color: 'text.primary' }}>
+          <Typography sx={{ fontSize: 16, fontWeight: 700, color: 'common.white' }}>
             미리보기 비교
           </Typography>
-          <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
+          <Typography sx={{ fontSize: 12, color: 'rgba(255,255,255,0.65)' }}>
             {items.length}개 항목
           </Typography>
         </Box>
@@ -110,6 +113,14 @@ export default function ComparePreviewDialog({ open, onClose, items }: Props) {
           exclusive
           onChange={(_, v) => { if (v) setDevice(v as Device); }}
           aria-label="비교 미리보기 디바이스 선택"
+          sx={{
+            '& .MuiToggleButton-root': {
+              color: 'rgba(255,255,255,0.7)',
+              borderColor: 'rgba(255,255,255,0.2)',
+              '&:hover': { bgcolor: 'rgba(255,255,255,0.08)' },
+              '&.Mui-selected': { color: 'common.white', bgcolor: 'rgba(255,255,255,0.16)', '&:hover': { bgcolor: 'rgba(255,255,255,0.24)' } },
+            },
+          }}
         >
           <ToggleButton value="pc" aria-label="PC 화면"><DesktopWindowsOutlinedIcon sx={{ fontSize: 18 }} /></ToggleButton>
           <ToggleButton value="tablet" aria-label="태블릿 화면"><TabletMacOutlinedIcon sx={{ fontSize: 18 }} /></ToggleButton>
@@ -125,17 +136,17 @@ export default function ComparePreviewDialog({ open, onClose, items }: Props) {
             />
           }
           label="동시 스크롤"
-          slotProps={{ typography: { sx: { fontSize: 12, color: 'text.secondary' } } }}
+          slotProps={{ typography: { sx: { fontSize: 12, color: 'rgba(255,255,255,0.65)' } } }}
           sx={{ m: 0, ml: '4px' }}
         />
 
         <Tooltip title="모든 미리보기 동시 새로고침" arrow>
-          <IconButton onClick={reloadAll} aria-label="모든 미리보기 새로고침">
+          <IconButton onClick={reloadAll} aria-label="모든 미리보기 새로고침" sx={{ color: 'rgba(255,255,255,0.85)', '&:hover': { color: 'common.white', bgcolor: 'rgba(255,255,255,0.08)' } }}>
             <RefreshIcon />
           </IconButton>
         </Tooltip>
 
-        <IconButton onClick={onClose} aria-label="비교 미리보기 닫기">
+        <IconButton onClick={onClose} aria-label="비교 미리보기 닫기" sx={{ color: 'common.white', '&:hover': { bgcolor: 'rgba(255,255,255,0.12)' } }}>
           <CloseIcon />
         </IconButton>
       </Box>
@@ -159,19 +170,19 @@ export default function ComparePreviewDialog({ open, onClose, items }: Props) {
               display: 'flex',
               flexDirection: 'column',
               border: '1px solid',
-              borderColor: 'divider',
+              borderColor: 'rgba(255,255,255,0.12)',
               borderRadius: '12px',
               overflow: 'hidden',
-              bgcolor: 'background.paper',
+              bgcolor: '#0B0E11',
               minHeight: 0,
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', px: '12px', py: '8px', bgcolor: 'action.hover', borderBottom: '1px solid', borderColor: 'divider', flexShrink: 0 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', px: '12px', py: '8px', bgcolor: '#161C24', borderBottom: '1px solid', borderColor: 'rgba(255,255,255,0.12)', flexShrink: 0 }}>
               <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'common.white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {item.pageTitle || item.id}
                 </Typography>
-                <Typography sx={{ fontSize: 11, color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <Typography sx={{ fontSize: 11, color: 'rgba(255,255,255,0.65)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {item.path}
                 </Typography>
               </Box>
@@ -183,7 +194,7 @@ export default function ComparePreviewDialog({ open, onClose, items }: Props) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={`${item.pageTitle || item.id} 새 탭에서 열기`}
-                  sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main' } }}
+                  sx={{ color: 'rgba(255,255,255,0.85)', '&:hover': { color: 'common.white', bgcolor: 'rgba(255,255,255,0.08)' } }}
                 >
                   <OpenInNewIcon sx={{ fontSize: 16 }} />
                 </IconButton>
@@ -202,7 +213,7 @@ export default function ComparePreviewDialog({ open, onClose, items }: Props) {
                   allowScroll
                 />
               ) : (
-                <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'text.disabled', fontSize: 13 }}>
+                <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>
                   미리보기 없음
                 </Box>
               )}
