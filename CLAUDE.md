@@ -190,3 +190,11 @@ interface TableSection {
 - Apache용 `.htaccess` 추가 → index.html/SW 스크립트는 `no-cache`, 해시 박힌 자산은 1년 영구 캐시. `<IfModule>` 가드로 안전 처리(단 `AllowOverride None`이면 .htaccess 자체가 막힐 수 있으니 업로드 후 200 확인).
 - 실제 적용은 새 `dist/`를 m16.co.kr에 수동 업로드해야 함(GitHub Pages 배포와 별개).
 - vite.config.ts의 잘못된 PWA 주석(`devOptions.enabled: false`인데 "dev에서도 등록"이라 적힘) 수정.
+
+**배경 그라데이션 및 오로라 블롭 애니메이션 구현** ([index.css](src/index.css))
+- GPU 가속 가상 요소(`::before`, `::after`)를 활용한 4개 컬러 블롭의 유기적 흐름 애니메이션 추가.
+- 라이트 모드(투명도 70%)와 다크 모드(색상 블롭 투명도 20~25%)에 어울리는 최적화된 그라데이션 설정.
+- 선형 그라데이션의 회전 이동 주기(12초) 및 개별 블롭 이동 주기(5s~8s)를 조정하여 약 2배 빠른 속도의 역동적인 배경 효과 구현.
+
+**AI 에이전트 한국어 대응 지침 추가** ([CLAUDE.md](CLAUDE.md))
+- 파일 최상단에 모든 AI 에이전트가 답변, 설명 및 커밋 메시지 작성 시 반드시 한국어만 사용하도록 규칙 명시.
