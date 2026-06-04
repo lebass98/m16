@@ -56,6 +56,7 @@ import { useRecentlyViewed } from './hooks/useRecentlyViewed';
 import { useSelection } from './hooks/useSelection';
 import { useProgressOverrides, applyOverrides } from './hooks/useProgressOverrides';
 import { readUrlState, writeUrlState, shareableUrl } from './utils/urlState';
+import OnboardingTour from './components/OnboardingTour';
 
 import './App.css';
 
@@ -103,6 +104,18 @@ export default function App() {
   const [sortBy, setSortBy] = usePersistedState<SortKey>('sortBy', INITIAL_URL_STATE.sortBy ?? 'no', {
     validate: (v) => (isSortKey(v) ? v : 'no'),
   });
+
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = usePersistedState<boolean>('hasCompletedOnboarding', false);
+  const [runOnboarding, setRunOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (!hasCompletedOnboarding) {
+      const timer = setTimeout(() => {
+        setRunOnboarding(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [hasCompletedOnboarding]);
 
   useEffect(() => { document.documentElement.setAttribute('data-color-scheme', darkMode ? 'dark' : 'light'); }, [darkMode]);
   useEffect(() => { document.documentElement.setAttribute('data-contrast', contrast); }, [contrast]);
@@ -802,6 +815,7 @@ export default function App() {
             onSelectFontFamily={setFontFamily}
             contrast={contrast}
             onSelectContrast={setContrast}
+            onStartTour={() => setRunOnboarding(true)}
           />
         )}
       </Suspense>
@@ -812,6 +826,14 @@ export default function App() {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         onClose={() => setCopyToast(null)}
         autoHideDuration={2200}
+      />
+
+      <OnboardingTour
+        active={runOnboarding}
+        onClose={() => {
+          setRunOnboarding(false);
+          setHasCompletedOnboarding(true);
+        }}
       />
     </ThemeProvider>
   );

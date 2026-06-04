@@ -63,6 +63,7 @@ export default function RightPanel({
     <Box
       component="aside"
       aria-label="진행도 요약 패널"
+      id="onboarding-right-panel"
       sx={{
         width: { md: 280, lg: 320 }, flexShrink: 0,
         display: hidden ? 'none' : 'flex', flexDirection: 'column', gap: 'var(--card-gap, 20px)',

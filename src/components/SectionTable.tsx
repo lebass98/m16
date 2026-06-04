@@ -67,7 +67,7 @@ const roundActionBtnSx = {
   },
 } as const;
 
-function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmark, latestDate, cardIndex = 0, device = 'pc', selectMode = false, isSelected = false, onToggleSelect, onOpenFullscreen }: {
+function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmark, latestDate, cardIndex = 0, device = 'pc', selectMode = false, isSelected = false, onToggleSelect, onOpenFullscreen, id }: {
   item: TableItem;
   section: TableSection;
   sectionIndex: number;
@@ -81,6 +81,7 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
   isSelected?: boolean;
   onToggleSelect?: (id: string) => void;
   onOpenFullscreen?: (item: TableItem) => void;
+  id?: string;
 }) {
   const { palette } = useTheme();
   const mode = palette.mode;
@@ -96,6 +97,7 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
     <Card
       variant="outlined"
       className="card-enter"
+      id={id}
       style={{ animationDelay: `${baseDelay}ms` }}
       sx={{
         ...glassPanelSx,
@@ -507,7 +509,7 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
 
   return (
     <Paper
-      id={`section-${sectionIndex}`}
+      id={sectionIndex === 0 ? "onboarding-card-list" : `section-${sectionIndex}`}
       elevation={0}
       sx={{
         ...glassPanelSx,
@@ -621,6 +623,7 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
             isSelected={selected.has(item.id)}
             onToggleSelect={onToggleSelect}
             onOpenFullscreen={onOpenFullscreen}
+            id={sectionIndex === 0 && j === 0 ? "onboarding-recipe-card" : undefined}
           />
         ))}
       </Box>

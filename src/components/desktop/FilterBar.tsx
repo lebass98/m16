@@ -15,7 +15,7 @@ interface Props {
 
 export default function FilterBar({ sectionFilterCount, sortBy, latestDate, progressRange, onChangeProgressRange }: Props) {
   return (
-    <GlassCard className="reveal-up" style={{ animationDelay: '40ms' }} sx={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', p: { md: '12px 14px', lg: '16px 20px' } }}>
+    <GlassCard id="onboarding-filter-bar" className="reveal-up" style={{ animationDelay: '40ms' }} sx={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', p: { md: '12px 14px', lg: '16px 20px' } }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, flexWrap: 'wrap', minWidth: 0 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px', bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.12)', px: '10px', py: '6px', borderRadius: '8px' }}>
           <LocationOnOutlinedIcon sx={{ fontSize: 14, color: 'text.secondary' }} />

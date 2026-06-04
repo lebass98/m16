@@ -43,6 +43,8 @@ interface Props {
   // Color (좌측 사이드바 대비)
   contrast: 'default' | 'hot';
   onSelectContrast: (v: 'default' | 'hot') => void;
+  // 온보딩 가이드 다시 시작
+  onStartTour: () => void;
 }
 
 interface ToggleCardProps {
@@ -168,6 +170,7 @@ export default function SettingsDrawer({
   fontSize, onChangeFontSize,
   fontFamily, onSelectFontFamily,
   contrast, onSelectContrast,
+  onStartTour,
 }: Props) {
   const theme = useTheme();
 
@@ -425,6 +428,29 @@ export default function SettingsDrawer({
               },
             }}
           />
+        </Box>
+
+        {/* 가이드 — 온보딩 다시보기 */}
+        <SectionLabel info="처음 방문 시 제공되는 도움말 가이드">가이드</SectionLabel>
+        <Box
+          onClick={() => {
+            onClose();
+            onStartTour();
+          }}
+          sx={{
+            cursor: 'pointer',
+            p: '14px',
+            borderRadius: '12px',
+            border: '1px solid rgb(var(--palette-grey-500Channel) / 0.16)',
+            bgcolor: 'background.paper',
+            textAlign: 'center',
+            '&:hover': { borderColor: 'primary.main', bgcolor: alpha(theme.palette.primary.main, 0.04) },
+            transition: 'background 0.15s, border-color 0.15s'
+          }}
+        >
+          <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'primary.main' }}>
+            도움말 가이드 다시 보기
+          </Typography>
         </Box>
       </Box>
     </Drawer>

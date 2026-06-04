@@ -34,6 +34,7 @@ export default function LeftSidebar({
       <Box
         component="nav"
         className="app-left-nav"
+        id="onboarding-sidebar-nav"
         aria-label="사이트 네비게이션"
         sx={{ width: effectiveCollapsed ? 88 : 260, transition: 'width 0.25s ease', flexShrink: 0, bgcolor: 'background.paper', backdropFilter: 'var(--glass-blur)', WebkitBackdropFilter: 'var(--glass-blur)', color: 'text.primary', display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, height: '100vh', overflowY: 'auto', overflowX: 'hidden', borderRight: '1px solid rgba(255,255,255,0.18)' }}
       >
@@ -43,6 +44,7 @@ export default function LeftSidebar({
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenSiteModal(); } }}
             role="button"
             tabIndex={0}
+            id="onboarding-site-selector"
             aria-label={`${siteTitle} 사이트 변경`}
             sx={{ display: 'flex', alignItems: 'center', gap: '12px', m: '16px', p: '12px', borderRadius: '12px', bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.08)', cursor: 'pointer', justifyContent: effectiveCollapsed ? 'center' : 'flex-start', '&:hover': { bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.16)' }, '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 } }}
           >
