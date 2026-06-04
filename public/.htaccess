@@ -1,0 +1,31 @@
+# 캐시 정책 (Apache) — 빌드 시 Vite가 dist/ 루트로 복사합니다.
+#
+# 목적: index.html은 항상 새로 받아 최신 JS 번들을 가리키게 하고(옛 캐시로 인한
+#       "정렬·기능이 안 됨" 방지), 해시가 박힌 정적 자산은 영구 캐시해 빠르게.
+#
+# 안전장치: 모든 지시문을 <IfModule>로 감싸 해당 모듈이 없어도 500이 나지 않습니다.
+#           단, 이 서버의 AllowOverride가 None이면 .htaccess 자체가 막혀 500이 날 수
+#           있으니, 업로드 후 사이트가 정상(200)으로 뜨는지 한 번 확인하세요.
+#           문제가 생기면 이 파일만 지우면 즉시 원상복구됩니다.
+
+# index.html / 서비스워커 등록 스크립트 / 매니페스트 → 항상 재검증
+<FilesMatch "(^|/)(index\.html|registerSW\.js|sw\.js|manifest\.webmanifest)$">
+  <IfModule mod_headers.c>
+    Header set Cache-Control "no-cache, must-revalidate"
+    Header set Pragma "no-cache"
+  </IfModule>
+</FilesMatch>
+
+# 해시가 박힌 정적 자산 → 1년 영구 캐시 (immutable)
+<FilesMatch "\.(js|css|woff2?|ttf|svg|png|jpe?g|webp|gif|ico)$">
+  <IfModule mod_headers.c>
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </IfModule>
+</FilesMatch>
+
+# 단, 위 자산 규칙에서 index 류는 다시 no-cache로 (FilesMatch는 마지막 매칭이 우선)
+<FilesMatch "(^|/)(registerSW\.js|sw\.js)$">
+  <IfModule mod_headers.c>
+    Header set Cache-Control "no-cache, must-revalidate"
+  </IfModule>
+</FilesMatch>

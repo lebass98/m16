@@ -10,7 +10,8 @@ export default defineConfig({
     babel({ presets: [reactCompilerPreset({ target: '19' })] }),
     VitePWA({
       registerType: 'autoUpdate',
-      // dev에서도 service worker 등록 → 로컬에서 PWA 동작 확인 가능
+      // dev에서는 service worker 비활성(devOptions.enabled: false) → PWA 캐싱은 빌드/프리뷰에서만 동작.
+      // 로컬에서 PWA를 확인하려면 enabled: true 로 바꾸거나 `npm run build && npm run preview` 사용.
       devOptions: { enabled: false },
       includeAssets: ['favicon.svg'],
       manifest: {
