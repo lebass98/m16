@@ -17,12 +17,21 @@
   --glass-border: 1px solid rgba(255, 255, 255, 0.18);
   --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.12);
 
-  /* Light mode variables */
-  --html-bg: linear-gradient(135deg, #f5f7fa 0%, #e8eefc 100%);
-  --blob-color-1: rgba(255, 154, 158, 0.7);
-  --blob-color-2: rgba(120, 198, 255, 0.7);
-  --blob-color-3: rgba(255, 206, 137, 0.6);
-  --blob-color-4: rgba(168, 138, 255, 0.7);
+  /* Light mode - default/familynet (Pastel background / logo brand colors) */
+  --html-bg: linear-gradient(135deg, #f9f6f5 0%, #e9f3f3 50%, #f1eef1 100%);
+  --blob-color-1: rgba(234, 80, 44, 0.4);
+  --blob-color-2: rgba(243, 153, 30, 0.4);
+  --blob-color-3: rgba(114, 90, 164, 0.4);
+  --blob-color-4: rgba(17, 181, 185, 0.4);
+}
+
+/* Light mode - okchf (Heritage cream background / brand logo colors) */
+html[data-site='okchf'] {
+  --html-bg: linear-gradient(135deg, #F5F3EC 0%, #EFCEA0 50%, #BC9B7D 100%);
+  --blob-color-1: rgba(0, 82, 164, 0.4);
+  --blob-color-2: rgba(230, 10, 18, 0.3);
+  --blob-color-3: rgba(188, 155, 125, 0.5);
+  --blob-color-4: rgba(160, 130, 102, 0.5);
 }
 
 /* Light mode — make paper / default translucent so body gradient shows through */
@@ -32,6 +41,7 @@ html:not([data-color-scheme='dark']) {
   --palette-background-default: transparent;
 }
 
+/* Dark mode - default/familynet */
 html[data-color-scheme='dark'] {
   --glass-border: 1px solid rgba(255, 255, 255, 0.06);
   --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
@@ -39,11 +49,20 @@ html[data-color-scheme='dark'] {
   --palette-background-default: transparent;
 
   /* Dark mode overrides */
-  --html-bg: linear-gradient(135deg, #0a0a0a 0%, #141414 50%, #0a0a0a 100%);
-  --blob-color-1: rgba(255, 99, 132, 0.25);
-  --blob-color-2: rgba(54, 162, 235, 0.25);
-  --blob-color-3: rgba(255, 206, 86, 0.2);
-  --blob-color-4: rgba(153, 102, 255, 0.25);
+  --html-bg: linear-gradient(135deg, #120e0d 0%, #0d1212 50%, #100d10 100%);
+  --blob-color-1: rgba(234, 80, 44, 0.15);
+  --blob-color-2: rgba(243, 153, 30, 0.15);
+  --blob-color-3: rgba(114, 90, 164, 0.15);
+  --blob-color-4: rgba(17, 181, 185, 0.15);
+}
+
+/* Dark mode - okchf */
+html[data-color-scheme='dark'][data-site='okchf'] {
+  --html-bg: linear-gradient(135deg, #100f0a 0%, #1b150c 50%, #0c0805 100%);
+  --blob-color-1: rgba(0, 82, 164, 0.15);
+  --blob-color-2: rgba(230, 10, 18, 0.12);
+  --blob-color-3: rgba(188, 155, 125, 0.15);
+  --blob-color-4: rgba(160, 130, 102, 0.15);
 }
 
 @keyframes moveLinearGradient {
@@ -89,7 +108,7 @@ html {
   background-size: 200% 200%;
   background-attachment: fixed;
   overflow-x: hidden;
-  animation: moveLinearGradient 12s infinite ease-in-out;
+  animation: moveLinearGradient 6s infinite ease-in-out;
 }
 
 body {
@@ -108,7 +127,7 @@ body::before {
   left: -600px;
   z-index: -4;
   background: radial-gradient(circle, var(--blob-color-1) 0%, transparent 60%);
-  animation: floatBlob1 6s infinite linear;
+  animation: floatBlob1 3s infinite linear;
   pointer-events: none;
   user-select: none;
 }
@@ -122,7 +141,7 @@ body::after {
   left: -600px;
   z-index: -3;
   background: radial-gradient(circle, var(--blob-color-2) 0%, transparent 60%);
-  animation: floatBlob2 5s infinite linear;
+  animation: floatBlob2 2.5s infinite linear;
   pointer-events: none;
   user-select: none;
 }
@@ -136,7 +155,7 @@ html::before {
   left: -600px;
   z-index: -2;
   background: radial-gradient(circle, var(--blob-color-3) 0%, transparent 60%);
-  animation: floatBlob3 8s infinite linear;
+  animation: floatBlob3 4s infinite linear;
   pointer-events: none;
   user-select: none;
 }
@@ -150,7 +169,7 @@ html::after {
   left: -600px;
   z-index: -1;
   background: radial-gradient(circle, var(--blob-color-4) 0%, transparent 60%);
-  animation: floatBlob4 5s infinite linear;
+  animation: floatBlob4 2.5s infinite linear;
   pointer-events: none;
   user-select: none;
 }

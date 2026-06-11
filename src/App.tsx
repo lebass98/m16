@@ -119,6 +119,7 @@ export default function App() {
 
   useEffect(() => { document.documentElement.setAttribute('data-color-scheme', darkMode ? 'dark' : 'light'); }, [darkMode]);
   useEffect(() => { document.documentElement.setAttribute('data-contrast', contrast); }, [contrast]);
+  useEffect(() => { document.documentElement.setAttribute('data-site', site.key); }, [site.key]);
   useEffect(() => { applyFontScale(fontSize); }, [fontSize]);
 
   // 데스크탑 레이아웃은 md(900px)+에서 활성화되지만, 900~1199px(=lg 미만) 구간에서는
