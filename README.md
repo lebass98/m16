@@ -6,6 +6,14 @@ Minimals UI를 참고한 글래스모피즘 레이아웃을 기반으로, 데스
 
 ---
 
+## 🗂️ 등록된 워크스페이스 (프로젝트)
+
+현재 대시보드에 연동된 프로젝트 목록입니다. 상단 사이트 선택 아이콘을 통해 손쉽게 전환할 수 있습니다:
+1. **한국건강가정진흥원 (`familynet`)** — 가족 지원 서비스 URL 목록 ([tableData.ts](file:///Users/kmac4_home/WordNcode/React/www/m16/src/data/tableData.ts))
+2. **국외소재문화유산재단 (`okchf`)** — 국외소재문화유산재단 sitemap URL 목록 ([okchfData.ts](file:///Users/kmac4_home/WordNcode/React/www/m16/src/data/okchfData.ts)) (신규 추가)
+
+---
+
 ## ✨ 주요 기능
 
 ### 페이지 관리
@@ -98,7 +106,8 @@ url-index/
 │   │   └── PathLink.tsx          # URL 링크 표시
 │   ├── data/
 │   │   ├── sites.ts              # 사이트(워크스페이스) 정의
-│   │   ├── tableData.ts          # 메인 페이지 데이터
+│   │   ├── tableData.ts          # 메인 페이지 데이터 (한국건강가정진흥원)
+│   │   ├── okchfData.ts          # 국외소재문화유산재단 sitemap 데이터 (신규 추가)
 │   │   ├── tableData2.ts         # 추가 데이터
 │   │   ├── tableData_epaa.ts     # 보조 데이터
 │   │   └── parseSheetCsv.ts      # 구글 시트 CSV 로더

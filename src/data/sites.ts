@@ -1,5 +1,6 @@
 import type { TableSection } from '../types';
 import { tableData } from './tableData';
+import { okchfData } from './okchfData';
 
 export interface SiteConfig {
   key: string;
@@ -30,4 +31,12 @@ export const sites: SiteConfig[] = [
     description: '가족 지원 서비스 URL 목록',
     // sheetCsvUrl: '여기에 게시된 CSV URL',
   },
+  {
+    key: 'okchf',
+    title: '국외소재문화유산재단',
+    data: okchfData,
+    color: '#1a9a83',
+    description: '국외소재문화유산재단 sitemap URL 목록',
+  },
 ];
+
