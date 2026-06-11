@@ -143,6 +143,18 @@ const MuiRadio: Components<Theme>['MuiRadio'] = {
   },
 };
 
+const MuiModal: Components<Theme>['MuiModal'] = {
+  defaultProps: {
+    disableScrollLock: true,
+  },
+};
+
+const MuiPopover: Components<Theme>['MuiPopover'] = {
+  defaultProps: {
+    disableScrollLock: true,
+  },
+};
+
 // ----------------------------------------------------------------------
 
 export const components = {
@@ -158,4 +170,6 @@ export const components = {
   MuiCardHeader,
   MuiOutlinedInput,
   MuiFormControlLabel,
+  MuiModal,
+  MuiPopover,
 };
