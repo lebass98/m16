@@ -65,50 +65,43 @@ html[data-color-scheme='dark'][data-site='okchf'] {
   --blob-color-4: rgba(160, 130, 102, 0.15);
 }
 
-@keyframes moveLinearGradient {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
 @keyframes floatBlob1 {
-  0% { transform: translate(18vw, 12vh); }
-  25% { transform: translate(30vw, 25vh); }
-  50% { transform: translate(45vw, 10vh); }
-  75% { transform: translate(25vw, 30vh); }
-  100% { transform: translate(18vw, 12vh); }
+  0% { transform: translate3d(18vw, 12vh, 0); }
+  25% { transform: translate3d(30vw, 25vh, 0); }
+  50% { transform: translate3d(45vw, 10vh, 0); }
+  75% { transform: translate3d(25vw, 30vh, 0); }
+  100% { transform: translate3d(18vw, 12vh, 0); }
 }
 
 @keyframes floatBlob2 {
-  0% { transform: translate(82vw, 18vh); }
-  25% { transform: translate(70vw, 30vh); }
-  50% { transform: translate(60vw, 45vh); }
-  75% { transform: translate(85vw, 15vh); }
-  100% { transform: translate(82vw, 18vh); }
+  0% { transform: translate3d(82vw, 18vh, 0); }
+  25% { transform: translate3d(70vw, 30vh, 0); }
+  50% { transform: translate3d(60vw, 45vh, 0); }
+  75% { transform: translate3d(85vw, 15vh, 0); }
+  100% { transform: translate3d(82vw, 18vh, 0); }
 }
 
 @keyframes floatBlob3 {
-  0% { transform: translate(24vw, 88vh); }
-  25% { transform: translate(15vw, 70vh); }
-  50% { transform: translate(35vw, 80vh); }
-  75% { transform: translate(40vw, 65vh); }
-  100% { transform: translate(24vw, 88vh); }
+  0% { transform: translate3d(24vw, 88vh, 0); }
+  25% { transform: translate3d(15vw, 70vh, 0); }
+  50% { transform: translate3d(35vw, 80vh, 0); }
+  75% { transform: translate3d(40vw, 65vh, 0); }
+  100% { transform: translate3d(24vw, 88vh, 0); }
 }
 
 @keyframes floatBlob4 {
-  0% { transform: translate(78vw, 78vh); }
-  25% { transform: translate(85vw, 65vh); }
-  50% { transform: translate(65vw, 85vh); }
-  75% { transform: translate(70vw, 70vh); }
-  100% { transform: translate(78vw, 78vh); }
+  0% { transform: translate3d(78vw, 78vh, 0); }
+  25% { transform: translate3d(85vw, 65vh, 0); }
+  50% { transform: translate3d(65vw, 85vh, 0); }
+  75% { transform: translate3d(70vw, 70vh, 0); }
+  100% { transform: translate3d(78vw, 78vh, 0); }
 }
 
 html {
   background: var(--html-bg);
-  background-size: 200% 200%;
+  background-size: 100% 100%;
   background-attachment: fixed;
   overflow-x: hidden;
-  animation: moveLinearGradient 6s infinite ease-in-out;
 }
 
 body {
@@ -127,9 +120,11 @@ body::before {
   left: -600px;
   z-index: -4;
   background: radial-gradient(circle, var(--blob-color-1) 0%, transparent 60%);
-  animation: floatBlob1 3s infinite linear;
+  animation: floatBlob1 45s infinite linear;
   pointer-events: none;
   user-select: none;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
 }
 
 body::after {
@@ -141,9 +136,11 @@ body::after {
   left: -600px;
   z-index: -3;
   background: radial-gradient(circle, var(--blob-color-2) 0%, transparent 60%);
-  animation: floatBlob2 2.5s infinite linear;
+  animation: floatBlob2 60s infinite linear;
   pointer-events: none;
   user-select: none;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
 }
 
 html::before {
@@ -155,9 +152,11 @@ html::before {
   left: -600px;
   z-index: -2;
   background: radial-gradient(circle, var(--blob-color-3) 0%, transparent 60%);
-  animation: floatBlob3 4s infinite linear;
+  animation: floatBlob3 50s infinite linear;
   pointer-events: none;
   user-select: none;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
 }
 
 html::after {
@@ -169,9 +168,11 @@ html::after {
   left: -600px;
   z-index: -1;
   background: radial-gradient(circle, var(--blob-color-4) 0%, transparent 60%);
-  animation: floatBlob4 2.5s infinite linear;
+  animation: floatBlob4 55s infinite linear;
   pointer-events: none;
   user-select: none;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
 }
 
 #root {
