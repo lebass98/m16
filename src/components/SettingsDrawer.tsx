@@ -191,6 +191,7 @@ export default function SettingsDrawer({
       transitionDuration={{ enter: 320, exit: 260 }}
       slotProps={{
         paper: {
+          id: 'onboarding-settings-drawer',
           sx: {
             // 모바일: 화면의 88% — 슬라이드 거리가 시각적으로 보이고
             // 닫기 위한 좌측 backdrop 영역 확보. sm 이상은 고정 360px.

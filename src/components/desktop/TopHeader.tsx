@@ -92,6 +92,7 @@ export default function TopHeader({ siteTitle, darkMode, settingsOpen, selectMod
         </Tooltip>
         <Tooltip title="설정" arrow>
           <IconButton
+            id="onboarding-settings-button"
             onClick={onOpenSettings}
             aria-label="설정 패널 열기"
             aria-expanded={settingsOpen}

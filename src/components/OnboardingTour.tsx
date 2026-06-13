@@ -39,14 +39,27 @@ const STEPS: OnboardingStep[] = [
     content: '워크스페이스의 PC/모바일 종합 달성률 통계와 최근 방문한 페이지 목록 및 북마크 요약을 제공하여 전체 현황을 빠르게 진단합니다.',
     placement: 'left',
   },
+  {
+    targetId: 'onboarding-settings-button',
+    title: '6. 설정 메뉴',
+    content: '설정 아이콘을 눌러 화면 모드, 콘텐츠 필터, 테마 색상(프리셋), 폰트 등 앱의 디자인과 기능을 입맛에 맞게 변경할 수 있습니다.',
+    placement: 'bottom',
+  },
+  {
+    targetId: 'onboarding-settings-drawer',
+    title: '7. 설정 패널 & 화면 개인화',
+    content: '설정 패널에서는 다크 모드, 우측 사이드바 숨김, 6가지 테마 컬러(프리셋) 선택, 폰트 종류 및 본문 글자 크기 조정 등 다양한 화면 개인화 옵션을 실시간으로 구성할 수 있습니다.',
+    placement: 'left',
+  },
 ];
 
 interface OnboardingTourProps {
   active: boolean;
   onClose: () => void;
+  onStepChange?: (step: number) => void;
 }
 
-export default function OnboardingTour({ active, onClose }: OnboardingTourProps) {
+export default function OnboardingTour({ active, onClose, onStepChange }: OnboardingTourProps) {
   const theme = useTheme();
   const [step, setStep] = useState(0);
   const [rect, setRect] = useState<DOMRect | null>(null);
@@ -110,6 +123,13 @@ export default function OnboardingTour({ active, onClose }: OnboardingTourProps)
       }
     };
   }, [active, step]);
+
+  // Invoke step change callback
+  useEffect(() => {
+    if (active && onStepChange) {
+      onStepChange(step);
+    }
+  }, [step, active, onStepChange]);
 
   if (!active) return null;
 

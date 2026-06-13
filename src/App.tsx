@@ -834,6 +834,14 @@ export default function App() {
         onClose={() => {
           setRunOnboarding(false);
           setHasCompletedOnboarding(true);
+          dialogs.closeDialog('settings');
+        }}
+        onStepChange={(stepIndex) => {
+          if (stepIndex === 6) {
+            dialogs.openDialog('settings');
+          } else {
+            dialogs.closeDialog('settings');
+          }
         }}
       />
     </ThemeProvider>
