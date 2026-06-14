@@ -107,6 +107,7 @@ export default function App() {
 
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = usePersistedState<boolean>('hasCompletedOnboarding', false);
   const [runOnboarding, setRunOnboarding] = useState(false);
+  const [onboardingStep, setOnboardingStep] = useState(0);
 
   useEffect(() => {
     if (!hasCompletedOnboarding) {
@@ -116,6 +117,13 @@ export default function App() {
       return () => clearTimeout(timer);
     }
   }, [hasCompletedOnboarding]);
+
+  // Reset step to 0 when onboarding starts
+  useEffect(() => {
+    if (runOnboarding) {
+      setOnboardingStep(0);
+    }
+  }, [runOnboarding]);
 
   useEffect(() => { document.documentElement.setAttribute('data-color-scheme', darkMode ? 'dark' : 'light'); }, [darkMode]);
   useEffect(() => { document.documentElement.setAttribute('data-contrast', contrast); }, [contrast]);
@@ -135,6 +143,44 @@ export default function App() {
 
   // 다이얼로그 / 필터 / 북마크 / 최근 본 항목 / 선택 / 진행도 오버라이드 — 도메인 훅으로 그룹화
   const dialogs = useDialogs();
+
+  const isSettingsOpen = dialogs.isOpen('settings');
+
+  const prevStepRef = useRef(onboardingStep);
+  const prevSettingsOpenRef = useRef(isSettingsOpen);
+
+  // Sync onboarding tour step and settings drawer state without rendering loops
+  useEffect(() => {
+    const prevStep = prevStepRef.current;
+    const prevSettingsOpen = prevSettingsOpenRef.current;
+
+    prevStepRef.current = onboardingStep;
+    prevSettingsOpenRef.current = isSettingsOpen;
+
+    if (!runOnboarding) return;
+
+    // 1. If onboardingStep was changed (e.g., Next/Back buttons in tour)
+    if (onboardingStep !== prevStep) {
+      if (onboardingStep === 6 && !isSettingsOpen) {
+        dialogs.openDialog('settings');
+      } else if (onboardingStep !== 6 && isSettingsOpen) {
+        dialogs.closeDialog('settings');
+      }
+    }
+    // 2. If isSettingsOpen was changed (e.g., user opened/closed settings drawer manually)
+    else if (isSettingsOpen !== prevSettingsOpen) {
+      if (isSettingsOpen) {
+        if (onboardingStep === 5) {
+          setOnboardingStep(6);
+        }
+      } else {
+        if (onboardingStep === 6) {
+          setOnboardingStep(5);
+        }
+      }
+    }
+  }, [onboardingStep, isSettingsOpen, runOnboarding, dialogs]);
+
   const filters = useFilters({
     searchFilter: INITIAL_URL_STATE.searchFilter,
     progressRange: INITIAL_URL_STATE.progressRange,
@@ -831,17 +877,12 @@ export default function App() {
 
       <OnboardingTour
         active={runOnboarding}
+        step={onboardingStep}
+        setStep={setOnboardingStep}
         onClose={() => {
           setRunOnboarding(false);
           setHasCompletedOnboarding(true);
           dialogs.closeDialog('settings');
-        }}
-        onStepChange={(stepIndex) => {
-          if (stepIndex === 6) {
-            dialogs.openDialog('settings');
-          } else {
-            dialogs.closeDialog('settings');
-          }
         }}
       />
     </ThemeProvider>

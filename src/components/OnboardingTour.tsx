@@ -55,22 +55,23 @@ const STEPS: OnboardingStep[] = [
 
 interface OnboardingTourProps {
   active: boolean;
+  step: number;
+  setStep: React.Dispatch<React.SetStateAction<number>>;
   onClose: () => void;
-  onStepChange?: (step: number) => void;
 }
 
-export default function OnboardingTour({ active, onClose, onStepChange }: OnboardingTourProps) {
+export default function OnboardingTour({ active, step, setStep, onClose }: OnboardingTourProps) {
   const theme = useTheme();
-  const [step, setStep] = useState(0);
   const [rect, setRect] = useState<DOMRect | null>(null);
   const scrollDebounceRef = useRef<number | null>(null);
 
   const updateSpotlight = () => {
     const currentStep = STEPS[step];
-    const el = document.getElementById(currentStep.targetId);
-    if (el) {
+    // Find all elements with the target ID to handle duplicates (e.g. settings button in mobile/desktop headers)
+    const elements = document.querySelectorAll(`[id="${currentStep.targetId}"]`);
+    for (let i = 0; i < elements.length; i++) {
+      const el = elements[i] as HTMLElement;
       const elRect = el.getBoundingClientRect();
-      // Only set rect if element is visible and has width/height
       if (elRect.width > 0 && elRect.height > 0) {
         setRect(elRect);
         return;
@@ -124,12 +125,7 @@ export default function OnboardingTour({ active, onClose, onStepChange }: Onboar
     };
   }, [active, step]);
 
-  // Invoke step change callback
-  useEffect(() => {
-    if (active && onStepChange) {
-      onStepChange(step);
-    }
-  }, [step, active, onStepChange]);
+  // Step change side effects are now handled in the parent component (App.tsx) via useEffect hooks
 
   if (!active) return null;
 
@@ -238,7 +234,39 @@ export default function OnboardingTour({ active, onClose, onStepChange }: Onboar
     <Box sx={{ position: 'fixed', inset: 0, zIndex: 9999, pointerEvents: 'auto' }}>
       {/* Background shading click-to-skip wrapper */}
       <Box
-        onClick={onClose}
+        onClick={(e) => {
+          if (rect) {
+            const clickX = e.clientX;
+            const clickY = e.clientY;
+            const padding = 8;
+            // Check if click was inside the spotlight window (with padding)
+            if (
+              clickX >= rect.left - padding &&
+              clickX <= rect.right + padding &&
+              clickY >= rect.top - padding &&
+              clickY <= rect.bottom + padding
+            ) {
+              // Clicked inside the highlighted target element.
+              // Find the visible element and trigger click.
+              const currentStep = STEPS[step];
+              const elements = document.querySelectorAll(`[id="${currentStep.targetId}"]`);
+              let targetEl: HTMLElement | null = null;
+              for (let i = 0; i < elements.length; i++) {
+                const el = elements[i] as HTMLElement;
+                const elRect = el.getBoundingClientRect();
+                if (elRect.width > 0 && elRect.height > 0) {
+                  targetEl = el;
+                  break;
+                }
+              }
+              if (targetEl) {
+                targetEl.click();
+              }
+              return;
+            }
+          }
+          onClose();
+        }}
         sx={{
           position: 'absolute',
           inset: 0,
