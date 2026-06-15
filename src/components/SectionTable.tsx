@@ -130,31 +130,27 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
             <Box sx={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
               <PreviewFrame key={device} src={item.path} displayWidth="100%" fillHeight iframeWidth={dims.w} iframeHeight={dims.h} />
             </Box>
-            {/* 날짜 pill + 선택 오버레이 (북마크·전체화면·파일보기는 하단 정보 우측 상단으로 이동) */}
-            <Box sx={{ position: 'absolute', top: 12, left: 12, right: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 3 }}>
-              <Box sx={{ bgcolor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)', color: COLORS.gray900, px: '10px', py: '4px', borderRadius: '8px', fontSize: 11, fontWeight: 600, lineHeight: 1.4 }}>
-                {item.start || '날짜 미정'}
+            {/* 선택 오버레이 (북마크·전체화면·파일보기는 하단 정보 우측 상단으로 이동) */}
+            {selectMode && (
+              <Box sx={{ position: 'absolute', top: 12, right: 12, zIndex: 3 }}>
+                <Checkbox
+                  checked={isSelected}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={() => onToggleSelect?.(item.id)}
+                  size="small"
+                  slotProps={{ input: { 'aria-label': `${item.pageTitle || item.id} 선택` } }}
+                  sx={{
+                    bgcolor: 'rgba(255,255,255,0.95)',
+                    backdropFilter: 'blur(8px)',
+                    width: 32,
+                    height: 32,
+                    borderRadius: '8px',
+                    p: 0,
+                    '&:hover': { bgcolor: 'background.paper' },
+                  }}
+                />
               </Box>
-              <Box sx={{ display: 'flex', gap: '4px' }}>
-                {selectMode && (
-                  <Checkbox
-                    checked={isSelected}
-                    onClick={(e) => e.stopPropagation()}
-                    onChange={() => onToggleSelect?.(item.id)}
-                    size="small"
-                    slotProps={{ input: { 'aria-label': `${item.pageTitle || item.id} 선택` } }}
-                    sx={{
-                      bgcolor: 'rgba(255,255,255,0.95)',
-                      backdropFilter: 'blur(8px)',
-                      width: 32, height: 32,
-                      borderRadius: '8px',
-                      p: 0,
-                      '&:hover': { bgcolor: 'background.paper' },
-                    }}
-                  />
-                )}
-              </Box>
-            </Box>
+            )}
           </>
         ) : (
           <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.gray500, fontSize: 13 }}>
@@ -192,23 +188,6 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
               </IconButton>
             </Tooltip>
 
-            <Tooltip title="파일 보기" arrow>
-              <Box component="span" sx={{ display: 'inline-flex' }}>
-                <IconButton
-                  size="small"
-                  component={item.path ? 'a' : 'button'}
-                  href={item.path || undefined}
-                  target={item.path ? '_blank' : undefined}
-                  rel={item.path ? 'noreferrer' : undefined}
-                  disabled={!item.path}
-                  aria-label="파일 보기"
-                  sx={{ ...roundActionBtnSx, '&.Mui-disabled': { bgcolor: 'background.paper', color: 'grey.600', borderColor: 'grey.300', opacity: 0.5 } }}
-                >
-                  <ArrowOutwardIcon sx={{ fontSize: 11.2 }} />
-                </IconButton>
-              </Box>
-            </Tooltip>
-
             {onOpenFullscreen && (
               <Tooltip title="전체화면 미리보기" arrow>
                 <IconButton
@@ -221,6 +200,41 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
                 </IconButton>
               </Tooltip>
             )}
+
+            <Tooltip title="파일 보기" arrow>
+              <Box component="span" sx={{ display: 'inline-flex' }}>
+                <IconButton
+                  size="small"
+                  component={item.path ? 'a' : 'button'}
+                  href={item.path || undefined}
+                  target={item.path ? '_blank' : undefined}
+                  rel={item.path ? 'noreferrer' : undefined}
+                  disabled={!item.path}
+                  aria-label="파일 보기"
+                  sx={{
+                    ...roundActionBtnSx,
+                    bgcolor: '#111',
+                    borderColor: '#111',
+                    color: '#fff',
+                    '&:hover': {
+                      bgcolor: '#333',
+                      borderColor: '#333',
+                      color: '#fff',
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 4px 10px rgba(0,0,0,0.25)',
+                    },
+                    '&.Mui-disabled': {
+                      bgcolor: 'background.paper',
+                      color: 'grey.600',
+                      borderColor: 'grey.300',
+                      opacity: 0.5
+                    }
+                  }}
+                >
+                  <ArrowOutwardIcon sx={{ fontSize: 11.2 }} />
+                </IconButton>
+              </Box>
+            </Tooltip>
           </Box>
         </Box>
 
