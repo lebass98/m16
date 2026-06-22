@@ -12,7 +12,7 @@ type Device = 'pc' | 'tablet' | 'mobile';
 
 const DEVICE_DIMS = {
   pc: { w: 1920, h: 1080 },
-  tablet: { w: 1024, h: 768 },
+  tablet: { w: 1024, h: 728 },
   mobile: { w: 375, h: 667 },
 } as const;
 
@@ -84,17 +84,53 @@ export default function FullscreenPreviewDialog({ open, onClose, item }: Props) 
         </IconButton>
       </Box>
 
-      <Box sx={{ flex: 1, position: 'relative', overflow: 'hidden', bgcolor: '#0B0E11', minHeight: 0 }}>
+      <Box sx={{
+        flex: 1,
+        position: 'relative',
+        overflow: 'auto',
+        bgcolor: '#0B0E11',
+        minHeight: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        p: device === 'pc' ? 0 : 3,
+      }}>
         {item.path ? (
-          <PreviewFrame
-            key={`${item.id}-${device}`}
-            src={item.path}
-            displayWidth="100%"
-            fillHeight
-            iframeWidth={dims.w}
-            iframeHeight={dims.h}
-            allowScroll
-          />
+          device === 'pc' ? (
+            <PreviewFrame
+              key={`${item.id}-${device}`}
+              src={item.path}
+              displayWidth="100%"
+              fillHeight
+              iframeWidth={dims.w}
+              iframeHeight={dims.h}
+              allowScroll
+            />
+          ) : (
+            <Box
+              sx={{
+                width: dims.w,
+                height: dims.h,
+                boxShadow: '0px 24px 48px -12px rgba(0,0,0,0.8)',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                bgcolor: '#fff',
+                flexShrink: 0,
+                border: '1px solid rgba(255,255,255,0.1)',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <PreviewFrame
+                key={`${item.id}-${device}`}
+                src={item.path}
+                displayWidth={dims.w}
+                iframeWidth={dims.w}
+                iframeHeight={dims.h}
+                allowScroll
+              />
+            </Box>
+          )
         ) : (
           <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.5)' }}>
             미리보기 없음
