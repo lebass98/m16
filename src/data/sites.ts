@@ -25,7 +25,7 @@ export interface SiteConfig {
 export const sites: SiteConfig[] = [
   {
     key: 'familynet',
-    title: '한국건강가정진흥원',
+    title: '한국건강가정진흥원 - 평가시스템',
     data: tableData,
     color: '#4a7ab5',
     description: '가족 지원 서비스 URL 목록',
