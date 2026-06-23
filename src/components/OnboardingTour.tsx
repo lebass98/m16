@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Box, Typography, Button, Paper, MobileStepper, useTheme } from '@mui/material';
 
 interface OnboardingStep {
@@ -65,7 +65,7 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
   const [rect, setRect] = useState<DOMRect | null>(null);
   const scrollDebounceRef = useRef<number | null>(null);
 
-  const updateSpotlight = () => {
+  const updateSpotlight = useCallback(() => {
     const currentStep = STEPS[step];
     // Find all elements with the target ID to handle duplicates (e.g. settings button in mobile/desktop headers)
     const elements = document.querySelectorAll(`[id="${currentStep.targetId}"]`);
@@ -78,7 +78,7 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
       }
     }
     setRect(null);
-  };
+  }, [step]);
 
   // Handle step change & scroll
   useEffect(() => {
@@ -98,7 +98,7 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
     return () => {
       window.clearTimeout(timer);
     };
-  }, [step, active]);
+  }, [step, active, updateSpotlight]);
 
   // Handle resize and scroll updates
   useEffect(() => {
@@ -123,7 +123,7 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
         window.cancelAnimationFrame(scrollDebounceRef.current);
       }
     };
-  }, [active, step]);
+  }, [active, updateSpotlight]);
 
   // Step change side effects are now handled in the parent component (App.tsx) via useEffect hooks
 

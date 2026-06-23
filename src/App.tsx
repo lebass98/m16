@@ -113,17 +113,11 @@ export default function App() {
     if (!hasCompletedOnboarding) {
       const timer = setTimeout(() => {
         setRunOnboarding(true);
+        setOnboardingStep(0);
       }, 1000);
       return () => clearTimeout(timer);
     }
   }, [hasCompletedOnboarding]);
-
-  // Reset step to 0 when onboarding starts
-  useEffect(() => {
-    if (runOnboarding) {
-      setOnboardingStep(0);
-    }
-  }, [runOnboarding]);
 
   useEffect(() => { document.documentElement.setAttribute('data-color-scheme', darkMode ? 'dark' : 'light'); }, [darkMode]);
   useEffect(() => { document.documentElement.setAttribute('data-contrast', contrast); }, [contrast]);
@@ -171,6 +165,7 @@ export default function App() {
     else if (isSettingsOpen !== prevSettingsOpen) {
       if (isSettingsOpen) {
         if (onboardingStep === 5) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setOnboardingStep(6);
         }
       } else {
@@ -862,7 +857,10 @@ export default function App() {
             onSelectFontFamily={setFontFamily}
             contrast={contrast}
             onSelectContrast={setContrast}
-            onStartTour={() => setRunOnboarding(true)}
+            onStartTour={() => {
+              setRunOnboarding(true);
+              setOnboardingStep(0);
+            }}
           />
         )}
       </Suspense>
