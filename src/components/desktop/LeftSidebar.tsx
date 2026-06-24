@@ -125,11 +125,11 @@ export default function LeftSidebar({
         <Box sx={{ flex: 1 }} />
         <Box sx={{ m: '16px', p: '16px', borderRadius: '16px', bgcolor: 'rgb(var(--palette-primary-mainChannel) / 0.08)', display: 'flex', alignItems: 'center', justifyContent: effectiveCollapsed ? 'center' : 'flex-start', gap: '12px' }}>
           <Box sx={{ width: 40, height: 40, borderRadius: '50%', bgcolor: 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'background.paper', fontSize: 14, fontWeight: 700, flexShrink: 0 }}>
-            U
+            K
           </Box>
           {!effectiveCollapsed && (
             <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography sx={{ fontSize: 13, color: 'text.primary', fontWeight: 600, lineHeight: 1.4 }}>User</Typography>
+              <Typography sx={{ fontSize: 13, color: 'text.primary', fontWeight: 600, lineHeight: 1.4 }}>JaeKwang</Typography>
               <Typography sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.4 }}>Online</Typography>
             </Box>
           )}
