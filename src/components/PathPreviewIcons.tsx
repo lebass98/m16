@@ -185,14 +185,14 @@ function MobileModalContent({ src }: { src: string }) {
 
   return (
     <div ref={outerRef} className="hide-scrollbar" style={{ width: MODAL_MOBILE_OUTER_W, maxHeight: '80vh', overflowY: 'auto', background: '#fff', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-      {/* inner는 가시 영역(375)이고 iframe은 SCROLLBAR_WIDTH 만큼 넓혀 우측 스크롤바를 잘라낸다 */}
+      {/* inner는 가시 영역(375) */}
       <div style={{ width: MODAL_MOBILE_INNER_W, margin: '0 auto', overflow: 'hidden' }}>
         <iframe
           ref={iframeRef}
           src={src}
           title="Mobile modal preview"
           scrolling="no"
-          style={{ display: 'block', width: MODAL_MOBILE_INNER_W + SCROLLBAR_WIDTH, height: FALLBACK_H, border: 'none', pointerEvents: 'none' }}
+          style={{ display: 'block', width: MODAL_MOBILE_INNER_W, height: FALLBACK_H, border: 'none', pointerEvents: 'none' }}
           tabIndex={-1}
         />
       </div>

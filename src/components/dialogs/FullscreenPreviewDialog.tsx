@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Dialog, Box, Typography, IconButton, ToggleButton, ToggleButtonGroup, Tooltip } from '@mui/material';
+import { useState, useEffect } from 'react';
+import { Dialog, Box, Typography, IconButton, ToggleButton, ToggleButtonGroup, Tooltip, useTheme, useMediaQuery } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import DesktopWindowsOutlinedIcon from '@mui/icons-material/DesktopWindowsOutlined';
 import TabletMacOutlinedIcon from '@mui/icons-material/TabletMacOutlined';
@@ -27,7 +27,16 @@ interface Props {
  * ComparePreviewDialog와 같은 구조 — 단일 패널 + 디바이스 토글.
  */
 export default function FullscreenPreviewDialog({ open, onClose, item }: Props) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [device, setDevice] = useState<Device>('pc');
+
+  useEffect(() => {
+    if (open) {
+      setDevice(isMobile ? 'mobile' : 'pc');
+    }
+  }, [open, isMobile]);
+
   if (!item) return null;
   const dims = DEVICE_DIMS[device];
 
