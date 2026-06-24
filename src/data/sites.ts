@@ -1,6 +1,7 @@
 import type { TableSection } from '../types';
 import { tableData } from './tableData';
 import { okchfData } from './okchfData';
+import { familynetPortalData } from './familynetPortalData';
 
 export interface SiteConfig {
   key: string;
@@ -37,6 +38,13 @@ export const sites: SiteConfig[] = [
     data: okchfData,
     color: '#1a9a83',
     description: '국외소재문화유산재단 sitemap URL 목록',
+  },
+  {
+    key: 'familynet-portal',
+    title: '한국건강가정진흥원 - 패밀리넷',
+    data: familynetPortalData,
+    color: '#91C44D',
+    description: '한국건강가정진흥원 패밀리넷 포털 URL 목록',
   },
 ];
 
