@@ -39,7 +39,6 @@ function getStatusColor(progress: number, isLatest: boolean): string {
   return COLORS.primary;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const DEVICE_DIMS = {
   pc: { w: 1920, h: 1080 },
   tablet: { w: 1024, h: 768 },
@@ -91,6 +90,7 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
   const isLatest = !!item.updatedAt && item.updatedAt === latestDate;
   const accent = getStatusColor(item.progressPc ?? 0, isLatest);
   const tags = [item.depth1, item.depth2, item.depth3].filter(Boolean);
+  const dims = DEVICE_DIMS[device];
   void sectionIndex;
 
   return (
@@ -128,7 +128,7 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
         {item.path ? (
           <>
             <Box sx={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
-              <PreviewFrame key={device} src={item.path} displayWidth="100%" fillHeight iframeWidth={1920} iframeHeight={1080} />
+              <PreviewFrame key={device} src={item.path} displayWidth="100%" fillHeight iframeWidth={dims.w} iframeHeight={dims.h} />
             </Box>
             {/* 선택 오버레이 (북마크·전체화면·파일보기는 하단 정보 우측 상단으로 이동) */}
             {selectMode && (

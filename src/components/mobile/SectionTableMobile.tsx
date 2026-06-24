@@ -116,7 +116,7 @@ export default function SectionTableMobile({
               <Box sx={{ flex: 1, position: 'relative', overflow: 'hidden', bgcolor: 'transparent' }}>
                 {item.path ? (
                   <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
-                    <PreviewFrame src={item.path} displayWidth="100%" fillHeight speed={2} iframeWidth={1920} iframeHeight={1080} allowScroll />
+                    <PreviewFrame src={item.path} displayWidth="100%" fillHeight speed={2} iframeWidth={375} iframeHeight={667} allowScroll />
                   </Box>
                 ) : (
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'text.disabled', fontSize: 13 }}>
