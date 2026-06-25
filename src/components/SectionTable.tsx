@@ -114,15 +114,21 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
           zIndex: 2,
         },
       }}>
-      {/* 썸네일 (디바이스별 프리뷰 — 카드 비율도 디바이스에 맞춰 변경) */}
       <Box
         className="reveal-scale"
         style={inner(0)}
+        onClick={() => {
+          const target = item.filePath || item.path;
+          if (target) {
+            window.open(target, '_blank', 'noopener,noreferrer');
+          }
+        }}
         sx={{
           position: 'relative',
           aspectRatio: device === 'mobile' ? '9 / 16' : device === 'tablet' ? '4 / 3' : '16 / 9',
           overflow: 'hidden',
           bgcolor: COLORS.gray100,
+          cursor: (item.filePath || item.path) ? 'pointer' : 'default',
         }}
       >
         {item.path ? (
