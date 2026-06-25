@@ -152,15 +152,18 @@ export default function SectionTableMobile({
                       </Typography>
                     </Box>
                   )}
-                  {item.path && (
-                    <Box sx={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                      <Typography sx={{ flexShrink: 0, mr: '10px', color: 'text.secondary', fontSize: 12 }}>경로</Typography>
-                      <Box component="a" href={item.path} target="_blank" rel="noreferrer" sx={{ flex: 1, color: 'primary.main', textDecoration: 'none', wordBreak: 'break-all', fontSize: 13 }}>
-                        {(() => { try { return new URL(item.path).pathname; } catch { return item.path; } })()}
+                  {(item.filePath || item.path) && (() => {
+                    const targetPath = item.filePath || item.path;
+                    return (
+                      <Box sx={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        <Typography sx={{ flexShrink: 0, mr: '10px', color: 'text.secondary', fontSize: 12 }}>경로</Typography>
+                        <Box component="a" href={targetPath} target="_blank" rel="noreferrer" sx={{ flex: 1, color: 'primary.main', textDecoration: 'none', wordBreak: 'break-all', fontSize: 13 }}>
+                          {(() => { try { return new URL(targetPath).pathname; } catch { return targetPath; } })()}
+                        </Box>
+                        <CopyPathButton path={targetPath} />
                       </Box>
-                      <CopyPathButton path={item.path} />
-                    </Box>
-                  )}
+                    );
+                  })()}
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px', pt: '2px' }}>
                     {item.start && (
                       <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center', mr: 'auto' }}>
@@ -193,7 +196,10 @@ export default function SectionTableMobile({
                   {[
                     item.id && { label: 'ID', value: item.id, href: undefined, emphasis: false },
                     (item.depth1 || item.depth2 || item.depth3) && { label: '메뉴', value: [item.depth1, item.depth2, item.depth3].filter(Boolean).join(' > '), href: undefined, emphasis: false },
-                    item.path && { label: '경로', value: (() => { try { return new URL(item.path!).pathname; } catch { return item.path!; } })(), href: item.path, emphasis: false },
+                    (() => {
+                      const targetPath = item.filePath || item.path;
+                      return targetPath && { label: '경로', value: (() => { try { return new URL(targetPath).pathname; } catch { return targetPath; } })(), href: targetPath, emphasis: false };
+                    })(),
                     item.start && { label: '생성일', value: item.start, href: undefined, emphasis: item.start === latestDate },
                     item.updatedAt && { label: '업데이트', value: item.updatedAt, href: undefined, emphasis: item.updatedAt === latestDate },
                     item.end && { label: '완료일', value: item.end, href: undefined, emphasis: item.end === latestDate },

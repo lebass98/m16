@@ -10,6 +10,8 @@ export interface ProgressOverride {
   progressMobile?: ProgressValue;
   /** 사용자가 인앱에서 편집한 노트 — 원본 note를 덮어씀. 빈 문자열도 의도된 "삭제"로 취급. */
   note?: string;
+  /** 사용자가 인앱에서 편집한 파일 경로 — 원본 filePath/path를 덮어씀. */
+  filePath?: string;
   /** 마지막 수정 시각 (ISO) */
   updatedAt: string;
 }
@@ -110,31 +112,42 @@ export function useProgressOverrides() {
   }, []);
 
   /**
-   * 단일 항목의 노트만 갱신. 히스토리에는 기록하지 않음(텍스트라 diff 추적 의미 적음).
-   * null을 넘기면 노트 오버라이드를 삭제 (원본 note로 되돌림).
+   * 단일 항목의 노트 및 파일 경로 정보 갱신.
+   * null을 넘기면 각각의 오버라이드를 제거 (원본 값으로 되돌림).
    */
-  const setNote = useCallback((id: string, note: string | null) => {
+  const setItemMeta = useCallback((id: string, note: string | null, filePath: string | null) => {
     const now = new Date().toISOString();
     setOverrides((prev) => {
       const existing = prev[id];
+      const next = { ...prev };
+      
+      const newEntry = { ...(existing ?? {}), updatedAt: now };
+      
       if (note === null) {
-        // 노트 오버라이드 제거. 다른 오버라이드(진행도)가 있으면 entry는 유지.
-        if (!existing || existing.note === undefined) return prev;
-        const next = { ...prev };
-        const { note: _drop, ...rest } = existing;
-        void _drop;
-        // 진행도 오버라이드도 없으면 entry 자체 삭제
-        if (rest.progressPc === undefined && rest.progressMobile === undefined) {
-          delete next[id];
-        } else {
-          next[id] = { ...rest, updatedAt: now };
-        }
-        return next;
+        delete newEntry.note;
+      } else {
+        newEntry.note = note;
       }
-      return {
-        ...prev,
-        [id]: { ...(existing ?? {}), note, updatedAt: now },
-      };
+      
+      if (filePath === null) {
+        delete newEntry.filePath;
+      } else {
+        newEntry.filePath = filePath;
+      }
+      
+      // 만약 진행도 오버라이드와 메타 데이터 오버라이드가 모두 없다면 엔트리 제거
+      if (
+        newEntry.progressPc === undefined &&
+        newEntry.progressMobile === undefined &&
+        newEntry.note === undefined &&
+        newEntry.filePath === undefined
+      ) {
+        delete next[id];
+      } else {
+        next[id] = newEntry;
+      }
+      
+      return next;
     });
   }, []);
 
@@ -144,7 +157,7 @@ export function useProgressOverrides() {
     setHistory({});
   }, []);
 
-  return { overrides, history, setProgress, setNote, revert, clearAll };
+  return { overrides, history, setProgress, setItemMeta, revert, clearAll };
 }
 
 /**
@@ -163,6 +176,7 @@ export function applyOverrides(sections: TableSection[], overrides: Overrides): 
         ...(o.progressPc !== undefined ? { progressPc: o.progressPc } : {}),
         ...(o.progressMobile !== undefined ? { progressMobile: o.progressMobile } : {}),
         ...(o.note !== undefined ? { note: o.note } : {}),
+        ...(o.filePath !== undefined ? { filePath: o.filePath } : {}),
         // 사용자가 수정한 항목은 updatedAt도 갱신해 "최근 업데이트" 위젯에 반영
         updatedAt: o.updatedAt.slice(0, 10).replace(/-/g, '.'),
       };

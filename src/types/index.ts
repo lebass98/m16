@@ -18,6 +18,7 @@ export interface TableItem {
   depth2: string;
   depth3: string;
   path: string;
+  filePath?: string;
   progressPc: ProgressValue;
   progressMobile: ProgressValue;
   start: string;

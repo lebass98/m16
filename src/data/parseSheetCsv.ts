@@ -89,6 +89,7 @@ export function csvToSections(csvText: string): TableSection[] {
   const colDepth2 = idx('depth2');
   const colDepth3 = idx('depth3');
   const colPath = idx('path');
+  const colFilePath = idx('filePath');
   const colProgressPc = idx('progressPc');
   const colProgressMobile = idx('progressMobile');
   const colStart = idx('start');
@@ -117,6 +118,7 @@ export function csvToSections(csvText: string): TableSection[] {
       depth2: cell(row, colDepth2),
       depth3: cell(row, colDepth3),
       path: cell(row, colPath),
+      filePath: cell(row, colFilePath),
       progressPc: parseProgress(cell(row, colProgressPc)),
       progressMobile: parseProgress(cell(row, colProgressMobile)),
       start: cell(row, colStart),

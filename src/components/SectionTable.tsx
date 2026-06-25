@@ -205,11 +205,11 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
               <Box component="span" sx={{ display: 'inline-flex' }}>
                 <IconButton
                   size="small"
-                  component={item.path ? 'a' : 'button'}
-                  href={item.path || undefined}
-                  target={item.path ? '_blank' : undefined}
-                  rel={item.path ? 'noreferrer' : undefined}
-                  disabled={!item.path}
+                  component={item.filePath || item.path ? 'a' : 'button'}
+                  href={item.filePath || item.path || undefined}
+                  target={item.filePath || item.path ? '_blank' : undefined}
+                  rel={item.filePath || item.path ? 'noreferrer' : undefined}
+                  disabled={!(item.filePath || item.path)}
                   aria-label="파일 보기"
                   sx={{
                     ...roundActionBtnSx,
@@ -396,21 +396,23 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
       minWidth: 150,
       sortable: false,
       renderCell: (params) => {
-        if (!params.value) return null;
-        let p = params.value as string;
+        const row = params.row as TableItem;
+        const targetPath = row.filePath || row.path;
+        if (!targetPath) return null;
+        let p = targetPath;
         try { p = new URL(p).pathname; } catch { /* relative path */ }
         return (
           <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: '8px' }}>
             <Box
               component="a"
-              href={params.value as string}
+              href={targetPath}
               target="_blank"
               rel="noreferrer"
               sx={{ flex: 1, wordBreak: 'break-all', color: 'inherit', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
             >
               {p}
             </Box>
-            <CopyPathButton path={params.value as string} />
+            <CopyPathButton path={targetPath} />
           </Box>
         );
       }

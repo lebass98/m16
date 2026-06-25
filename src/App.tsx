@@ -185,7 +185,7 @@ export default function App() {
   const { bookmarks, toggle: toggleBookmark } = useBookmarks();
   const { entries: recentlyViewed, record: recordRecent, clear: clearRecent } = useRecentlyViewed();
   const selection = useSelection<string>();
-  const { overrides, history: progressHistory, setProgress, setNote, revert, clearAll: clearOverrides } = useProgressOverrides();
+  const { overrides, history: progressHistory, setProgress, setItemMeta, revert, clearAll: clearOverrides } = useProgressOverrides();
 
   // 선택 모드 (휘발성)
   const [selectMode, setSelectMode] = useState(false);
@@ -777,20 +777,26 @@ export default function App() {
             const currentItem = itemsById.get(noteEditId) ?? null;
             // 원본은 rawTableData에서 찾는다 (overrides 적용 전).
             let originalNote = '';
+            let originalFilePath = '';
             for (const section of rawTableData) {
               const found = section.data.find((d) => d.id === noteEditId);
-              if (found) { originalNote = found.note ?? ''; break; }
+              if (found) {
+                originalNote = found.note ?? '';
+                originalFilePath = found.filePath ?? '';
+                break;
+              }
             }
-            const hasOverride = overrides[noteEditId]?.note !== undefined;
+            const hasOverride = overrides[noteEditId]?.note !== undefined || overrides[noteEditId]?.filePath !== undefined;
             return (
               <NoteEditDialog
                 key={noteEditId}
                 open
                 item={currentItem}
                 originalNote={originalNote}
+                originalFilePath={originalFilePath}
                 hasOverride={hasOverride}
                 onClose={() => setNoteEditId(null)}
-                onSave={(id, note) => setNote(id, note)}
+                onSave={(id, note, filePath) => setItemMeta(id, note, filePath)}
               />
             );
           })()}
