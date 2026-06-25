@@ -118,17 +118,14 @@ export default function MobileCard({ item, cardNumber, latestDate, hideUi, isBoo
               </Typography>
             </Box>
           )}
-          {(item.filePath || item.path) && (() => {
-            const targetPath = item.filePath || item.path;
-            return (
-              <Box sx={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
-                <Typography sx={{ flexShrink: 0, mr: '10px', color: isDark ? 'rgba(255,255,255,0.4)' : '#888', fontSize: 12 }}>경로</Typography>
-                <Box component="a" href={targetPath} target="_blank" rel="noreferrer" sx={{ flex: 1, color: '#7fb3e8', textDecoration: 'none', wordBreak: 'break-all', fontSize: 13 }}>
-                  {(() => { try { return new URL(targetPath).pathname; } catch { return targetPath; } })()}
-                </Box>
+          {item.path && (
+            <Box sx={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
+              <Typography sx={{ flexShrink: 0, mr: '10px', color: isDark ? 'rgba(255,255,255,0.4)' : '#888', fontSize: 12 }}>경로</Typography>
+              <Box component="a" href={item.path} target="_blank" rel="noreferrer" sx={{ flex: 1, color: '#7fb3e8', textDecoration: 'none', wordBreak: 'break-all', fontSize: 13 }}>
+                {(() => { try { return new URL(item.path).pathname; } catch { return item.path; } })()}
               </Box>
-            );
-          })()}
+            </Box>
+          )}
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px', pt: '2px' }}>
             {item.start && (
               <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center', mr: 'auto' }}>

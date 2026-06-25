@@ -397,7 +397,7 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
       sortable: false,
       renderCell: (params) => {
         const row = params.row as TableItem;
-        const targetPath = row.filePath || row.path;
+        const targetPath = row.path;
         if (!targetPath) return null;
         let p = targetPath;
         try { p = new URL(p).pathname; } catch { /* relative path */ }
