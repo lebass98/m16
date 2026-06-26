@@ -11,6 +11,10 @@ import KeyboardOutlinedIcon from '@mui/icons-material/KeyboardOutlined';
 import ChecklistIcon from '@mui/icons-material/Checklist';
 import HistoryIcon from '@mui/icons-material/History';
 
+import LoginIcon from '@mui/icons-material/Login';
+import LogoutIcon from '@mui/icons-material/Logout';
+import AddIcon from '@mui/icons-material/Add';
+
 interface Props {
   darkMode: boolean;
   settingsOpen: boolean;
@@ -27,6 +31,12 @@ interface Props {
   onOpenHistory: () => void;
   /** Refresh + Export 같이 그룹화된 슬롯 — 사이트가 시트 기반일 때만 노출 */
   rightSlot?: ReactNode;
+  
+  // Firebase CMS 관련 추가
+  isAdmin?: boolean;
+  onLoginClick?: () => void;
+  onLogoutClick?: () => void;
+  onAddPageClick?: () => void;
 }
 
 /**
@@ -52,6 +62,10 @@ export default function MobileTopBar({
   onToggleSelectMode,
   onOpenHistory,
   rightSlot,
+  isAdmin = false,
+  onLoginClick,
+  onLogoutClick,
+  onAddPageClick,
 }: Props) {
   const btnSx = {
     width: 36,
@@ -107,6 +121,28 @@ export default function MobileTopBar({
           '&::-webkit-scrollbar': { display: 'none' },
         }}
       >
+        {isAdmin && (
+          <Tooltip title="새 페이지 등록" arrow>
+            <IconButton onClick={onAddPageClick} aria-label="새 페이지 등록" sx={{ ...btnSx, color: 'primary.main' }}>
+              <AddIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+          </Tooltip>
+        )}
+
+        {isAdmin ? (
+          <Tooltip title="관리자 로그아웃" arrow>
+            <IconButton onClick={onLogoutClick} aria-label="관리자 로그아웃" sx={{ ...btnSx, color: 'error.main' }}>
+              <LogoutIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+          </Tooltip>
+        ) : (
+          <Tooltip title="관리자 로그인" arrow>
+            <IconButton onClick={onLoginClick} aria-label="관리자 로그인" sx={btnSx}>
+              <LoginIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+          </Tooltip>
+        )}
+
         {rightSlot}
 
         <Tooltip title="선택 모드" arrow>

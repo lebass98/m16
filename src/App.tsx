@@ -1,6 +1,9 @@
 import { useMemo, useState, useEffect, useLayoutEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { Box, Snackbar, useMediaQuery } from '@mui/material';
 import { createPaletteChannel } from 'minimal-shared/utils';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { deleteDoc, doc } from 'firebase/firestore';
+import { auth, db, useFirebase } from './firebase';
 
 import { sites } from './data/sites';
 import { PREVIEW_SCROLL_DIR_EVENT } from './types/events';
@@ -35,6 +38,8 @@ const ComparePreviewDialog = lazy(() => import('./components/dialogs/ComparePrev
 const FullscreenPreviewDialog = lazy(() => import('./components/dialogs/FullscreenPreviewDialog'));
 const NoteEditDialog = lazy(() => import('./components/dialogs/NoteEditDialog'));
 const BulkEditBar = lazy(() => import('./components/BulkEditBar'));
+const LoginDialog = lazy(() => import('./components/dialogs/LoginDialog'));
+const PageFormDialog = lazy(() => import('./components/dialogs/PageFormDialog'));
 
 import { ThemeProvider } from './theme/theme-provider';
 import { PRESETS, isPresetKey, type PresetKey } from './theme/presets';
@@ -108,6 +113,56 @@ export default function App() {
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = usePersistedState<boolean>('hasCompletedOnboarding', false);
   const [runOnboarding, setRunOnboarding] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(0);
+
+  // --- 어드민 CMS 상태 ---
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loginDialogOpen, setLoginDialogOpen] = useState(false);
+  const [pageFormDialogOpen, setPageFormDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<any>(null);
+
+  // Firebase Auth 로그인 세션 구독
+  useEffect(() => {
+    if (useFirebase && auth) {
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        setIsAdmin(!!user);
+      });
+      return () => unsubscribe();
+    }
+  }, []);
+
+  const handleLogout = useCallback(async () => {
+    if (auth) {
+      try {
+        await signOut(auth);
+      } catch (err) {
+        console.error('Logout failed:', err);
+      }
+    }
+  }, []);
+
+  const handleDeletePage = useCallback(async (id: string) => {
+    if (!db) return;
+    if (window.confirm('정말 이 페이지를 삭제하시겠습니까?')) {
+      try {
+        await deleteDoc(doc(db, 'sites', site.key, 'items', id));
+      } catch (err) {
+        console.error('Failed to delete page:', err);
+        alert('삭제에 실패했습니다.');
+      }
+    }
+  }, [site.key]);
+
+  const handleEditPage = useCallback((item: import('./types').TableItem & { sectionDepth1: string }) => {
+    setEditingItem(item);
+    setPageFormDialogOpen(true);
+  }, []);
+
+  const handleAddPage = useCallback(() => {
+    setEditingItem(null);
+    setPageFormDialogOpen(true);
+  }, []);
+
+
 
   useEffect(() => {
     if (!hasCompletedOnboarding) {
@@ -227,6 +282,18 @@ export default function App() {
 
   // --- 데이터: 시트 fetch → 사용자 오버라이드 적용 → 필터/정렬/파생 ---
   const { data: rawTableData, status: dataStatus, isFallback, lastFetched, refresh: refreshData } = useSiteData(site);
+
+  const existingSections = useMemo(() => {
+    return rawTableData.map((sec) => sec.depth1);
+  }, [rawTableData]);
+
+  const nextOrder = useMemo(() => {
+    let count = 0;
+    rawTableData.forEach((sec) => {
+      count += sec.data.length;
+    });
+    return count;
+  }, [rawTableData]);
   // 사용자가 인앱에서 수정한 진행도(overrides)를 원본에 덮어씌운 뒤 다운스트림 훅에 전달.
   const dataWithOverrides = useMemo(() => applyOverrides(rawTableData, overrides), [rawTableData, overrides]);
   const {
@@ -468,6 +535,10 @@ export default function App() {
           onOpenShortcuts={openShortcuts}
           onToggleSelectMode={toggleSelectModeShortcut}
           onOpenHistory={() => dialogs.openDialog('history')}
+          isAdmin={isAdmin}
+          onLoginClick={() => setLoginDialogOpen(true)}
+          onLogoutClick={handleLogout}
+          onAddPageClick={handleAddPage}
           rightSlot={
             <>
               {site.sheetCsvUrl && (
@@ -544,6 +615,10 @@ export default function App() {
               }}
               onOpenHistory={() => dialogs.openDialog('history')}
               onCopyShareLink={handleCopyShareLink}
+              isAdmin={isAdmin}
+              onLoginClick={() => setLoginDialogOpen(true)}
+              onLogoutClick={handleLogout}
+              onAddPageClick={handleAddPage}
               rightSlot={
                 <>
                   {site.sheetCsvUrl && (
@@ -639,6 +714,9 @@ export default function App() {
                         onRangeSelect={handleRangeSelect}
                         onOpenFullscreen={setFullscreenItem}
                         onEditNote={(it) => setNoteEditId(it.id)}
+                        isAdmin={isAdmin}
+                        onEditPage={handleEditPage}
+                        onDeletePage={handleDeletePage}
                       />
                     ))}
                   </Box>
@@ -768,6 +846,24 @@ export default function App() {
               open
               onClose={() => setFullscreenItem(null)}
               item={fullscreenItem}
+            />
+          )}
+
+          {loginDialogOpen && (
+            <LoginDialog
+              open={loginDialogOpen}
+              onClose={() => setLoginDialogOpen(false)}
+            />
+          )}
+
+          {pageFormDialogOpen && (
+            <PageFormDialog
+              open={pageFormDialogOpen}
+              onClose={() => setPageFormDialogOpen(false)}
+              siteKey={site.key}
+              item={editingItem}
+              nextOrder={nextOrder}
+              existingSections={existingSections}
             />
           )}
 

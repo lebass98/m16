@@ -6,6 +6,8 @@ import BookmarkIcon from '@mui/icons-material/Bookmark';
 import ArrowOutwardIcon from '@mui/icons-material/ArrowOutward';
 import StickyNote2OutlinedIcon from '@mui/icons-material/StickyNote2Outlined';
 import OpenInFullIcon from '@mui/icons-material/OpenInFull';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import type { TableItem, TableSection } from '../types';
 import ProgressBar from './ProgressBar';
 import PathPreviewIcons, { CopyPathButton } from './PathPreviewIcons';
@@ -67,7 +69,7 @@ const roundActionBtnSx = {
   },
 } as const;
 
-function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmark, latestDate, cardIndex = 0, device = 'pc', selectMode = false, isSelected = false, onToggleSelect, onOpenFullscreen, id }: {
+function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmark, latestDate, cardIndex = 0, device = 'pc', selectMode = false, isSelected = false, onToggleSelect, onOpenFullscreen, id, isAdmin = false, onEditPage, onDeletePage }: {
   item: TableItem;
   section: TableSection;
   sectionIndex: number;
@@ -82,6 +84,9 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
   onToggleSelect?: (id: string) => void;
   onOpenFullscreen?: (item: TableItem) => void;
   id?: string;
+  isAdmin?: boolean;
+  onEditPage?: (item: TableItem & { sectionDepth1: string }) => void;
+  onDeletePage?: (id: string) => void;
 }) {
   const { palette } = useTheme();
   const mode = palette.mode;
@@ -180,6 +185,41 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
 
           {/* 우측 상단 액션 버튼 그룹: 북마크 · 파일 보기 · 전체화면 미리보기 (원형·검정 바탕·흰 아이콘) */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, mt: '2px' }}>
+            {isAdmin && onEditPage && (
+              <Tooltip title="페이지 수정" arrow>
+                <IconButton
+                  size="small"
+                  onClick={(e) => { e.stopPropagation(); onEditPage({ ...item, sectionDepth1: section.depth1 }); }}
+                  aria-label="페이지 수정"
+                  sx={roundActionBtnSx}
+                >
+                  <EditIcon sx={{ fontSize: 12 }} />
+                </IconButton>
+              </Tooltip>
+            )}
+
+            {isAdmin && onDeletePage && (
+              <Tooltip title="페이지 삭제" arrow>
+                <IconButton
+                  size="small"
+                  onClick={(e) => { e.stopPropagation(); onDeletePage(item.id); }}
+                  aria-label="페이지 삭제"
+                  sx={{
+                    ...roundActionBtnSx,
+                    color: 'error.main',
+                    '&:hover': {
+                      bgcolor: 'error.main',
+                      borderColor: 'error.main',
+                      color: '#fff',
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 4px 10px rgba(0,0,0,0.25)',
+                    }
+                  }}
+                >
+                  <DeleteIcon sx={{ fontSize: 12 }} />
+                </IconButton>
+              </Tooltip>
+            )}
             <Tooltip title={isBookmarked ? '북마크 해제' : '북마크 추가'} arrow>
               <IconButton
                 size="small"
@@ -309,6 +349,11 @@ interface Props {
   onOpenFullscreen?: (item: TableItem) => void;
   /** 노트 편집 시작 — id로 항목을 찾아 다이얼로그 오픈. */
   onEditNote?: (item: TableItem) => void;
+  
+  // Firebase CMS 관련 추가
+  isAdmin?: boolean;
+  onEditPage?: (item: TableItem & { sectionDepth1: string }) => void;
+  onDeletePage?: (id: string) => void;
 }
 
 const emphasisSx = { fontWeight: 700, color: '#ff706e' };
@@ -317,7 +362,27 @@ const emphasisSx = { fontWeight: 700, color: '#ff706e' };
  * 데스크탑(md+) 전용 섹션 테이블. 리스트(DataGrid) 또는 썸네일 그리드 두 가지 viewMode를 지원.
  * 모바일 분기(`display: { xs: ..., md: 'none' }`)는 SectionTableMobile로 분리되어 있다.
  */
-export default function SectionTable({ section, sectionIndex, latestDate, onHeaderClick, previewEnabled = true, viewMode = 'list', thumbnailDevice = 'pc', thumbnailCols = 3, bookmarks = new Set(), onToggleBookmark, selectMode = false, selected = new Set(), onToggleSelect, onRangeSelect, onOpenFullscreen, onEditNote }: Props) {
+export default function SectionTable({
+  section,
+  sectionIndex,
+  latestDate,
+  onHeaderClick,
+  previewEnabled = true,
+  viewMode = 'list',
+  thumbnailDevice = 'pc',
+  thumbnailCols = 3,
+  bookmarks = new Set(),
+  onToggleBookmark,
+  selectMode = false,
+  selected = new Set(),
+  onToggleSelect,
+  onRangeSelect,
+  onOpenFullscreen,
+  onEditNote,
+  isAdmin = false,
+  onEditPage,
+  onDeletePage,
+}: Props) {
   const { palette } = useTheme();
   const mode = palette.mode;
   const rows = useMemo(
@@ -526,8 +591,49 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
       },
     },
     ];
-    return selectMode ? [selectCol, ...cols] : cols;
-  }, [latestDate, previewEnabled, selectMode, selected, onToggleSelect, onEditNote, onRangeSelect, section.data]);
+    const actionCol: GridColDef = {
+      field: '_actions',
+      headerName: '관리',
+      width: 90,
+      align: 'center',
+      headerAlign: 'center',
+      sortable: false,
+      renderCell: (params) => {
+        const item = params.row as TableItem;
+        return (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <Tooltip title="수정" arrow>
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEditPage?.({ ...item, sectionDepth1: section.depth1 });
+                }}
+                sx={{ color: 'primary.main' }}
+              >
+                <EditIcon sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="삭제" arrow>
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeletePage?.(item.id);
+                }}
+                sx={{ color: 'error.main' }}
+              >
+                <DeleteIcon sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        );
+      }
+    };
+
+    const baseCols = selectMode ? [selectCol, ...cols] : cols;
+    return isAdmin ? [...baseCols, actionCol] : baseCols;
+  }, [latestDate, previewEnabled, selectMode, selected, onToggleSelect, onEditNote, onRangeSelect, section.data, isAdmin, onEditPage, onDeletePage]);
 
   return (
     <Paper
@@ -646,6 +752,9 @@ export default function SectionTable({ section, sectionIndex, latestDate, onHead
             onToggleSelect={onToggleSelect}
             onOpenFullscreen={onOpenFullscreen}
             id={sectionIndex === 0 && j === 0 ? "onboarding-recipe-card" : undefined}
+            isAdmin={isAdmin}
+            onEditPage={onEditPage}
+            onDeletePage={onDeletePage}
           />
         ))}
       </Box>

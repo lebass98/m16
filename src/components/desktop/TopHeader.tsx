@@ -10,6 +10,10 @@ import ChecklistIcon from '@mui/icons-material/Checklist';
 import HistoryIcon from '@mui/icons-material/History';
 import LinkIcon from '@mui/icons-material/Link';
 
+import LoginIcon from '@mui/icons-material/Login';
+import LogoutIcon from '@mui/icons-material/Logout';
+import AddIcon from '@mui/icons-material/Add';
+
 interface Props {
   siteTitle: string;
   darkMode: boolean;
@@ -25,9 +29,33 @@ interface Props {
   onCopyShareLink: () => void;
   /** 액션 영역 우측에 추가로 끼워넣을 슬롯 (예: ExportMenu) */
   rightSlot?: ReactNode;
+  
+  // Firebase CMS 관련 추가
+  isAdmin?: boolean;
+  onLoginClick?: () => void;
+  onLogoutClick?: () => void;
+  onAddPageClick?: () => void;
 }
 
-export default function TopHeader({ siteTitle, darkMode, settingsOpen, selectMode, hasHistory, onOpenSearch, onOpenSettings, onToggleDarkMode, onOpenShortcuts, onToggleSelectMode, onOpenHistory, onCopyShareLink, rightSlot }: Props) {
+export default function TopHeader({
+  siteTitle,
+  darkMode,
+  settingsOpen,
+  selectMode,
+  hasHistory,
+  onOpenSearch,
+  onOpenSettings,
+  onToggleDarkMode,
+  onOpenShortcuts,
+  onToggleSelectMode,
+  onOpenHistory,
+  onCopyShareLink,
+  rightSlot,
+  isAdmin = false,
+  onLoginClick,
+  onLogoutClick,
+  onAddPageClick,
+}: Props) {
   return (
     <Box sx={{ bgcolor: 'rgb(var(--palette-background-paperChannel) / 0.8)', backdropFilter: 'blur(20px)', borderBottom: '1px dashed rgb(var(--palette-grey-500Channel) / 0.2)', px: { md: '16px', lg: '32px' }, py: '14px', display: 'flex', alignItems: 'center', gap: { md: '12px', lg: '20px' }, position: 'sticky', top: 0, zIndex: 10 }}>
       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -36,6 +64,40 @@ export default function TopHeader({ siteTitle, darkMode, settingsOpen, selectMod
       </Box>
       <Box sx={{ flex: 1 }} />
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {isAdmin && (
+          <Tooltip title="새 페이지 등록" arrow>
+            <IconButton
+              onClick={onAddPageClick}
+              aria-label="새 페이지 등록"
+              sx={{ width: 40, height: 40, color: 'primary.main', '&:hover': { bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.08)' } }}
+            >
+              <AddIcon sx={{ fontSize: 24 }} />
+            </IconButton>
+          </Tooltip>
+        )}
+
+        {isAdmin ? (
+          <Tooltip title="관리자 로그아웃" arrow>
+            <IconButton
+              onClick={onLogoutClick}
+              aria-label="관리자 로그아웃"
+              sx={{ width: 40, height: 40, color: 'error.main', '&:hover': { bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.08)' } }}
+            >
+              <LogoutIcon sx={{ fontSize: 24 }} />
+            </IconButton>
+          </Tooltip>
+        ) : (
+          <Tooltip title="관리자 로그인" arrow>
+            <IconButton
+              onClick={onLoginClick}
+              aria-label="관리자 로그인"
+              sx={{ width: 40, height: 40, color: 'text.secondary', '&:hover': { bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.08)', color: 'text.primary' } }}
+            >
+              <LoginIcon sx={{ fontSize: 24 }} />
+            </IconButton>
+          </Tooltip>
+        )}
+
         <Tooltip title={selectMode ? '선택 모드 종료' : '선택 모드 시작 (일괄 편집·비교)'} arrow>
           <IconButton
             onClick={onToggleSelectMode}

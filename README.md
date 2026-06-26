@@ -93,6 +93,46 @@ npm run lint
 
 ---
 
+## ⚙️ Firebase 실시간 CMS 설정 가이드
+
+본 대시보드는 Firebase Firestore 및 Authentication을 활용한 실시간 데이터 추가/수정/삭제(CMS) 기능을 제공합니다.
+
+### 1. Firebase 설정 및 활성화
+1. [Firebase Console](https://console.firebase.google.com/)에서 새 프로젝트를 생성합니다.
+2. **Build > Authentication** 메뉴로 이동하여 **이메일/비밀번호** 로그인 제공업체를 활성화하고 관리자 계정을 생성합니다.
+3. **Build > Firestore Database** 메뉴로 이동하여 데이터베이스를 생성합니다. (프로덕션 모드 또는 테스트 모드 설정)
+4. 프로젝트 설정에서 **웹 앱(Web App)**을 추가하고 Firebase Config 객체(API Key, Project ID 등)를 획득합니다.
+
+### 2. 로컬 환경 변수 설정
+프로젝트 루트 디렉토리에 `.env.local` 파일을 생성(또는 기존 파일 수정)하고 아래와 같이 Firebase 설정 값을 입력합니다.
+
+```env
+# Firebase 연동 여부 (true로 설정 시 활성화)
+VITE_USE_FIREBASE=true
+
+# Firebase SDK 설정 정보
+VITE_FIREBASE_API_KEY=your_api_key_here
+VITE_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project_id.firebasestorage.app
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+```
+
+### 3. 데이터 동기화 및 마이그레이션 (자동 시딩)
+- 환경 변수가 올바르게 설정되면 대시보드는 정적 파일 대신 Firestore를 주 데이터 소스로 사용합니다.
+- 데이터베이스가 비어있는 상태에서 앱에 최초 접속하면, 기존 로컬 정적 데이터(`src/data/tableData.ts` 등)를 기준으로 Firestore의 `sites/{siteKey}/items` 서브컬렉션에 데이터가 **자동으로 마이그레이션(Seeding)**됩니다.
+
+### 4. 관리자 CMS 기능 사용법
+1. 대시보드 화면 우측 상단의 **열쇠 아이콘 (관리자 로그인)**을 클릭합니다.
+2. Firebase Authentication에 등록한 관리자 이메일과 비밀번호로 로그인합니다.
+3. 로그인에 성공하면 다음 기능이 활성화됩니다:
+   - **페이지 등록**: 헤더의 `+` 아이콘을 클릭하여 새로운 페이지 데이터를 추가할 수 있습니다.
+   - **페이지 수정**: 각 테이블 로우(Row)의 연필 아이콘 또는 카드 하단 정보 영역의 연필 아이콘을 클릭하여 값을 수정할 수 있습니다.
+   - **페이지 삭제**: 각 로우 및 카드의 휴지통 아이콘을 클릭해 해당 항목을 Firestore에서 즉각 제거할 수 있습니다.
+
+---
+
 ## 📁 프로젝트 구조
 
 ```
