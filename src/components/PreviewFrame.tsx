@@ -126,6 +126,62 @@ export default function PreviewFrame({
     resetKey: src,
   });
 
+  // 마우스 휠 스크롤 수동 처리 (allowScroll이 false이거나 pointerEvents가 none일 때 외부 휠 스크롤 가능하도록 지원)
+  const scrollYRef = useRef(0);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || animate || !shouldLoad) return;
+
+    // src가 바뀌면 스크롤 위치 초기화
+    scrollYRef.current = 0;
+    const iframe = iframeRef.current;
+    if (iframe) {
+      iframe.style.transform = 'translateY(0px)';
+    }
+
+    const handleWheel = (e: WheelEvent) => {
+      const iframe = iframeRef.current;
+      if (!iframe) return;
+
+      let contentH = iframeHeight;
+      try {
+        const doc = iframe.contentDocument;
+        const sh = Math.max(doc?.documentElement?.scrollHeight || 0, doc?.body?.scrollHeight || 0);
+        if (sh > 0) contentH = Math.max(sh, iframeHeight);
+      } catch {
+        // Cross-Origin인 경우 fallbackHeightMultiplier * iframeHeight
+        contentH = iframeHeight * 2.5;
+      }
+      
+      const currentIframeHeight = parseInt(iframe.style.height) || iframeHeight;
+      if (contentH !== currentIframeHeight) {
+        iframe.style.height = `${contentH}px`;
+        if (wrapperRef.current) wrapperRef.current.style.height = `${contentH}px`;
+      }
+
+      const visibleHeight = fillHeight && actualHeight > 0 ? actualHeight / scale : iframeHeight;
+      const maxScroll = Math.max(contentH - visibleHeight, 0);
+      if (maxScroll <= 0) return;
+
+      // 휠 입력에 따라 스크롤 위치 계산
+      const delta = e.deltaY;
+      const nextY = Math.max(0, Math.min(scrollYRef.current + delta, maxScroll));
+      
+      if (nextY !== scrollYRef.current) {
+        e.preventDefault();
+        e.stopPropagation();
+        scrollYRef.current = nextY;
+        iframe.style.transform = `translateY(-${scrollYRef.current}px)`;
+      }
+    };
+
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    return () => {
+      container.removeEventListener('wheel', handleWheel);
+    };
+  }, [animate, shouldLoad, iframeHeight, fillHeight, actualHeight, scale, src]);
+
   return (
     <div
       ref={containerRef}
@@ -173,7 +229,7 @@ export default function PreviewFrame({
               border: 'none',
               pointerEvents: allowScroll ? 'auto' : 'none',
               opacity: isLoading ? 0 : 1,
-              transition: 'opacity 0.45s ease',
+              transition: 'opacity 0.45s ease, transform 0.1s ease-out',
             }}
             tabIndex={-1}
           />
