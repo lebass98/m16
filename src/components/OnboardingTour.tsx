@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Box, Typography, Button, Paper, MobileStepper, useTheme } from '@mui/material';
+import { motion } from 'framer-motion';
 
 interface OnboardingStep {
   targetId: string;
@@ -145,7 +146,6 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
         transform: 'translate(-50%, -50%)',
         width: `${cardWidth}px`,
         zIndex: 10001,
-        transition: 'all 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
       };
     }
 
@@ -181,7 +181,6 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
       left: `${left}px`,
       width: `${cardWidth}px`,
       zIndex: 10001,
-      transition: 'all 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
     };
   };
 
@@ -197,7 +196,6 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
         boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.55)',
         zIndex: 10000,
         pointerEvents: 'none',
-        transition: 'all 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
       };
     }
 
@@ -212,7 +210,6 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
       boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.55)',
       zIndex: 10000,
       pointerEvents: 'none',
-      transition: 'all 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
     };
   };
 
@@ -276,12 +273,18 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
       />
 
       {/* Spotlight highlight window */}
-      <Box style={getSpotlightStyle()} />
+      <Box
+        component={motion.div}
+        animate={getSpotlightStyle() as any}
+        transition={{ type: 'spring', stiffness: 260, damping: 30 }}
+      />
 
       {/* Popover content card */}
       <Paper
+        component={motion.div}
         elevation={16}
-        style={getCardStyle()}
+        animate={getCardStyle() as any}
+        transition={{ type: 'spring', stiffness: 260, damping: 30 }}
         sx={{
           p: '20px',
           borderRadius: '16px',

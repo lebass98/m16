@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Paper, Box, Typography, Card, IconButton, Tooltip, Checkbox, useTheme } from '@mui/material';
+import { motion } from 'framer-motion';
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
@@ -100,10 +101,22 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
 
   return (
     <Card
+      component={motion.div}
       variant="outlined"
-      className="card-enter"
       id={id}
-      style={{ animationDelay: `${baseDelay}ms` }}
+      initial={{ opacity: 0, y: 30, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{
+        type: 'spring',
+        stiffness: 260,
+        damping: 30,
+        delay: baseDelay / 1000,
+      }}
+      whileHover={{
+        y: -6,
+        scale: 1.01,
+        transition: { type: 'spring', stiffness: 300, damping: 20 },
+      }}
       sx={{
         ...glassPanelSx,
         overflow: 'hidden',
@@ -112,9 +125,7 @@ function RecipeCard({ item, section, sectionIndex, isBookmarked, onToggleBookmar
         // 다크 모드에서도 충분히 보이도록 모드별 분기된 토큰 사용
         boxShadow: cardShadow(mode),
         color: COLORS.gray900,
-        transition: 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease',
         '&:hover': {
-          transform: 'translateY(-4px)',
           boxShadow: cardShadowHover(mode),
           zIndex: 2,
         },

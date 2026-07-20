@@ -25,6 +25,8 @@ import MobileTopBar from './components/mobile/MobileTopBar';
 import MobileSiteBanner from './components/mobile/MobileSiteBanner';
 import MobileLeftDrawer from './components/mobile/MobileLeftDrawer';
 import MobileSwiper from './components/mobile/MobileSwiper';
+import { AnimatePresence } from 'framer-motion';
+import InteractiveBackground from './components/InteractiveBackground';
 
 // 다이얼로그·드로워는 첫 진입에 필요 없음 → 지연 로드로 초기 번들에서 분리
 const SearchDialog = lazy(() => import('./components/SearchDialog'));
@@ -518,6 +520,7 @@ export default function App() {
 
   return (
     <ThemeProvider themeOverrides={themeOverrides} direction={rtl ? 'rtl' : 'ltr'}>
+      <InteractiveBackground />
       <Box sx={{ boxSizing: 'border-box', p: 0, pb: { xs: 0, md: 0 }, height: { xs: '100dvh', md: 'auto' }, minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'transparent' }}>
 
         {/* 모바일 상단바 — 좌: 햄버거 / 우: 데스크탑 우측 액션 묶음 */}
@@ -900,18 +903,20 @@ export default function App() {
 
         {/* 일괄 편집 툴바 — 선택 모드 + 1개 이상 선택 시에만 표시 */}
         <Suspense fallback={null}>
-          {selectMode && (
-            <BulkEditBar
-              selectedCount={selection.size}
-              visibleCount={visibleCount}
-              onCancel={exitSelectMode}
-              onApply={applyBulkProgress}
-              onCompare={() => dialogs.openDialog('compare')}
-              onSelectAllVisible={selectAllVisible}
-              onDeselectAll={deselectAll}
-              canCompare={selection.size >= 2 && selection.size <= 4}
-            />
-          )}
+          <AnimatePresence>
+            {selectMode && (
+              <BulkEditBar
+                selectedCount={selection.size}
+                visibleCount={visibleCount}
+                onCancel={exitSelectMode}
+                onApply={applyBulkProgress}
+                onCompare={() => dialogs.openDialog('compare')}
+                onSelectAllVisible={selectAllVisible}
+                onDeselectAll={deselectAll}
+                canCompare={selection.size >= 2 && selection.size <= 4}
+              />
+            )}
+          </AnimatePresence>
         </Suspense>
 
       </Box>

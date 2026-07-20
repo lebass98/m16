@@ -3,6 +3,7 @@ import { Box, Typography, CircularProgress, Button } from '@mui/material';
 import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
 import FilterAltOffOutlinedIcon from '@mui/icons-material/FilterAltOffOutlined';
 import ErrorOutlineOutlinedIcon from '@mui/icons-material/ErrorOutlineOutlined';
+import { motion } from 'framer-motion';
 import GlassCard from './GlassCard';
 
 export type StateKind = 'loading' | 'empty' | 'no-results' | 'error';
@@ -45,27 +46,34 @@ export default function StateMessage({ kind, title, description, action, childre
   const d = DEFAULTS[kind];
   const isError = kind === 'error';
   return (
-    <GlassCard
-      role={isError ? 'alert' : 'status'}
-      aria-live={isError ? 'assertive' : 'polite'}
-      aria-busy={kind === 'loading' ? true : undefined}
-      sx={{ py: '64px', px: '24px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}
+    <motion.div
+      initial={{ opacity: 0, y: 15, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.35, ease: 'easeOut' }}
+      style={{ width: '100%' }}
     >
-      <Icon kind={kind} />
-      <Box>
-        <Typography sx={{ fontSize: 16, fontWeight: 700, color: 'text.primary', lineHeight: 1.4 }}>
-          {title ?? d.title}
-        </Typography>
-        <Typography sx={{ fontSize: 13, color: 'text.secondary', mt: '4px', lineHeight: 1.5 }}>
-          {description ?? d.description}
-        </Typography>
-      </Box>
-      {children}
-      {action && (
-        <Button onClick={action.onClick} size="small" variant="outlined" sx={{ mt: '4px', textTransform: 'none', fontWeight: 600 }}>
-          {action.label}
-        </Button>
-      )}
-    </GlassCard>
+      <GlassCard
+        role={isError ? 'alert' : 'status'}
+        aria-live={isError ? 'assertive' : 'polite'}
+        aria-busy={kind === 'loading' ? true : undefined}
+        sx={{ py: '64px', px: '24px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}
+      >
+        <Icon kind={kind} />
+        <Box>
+          <Typography sx={{ fontSize: 16, fontWeight: 700, color: 'text.primary', lineHeight: 1.4 }}>
+            {title ?? d.title}
+          </Typography>
+          <Typography sx={{ fontSize: 13, color: 'text.secondary', mt: '4px', lineHeight: 1.5 }}>
+            {description ?? d.description}
+          </Typography>
+        </Box>
+        {children}
+        {action && (
+          <Button onClick={action.onClick} size="small" variant="outlined" sx={{ mt: '4px', textTransform: 'none', fontWeight: 600 }}>
+            {action.label}
+          </Button>
+        )}
+      </GlassCard>
+    </motion.div>
   );
 }

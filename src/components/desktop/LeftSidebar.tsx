@@ -3,6 +3,7 @@ import GridViewIcon from '@mui/icons-material/GridView';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import { motion } from 'framer-motion';
 
 interface Props {
   siteTitle: string;
@@ -29,6 +30,7 @@ export default function LeftSidebar({
   forceCollapsed = false,
 }: Props) {
   const effectiveCollapsed = forceCollapsed || collapsed;
+  const isPagesActive = sectionFilter.size === 0;
   return (
     <>
       <Box
@@ -71,16 +73,31 @@ export default function LeftSidebar({
             <Box className="reveal-right" style={{ animationDelay: '60ms' }} sx={{
               display: 'flex', alignItems: 'center', gap: '14px', px: '12px', py: '8px', borderRadius: '8px', cursor: 'pointer',
               justifyContent: effectiveCollapsed ? 'center' : 'flex-start',
-              bgcolor: 'rgb(var(--palette-primary-mainChannel) / 0.08)',
-              color: 'primary.main',
+              bgcolor: isPagesActive ? 'rgb(var(--palette-primary-mainChannel) / 0.08)' : 'transparent',
+              color: isPagesActive ? 'primary.main' : 'text.secondary',
               fontWeight: 600,
               position: 'relative',
-              '&:hover': { bgcolor: 'rgb(var(--palette-primary-mainChannel) / 0.16)', color: 'primary.main' },
-              '&::before': !effectiveCollapsed ? { content: '""', position: 'absolute', left: 0, top: '50%', transform: 'translate(-16px,-50%)', width: 3, height: 20, borderRadius: '0 2px 2px 0', bgcolor: 'primary.main' } : {},
+              '&:hover': { bgcolor: isPagesActive ? 'rgb(var(--palette-primary-mainChannel) / 0.16)' : 'rgb(var(--palette-grey-500Channel) / 0.08)', color: isPagesActive ? 'primary.main' : 'text.primary' },
             }}>
               <GridViewIcon sx={{ fontSize: 20 }} />
               {!effectiveCollapsed && (
                 <Typography sx={{ fontSize: 14, fontWeight: 'inherit', color: 'inherit', flex: 1 }}>Pages</Typography>
+              )}
+              {isPagesActive && !effectiveCollapsed && (
+                <Box
+                  component={motion.div}
+                  layoutId="active-sidebar-line"
+                  sx={{
+                    position: 'absolute',
+                    left: 0,
+                    top: '50%',
+                    transform: 'translate(-16px,-50%)',
+                    width: 3,
+                    height: 20,
+                    borderRadius: '0 2px 2px 0',
+                    bgcolor: 'primary.main',
+                  }}
+                />
               )}
             </Box>
           </Tooltip>
@@ -109,9 +126,24 @@ export default function LeftSidebar({
                       color: isActive ? 'primary.main' : 'text.secondary',
                       '&:hover': { bgcolor: isActive ? 'rgb(var(--palette-primary-mainChannel) / 0.16)' : 'rgb(var(--palette-grey-500Channel) / 0.08)', color: isActive ? 'primary.main' : 'text.primary' },
                       '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 },
-                      '&::before': isActive ? { content: '""', position: 'absolute', left: 0, top: '50%', transform: 'translate(-16px,-50%)', width: 3, height: 18, borderRadius: '0 2px 2px 0', bgcolor: 'primary.main' } : {},
                     }}
                   >
+                    {isActive && (
+                      <Box
+                        component={motion.div}
+                        layoutId="active-sidebar-line"
+                        sx={{
+                          position: 'absolute',
+                          left: 0,
+                          top: '50%',
+                          transform: 'translate(-16px,-50%)',
+                          width: 3,
+                          height: 18,
+                          borderRadius: '0 2px 2px 0',
+                          bgcolor: 'primary.main',
+                        }}
+                      />
+                    )}
                     <Box aria-hidden="true" sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: isActive ? 'primary.main' : 'grey.400', flexShrink: 0 }} />
                     <Typography sx={{ fontSize: 13, flex: 1, color: 'inherit', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: isActive ? 600 : 500 }} title={label}>{label}</Typography>
                     <Box aria-hidden="true" sx={{ fontSize: 10, fontWeight: 700, color: isActive ? 'primary.main' : 'text.disabled', bgcolor: isActive ? 'rgb(var(--palette-primary-mainChannel) / 0.16)' : 'rgb(var(--palette-grey-500Channel) / 0.12)', px: '6px', py: '2px', borderRadius: '6px', lineHeight: 1.4 }}>{count}</Box>

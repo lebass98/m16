@@ -1,9 +1,34 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, forwardRef } from 'react';
 import { Dialog, Box, Typography, IconButton } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
+import { motion, AnimatePresence } from 'framer-motion';
 import PathPreviewIcons from './PathPreviewIcons';
+
+const CustomTransition = forwardRef(function Transition(
+  props: any & { children: React.ReactElement },
+  ref: React.Ref<unknown>
+) {
+  const { children, in: inProp, onEnter, onExited, ...other } = props;
+  return (
+    <AnimatePresence>
+      {inProp && (
+        <motion.div
+          ref={ref}
+          initial={{ opacity: 0, scale: 0.9, y: -20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.9, y: -20 }}
+          transition={{ type: 'spring', stiffness: 350, damping: 26 }}
+          style={{ display: 'contents' }}
+          {...other}
+        >
+          {children}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+});
 
 export interface SearchHit {
   globalIdx: number;
@@ -86,6 +111,7 @@ export default function SearchDialog({ open, onClose, query, onQueryChange, resu
       onClose={onClose}
       maxWidth="sm"
       fullWidth
+      {...({ TransitionComponent: CustomTransition } as any)}
       slotProps={{
         paper: {
           sx: {

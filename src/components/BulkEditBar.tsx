@@ -5,6 +5,7 @@ import CompareIcon from '@mui/icons-material/Compare';
 import SaveIcon from '@mui/icons-material/Save';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
 import DeselectIcon from '@mui/icons-material/Deselect';
+import { motion } from 'framer-motion';
 import type { ProgressValue } from '../types';
 
 const PROGRESS_OPTIONS: { value: ProgressValue | 'noop'; label: string }[] = [
@@ -50,30 +51,37 @@ export default function BulkEditBar({ selectedCount, visibleCount, onCancel, onA
   const canApply = nextPc !== 'noop' || nextMo !== 'noop';
 
   return (
-    <Box
-      role="region"
-      aria-label={`일괄 편집 (${selectedCount}개 선택됨)`}
-      sx={{
+    <motion.div
+      initial={{ y: 80, opacity: 0, x: '-50%' }}
+      animate={{ y: 0, opacity: 1, x: '-50%' }}
+      exit={{ y: 80, opacity: 0, x: '-50%' }}
+      transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+      style={{
         position: 'fixed',
         bottom: 24,
         left: '50%',
-        transform: 'translateX(-50%)',
         zIndex: 1200,
-        display: 'flex',
-        alignItems: 'center',
-        gap: '14px',
-        px: '20px',
-        py: '12px',
-        bgcolor: 'background.paper',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        border: 'var(--glass-border)',
-        borderRadius: '16px',
-        boxShadow: '0 16px 48px 0 rgba(0,0,0,0.18)',
-        maxWidth: 'calc(100vw - 40px)',
-        flexWrap: 'wrap',
       }}
     >
+      <Box
+        role="region"
+        aria-label={`일괄 편집 (${selectedCount}개 선택됨)`}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '14px',
+          px: '20px',
+          py: '12px',
+          bgcolor: 'background.paper',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: 'var(--glass-border)',
+          borderRadius: '16px',
+          boxShadow: '0 16px 48px 0 rgba(0,0,0,0.18)',
+          maxWidth: 'calc(100vw - 40px)',
+          flexWrap: 'wrap',
+        }}
+      >
       <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary', display: 'flex', alignItems: 'center', gap: '6px' }}>
         <Box component="span" sx={{ bgcolor: 'primary.main', color: 'background.paper', borderRadius: '6px', px: '8px', py: '2px', fontSize: 12 }}>
           {selectedCount}
@@ -171,6 +179,7 @@ export default function BulkEditBar({ selectedCount, visibleCount, onCancel, onA
           <CloseIcon sx={{ fontSize: 18 }} />
         </IconButton>
       </Tooltip>
-    </Box>
+      </Box>
+    </motion.div>
   );
 }

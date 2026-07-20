@@ -14,6 +14,7 @@ import VerticalSplitOutlinedIcon from '@mui/icons-material/VerticalSplitOutlined
 import CheckIcon from '@mui/icons-material/Check';
 import { PRESET_LIST, type PresetKey } from '../theme/presets';
 import { FONT_FAMILY_KEYS, type FontFamilyKey } from '../theme/fonts';
+import { motion, type Variants } from 'framer-motion';
 
 const DRAWER_WIDTH = 360;
 
@@ -158,6 +159,25 @@ function SectionLabel({ children, info }: { children: React.ReactNode; info?: st
   );
 }
 
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+    },
+  },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 15 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { type: 'spring', stiffness: 300, damping: 24 },
+  },
+};
+
 export default function SettingsDrawer({
   open, onClose,
   darkMode, onToggleDarkMode,
@@ -236,223 +256,242 @@ export default function SettingsDrawer({
         '&::-webkit-scrollbar': { width: '4px' },
         '&::-webkit-scrollbar-thumb': { background: alpha(theme.palette.text.primary, 0.2), borderRadius: '4px' },
       }}>
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate={open ? 'show' : 'hidden'}
+          style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}
+        >
         {/* 표시 (2 토글) */}
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
-          <ToggleCard
-            icon={darkMode ? <LightModeIcon /> : <DarkModeIcon />}
-            label="Mode"
-            value={darkMode}
-            onChange={onToggleDarkMode}
-          />
-          <ToggleCard
-            icon={<FormatTextdirectionLToRIcon />}
-            label="Right to left"
-            value={rtl}
-            onChange={onToggleRtl}
-          />
-        </Box>
+        <motion.div variants={itemVariants}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+            <ToggleCard
+              icon={darkMode ? <LightModeIcon /> : <DarkModeIcon />}
+              label="Mode"
+              value={darkMode}
+              onChange={onToggleDarkMode}
+            />
+            <ToggleCard
+              icon={<FormatTextdirectionLToRIcon />}
+              label="Right to left"
+              value={rtl}
+              onChange={onToggleRtl}
+            />
+          </Box>
+        </motion.div>
 
         {/* 콘텐츠 — 프로젝트 고유 토글 */}
-        <SectionLabel info="현재 페이지 카드에 영향">콘텐츠</SectionLabel>
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
-          <ToggleCard
-            icon={<VisibilityOutlinedIcon />}
-            label="미리보기"
-            value={previewEnabled}
-            onChange={onTogglePreview}
-          />
-          <ToggleCard
-            icon={<PendingActionsOutlinedIcon />}
-            label="미완료 보기"
-            value={showIncomplete}
-            onChange={onToggleIncomplete}
-          />
-          <ToggleCard
-            icon={<VerticalSplitOutlinedIcon />}
-            label="우측 사이드바 숨김"
-            value={rightSidebarHidden}
-            onChange={onToggleRightSidebar}
-            disabledHint="우측 정보/활동 패널을 숨겨 본문 영역을 넓게 사용"
-          />
-        </Box>
+        <motion.div variants={itemVariants}>
+          <SectionLabel info="현재 페이지 카드에 영향">콘텐츠</SectionLabel>
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+            <ToggleCard
+              icon={<VisibilityOutlinedIcon />}
+              label="미리보기"
+              value={previewEnabled}
+              onChange={onTogglePreview}
+            />
+            <ToggleCard
+              icon={<PendingActionsOutlinedIcon />}
+              label="미완료 보기"
+              value={showIncomplete}
+              onChange={onToggleIncomplete}
+            />
+            <ToggleCard
+              icon={<VerticalSplitOutlinedIcon />}
+              label="우측 사이드바 숨김"
+              value={rightSidebarHidden}
+              onChange={onToggleRightSidebar}
+              disabledHint="우측 정보/활동 패널을 숨겨 본문 영역을 넓게 사용"
+            />
+          </Box>
+        </motion.div>
 
         {/* Color — 좌측 사이드바 대비 (Integrate / Apparent) */}
-        <SectionLabel info="좌측 사이드바를 다크 톤으로 전환">Color</SectionLabel>
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
-          <ContrastCard
-            label="Integrate"
-            selected={contrast === 'default'}
-            onClick={() => onSelectContrast('default')}
-          />
-          <ContrastCard
-            label="Apparent"
-            selected={contrast === 'hot'}
-            onClick={() => onSelectContrast('hot')}
-          />
-        </Box>
+        <motion.div variants={itemVariants}>
+          <SectionLabel info="좌측 사이드바를 다크 톤으로 전환">Color</SectionLabel>
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+            <ContrastCard
+              label="Integrate"
+              selected={contrast === 'default'}
+              onClick={() => onSelectContrast('default')}
+            />
+            <ContrastCard
+              label="Apparent"
+              selected={contrast === 'hot'}
+              onClick={() => onSelectContrast('hot')}
+            />
+          </Box>
+        </motion.div>
 
         {/* Presets — 6 컬러 */}
-        <SectionLabel>Presets</SectionLabel>
-        <Box sx={{ p: '14px', borderRadius: '12px', border: '1px solid rgb(var(--palette-grey-500Channel) / 0.16)', bgcolor: 'background.paper' }}>
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-            {PRESET_LIST.map((p) => {
-              const isSelected = preset === p.key;
-              return (
-                <Tooltip key={p.key} title={p.label} arrow placement="top">
-                  <Box
-                    onClick={() => onSelectPreset(p.key)}
-                    sx={{
-                      cursor: 'pointer',
-                      bgcolor: alpha(p.color.main, isSelected ? 0.16 : 0.08),
-                      border: '1px solid',
-                      borderColor: isSelected ? p.color.main : alpha(p.color.main, 0.2),
-                      borderRadius: '10px',
-                      height: 56,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      transition: 'background 0.15s, border-color 0.15s, transform 0.15s',
-                      '&:hover': { borderColor: p.color.main },
-                    }}
-                  >
-                    {/* 컬러 chip / 선택 시 체크 */}
-                    <Box sx={{
-                      position: 'relative',
-                      width: 26, height: 26, borderRadius: '50%',
-                      bgcolor: p.color.main,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      boxShadow: isSelected ? `0 0 0 3px ${alpha(p.color.main, 0.24)}` : 'none',
-                    }}>
-                      {isSelected && <CheckIcon sx={{ fontSize: 16, color: p.color.contrastText }} />}
+        <motion.div variants={itemVariants}>
+          <SectionLabel>Presets</SectionLabel>
+          <Box sx={{ p: '14px', borderRadius: '12px', border: '1px solid rgb(var(--palette-grey-500Channel) / 0.16)', bgcolor: 'background.paper' }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+              {PRESET_LIST.map((p) => {
+                const isSelected = preset === p.key;
+                return (
+                  <Tooltip key={p.key} title={p.label} arrow placement="top">
+                    <Box
+                      onClick={() => onSelectPreset(p.key)}
+                      sx={{
+                        cursor: 'pointer',
+                        bgcolor: alpha(p.color.main, isSelected ? 0.16 : 0.08),
+                        border: '1px solid',
+                        borderColor: isSelected ? p.color.main : alpha(p.color.main, 0.2),
+                        borderRadius: '10px',
+                        height: 56,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'background 0.15s, border-color 0.15s, transform 0.15s',
+                        '&:hover': { borderColor: p.color.main },
+                      }}
+                    >
+                      {/* 컬러 chip / 선택 시 체크 */}
+                      <Box sx={{
+                        position: 'relative',
+                        width: 26, height: 26, borderRadius: '50%',
+                        bgcolor: p.color.main,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: isSelected ? `0 0 0 3px ${alpha(p.color.main, 0.24)}` : 'none',
+                      }}>
+                        {isSelected && <CheckIcon sx={{ fontSize: 16, color: p.color.contrastText }} />}
+                      </Box>
                     </Box>
-                  </Box>
-                </Tooltip>
-              );
-            })}
+                  </Tooltip>
+                );
+              })}
+            </Box>
           </Box>
-        </Box>
+        </motion.div>
 
         {/* Font — Family + Size */}
-        <SectionLabel info="앱 전체 폰트와 크기 설정">Font</SectionLabel>
-        <Box sx={{ p: '20px', borderRadius: '12px', border: '1px solid rgb(var(--palette-grey-500Channel) / 0.16)', bgcolor: 'background.paper' }}>
-          {/* Family */}
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary', mb: '12px' }}>Family</Typography>
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
-            {FONT_FAMILY_KEYS.map((f) => {
-              const selected = fontFamily === f;
-              return (
-                <Box
-                  key={f}
-                  onClick={() => onSelectFontFamily(f)}
-                  sx={{
-                    cursor: 'pointer',
-                    bgcolor: selected ? alpha(theme.palette.primary.main, 0.04) : 'transparent',
-                    border: '1px solid',
-                    borderColor: selected ? alpha(theme.palette.primary.main, 0.48) : 'rgb(var(--palette-grey-500Channel) / 0.16)',
-                    borderRadius: '10px',
-                    p: '14px 8px 10px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '6px',
-                    transition: 'background 0.15s, border-color 0.15s',
-                    '&:hover': { borderColor: alpha(theme.palette.primary.main, 0.32) },
-                  }}
-                >
-                  <Box sx={{ fontFamily: `"${f}", sans-serif`, fontSize: 30, fontWeight: 600, lineHeight: 1, letterSpacing: '-0.02em' }}>
-                    <Box component="span" sx={{ color: selected ? 'primary.main' : 'text.disabled' }}>A</Box>
-                    <Box component="span" sx={{ color: selected ? alpha(theme.palette.primary.main, 0.45) : alpha(theme.palette.text.disabled, 0.55) }}>a</Box>
+        <motion.div variants={itemVariants}>
+          <SectionLabel info="앱 전체 폰트와 크기 설정">Font</SectionLabel>
+          <Box sx={{ p: '20px', borderRadius: '12px', border: '1px solid rgb(var(--palette-grey-500Channel) / 0.16)', bgcolor: 'background.paper' }}>
+            {/* Family */}
+            <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary', mb: '12px' }}>Family</Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+              {FONT_FAMILY_KEYS.map((f) => {
+                const selected = fontFamily === f;
+                return (
+                  <Box
+                    key={f}
+                    onClick={() => onSelectFontFamily(f)}
+                    sx={{
+                      cursor: 'pointer',
+                      bgcolor: selected ? alpha(theme.palette.primary.main, 0.04) : 'transparent',
+                      border: '1px solid',
+                      borderColor: selected ? alpha(theme.palette.primary.main, 0.48) : 'rgb(var(--palette-grey-500Channel) / 0.16)',
+                      borderRadius: '10px',
+                      p: '14px 8px 10px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '6px',
+                      transition: 'background 0.15s, border-color 0.15s',
+                      '&:hover': { borderColor: alpha(theme.palette.primary.main, 0.32) },
+                    }}
+                  >
+                    <Box sx={{ fontFamily: `"${f}", sans-serif`, fontSize: 30, fontWeight: 600, lineHeight: 1, letterSpacing: '-0.02em' }}>
+                      <Box component="span" sx={{ color: selected ? 'primary.main' : 'text.disabled' }}>A</Box>
+                      <Box component="span" sx={{ color: selected ? alpha(theme.palette.primary.main, 0.45) : alpha(theme.palette.text.disabled, 0.55) }}>a</Box>
+                    </Box>
+                    <Typography sx={{ fontFamily: `"${f}", sans-serif`, fontSize: 13, fontWeight: 600, color: selected ? 'text.primary' : 'text.disabled' }}>
+                      {f}
+                    </Typography>
                   </Box>
-                  <Typography sx={{ fontFamily: `"${f}", sans-serif`, fontSize: 13, fontWeight: 600, color: selected ? 'text.primary' : 'text.disabled' }}>
-                    {f}
-                  </Typography>
-                </Box>
-              );
-            })}
-          </Box>
+                );
+              })}
+            </Box>
 
-          {/* Size */}
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary', mt: '24px', mb: '4px' }}>Size</Typography>
-          <Slider
-            size="small"
-            value={fontSize}
-            min={12}
-            max={20}
-            step={1}
-            marks={[
-              { value: 12, label: '12' },
-              { value: 14, label: '14' },
-              { value: 16, label: '16' },
-              { value: 18, label: '18' },
-              { value: 20, label: '20' },
-            ]}
-            onChange={(_, v) => onChangeFontSize(v as number)}
-            valueLabelDisplay="on"
-            valueLabelFormat={(v) => `${v}px`}
-            sx={{
-              color: 'primary.main',
-              mt: '24px',
-              '& .MuiSlider-mark': {
-                bgcolor: alpha(theme.palette.text.primary, 0.3),
-                height: 6,
-                width: 2,
-                borderRadius: 1,
-              },
-              '& .MuiSlider-markActive': {
-                bgcolor: alpha(theme.palette.primary.contrastText, 0.6),
-              },
-              '& .MuiSlider-markLabel': {
-                fontSize: 10,
-                color: 'text.disabled',
-                top: 22,
-              },
-              '& .MuiSlider-valueLabel': {
-                bgcolor: theme.palette.text.primary,
-                color: theme.palette.background.paper,
-                borderRadius: '8px',
-                fontSize: 11,
-                fontWeight: 700,
-                px: '8px',
-                py: '4px',
-                top: -6,
-                '&::before': { display: 'none' },
-                '&::after': {
-                  content: '""',
-                  position: 'absolute',
-                  bottom: -3,
-                  left: '50%',
-                  transform: 'translateX(-50%) rotate(45deg)',
-                  width: 8,
-                  height: 8,
-                  bgcolor: theme.palette.text.primary,
+            {/* Size */}
+            <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary', mt: '24px', mb: '4px' }}>Size</Typography>
+            <Slider
+              size="small"
+              value={fontSize}
+              min={12}
+              max={20}
+              step={1}
+              marks={[
+                { value: 12, label: '12' },
+                { value: 14, label: '14' },
+                { value: 16, label: '16' },
+                { value: 18, label: '18' },
+                { value: 20, label: '20' },
+              ]}
+              onChange={(_, v) => onChangeFontSize(v as number)}
+              valueLabelDisplay="on"
+              valueLabelFormat={(v) => `${v}px`}
+              sx={{
+                color: 'primary.main',
+                mt: '24px',
+                '& .MuiSlider-mark': {
+                  bgcolor: alpha(theme.palette.text.primary, 0.3),
+                  height: 6,
+                  width: 2,
+                  borderRadius: 1,
                 },
-              },
-            }}
-          />
-        </Box>
+                '& .MuiSlider-markActive': {
+                  bgcolor: alpha(theme.palette.primary.contrastText, 0.6),
+                },
+                '& .MuiSlider-markLabel': {
+                  fontSize: 10,
+                  color: 'text.disabled',
+                  top: 22,
+                },
+                '& .MuiSlider-valueLabel': {
+                  bgcolor: theme.palette.text.primary,
+                  color: theme.palette.background.paper,
+                  borderRadius: '8px',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  px: '8px',
+                  py: '4px',
+                  top: -6,
+                  '&::before': { display: 'none' },
+                  '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    bottom: -3,
+                    left: '50%',
+                    transform: 'translateX(-50%) rotate(45deg)',
+                    width: 8,
+                    height: 8,
+                    bgcolor: theme.palette.text.primary,
+                  },
+                },
+              }}
+            />
+          </Box>
+        </motion.div>
 
         {/* 가이드 — 온보딩 다시보기 */}
-        <SectionLabel info="처음 방문 시 제공되는 도움말 가이드">가이드</SectionLabel>
-        <Box
-          onClick={() => {
-            onClose();
-            onStartTour();
-          }}
-          sx={{
-            cursor: 'pointer',
-            p: '14px',
-            borderRadius: '12px',
-            border: '1px solid rgb(var(--palette-grey-500Channel) / 0.16)',
-            bgcolor: 'background.paper',
-            textAlign: 'center',
-            '&:hover': { borderColor: 'primary.main', bgcolor: alpha(theme.palette.primary.main, 0.04) },
-            transition: 'background 0.15s, border-color 0.15s'
-          }}
-        >
-          <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'primary.main' }}>
-            도움말 가이드 다시 보기
-          </Typography>
-        </Box>
+        <motion.div variants={itemVariants}>
+          <SectionLabel info="처음 방문 시 제공되는 도움말 가이드">가이드</SectionLabel>
+          <Box
+            onClick={() => {
+              onClose();
+              onStartTour();
+            }}
+            sx={{
+              cursor: 'pointer',
+              p: '14px',
+              borderRadius: '12px',
+              border: '1px solid rgb(var(--palette-grey-500Channel) / 0.16)',
+              bgcolor: 'background.paper',
+              textAlign: 'center',
+              '&:hover': { borderColor: 'primary.main', bgcolor: alpha(theme.palette.primary.main, 0.04) },
+              transition: 'background 0.15s, border-color 0.15s'
+            }}
+          >
+            <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'primary.main' }}>
+              도움말 가이드 다시 보기
+            </Typography>
+          </Box>
+        </motion.div>
+        </motion.div>
       </Box>
     </Drawer>
   );

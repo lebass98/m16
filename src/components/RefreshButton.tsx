@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Box, IconButton, Tooltip, Typography } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import { motion } from 'framer-motion';
 
 interface Props {
   /** 마지막 fetch 시각 (ms). null이면 "방금" 또는 "—". */
@@ -57,23 +58,29 @@ export default function RefreshButton({ lastFetched, loading, isFallback, onRefr
       </Typography>
       <Tooltip title={tooltip} arrow>
         <span>
-          <IconButton
-            onClick={onRefresh}
-            disabled={loading}
-            aria-label="데이터 새로고침"
-            sx={{
-              width: 36, height: 36,
-              color: isFallback ? 'error.main' : 'text.secondary',
-              '&:hover': { bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.08)', color: 'text.primary' },
-            }}
+          <motion.div
+            whileHover={loading ? {} : { scale: 1.1 }}
+            whileTap={loading ? {} : { scale: 0.9 }}
+            style={{ display: 'inline-flex' }}
           >
-            <RefreshIcon
+            <IconButton
+              onClick={onRefresh}
+              disabled={loading}
+              aria-label="데이터 새로고침"
               sx={{
-                fontSize: 20,
-                animation: loading ? 'previewSpin 0.8s linear infinite' : 'none',
+                width: 36, height: 36,
+                color: isFallback ? 'error.main' : 'text.secondary',
+                '&:hover': { bgcolor: 'rgb(var(--palette-grey-500Channel) / 0.08)', color: 'text.primary' },
               }}
-            />
-          </IconButton>
+            >
+              <RefreshIcon
+                sx={{
+                  fontSize: 20,
+                  animation: loading ? 'previewSpin 0.8s linear infinite' : 'none',
+                }}
+              />
+            </IconButton>
+          </motion.div>
         </span>
       </Tooltip>
     </Box>

@@ -1,6 +1,7 @@
 import { Box, Chip, Button } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Props {
   searchFilter: string;
@@ -69,46 +70,83 @@ export default function ActiveFilterChips({
         활성 필터
       </Box>
 
-      {hasSearch && (
-        <Chip
-          label={`"${searchFilter}"`}
-          size="small"
-          deleteIcon={<CloseIcon />}
-          onDelete={onClearSearch}
-          sx={chipSx}
-        />
-      )}
+      <AnimatePresence mode="popLayout">
+        {hasSearch && (
+          <motion.div
+            key="search-chip"
+            layout
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+          >
+            <Chip
+              label={`"${searchFilter}"`}
+              size="small"
+              deleteIcon={<CloseIcon />}
+              onDelete={onClearSearch}
+              sx={chipSx}
+            />
+          </motion.div>
+        )}
 
-      {Array.from(sectionFilter).map((key) => (
-        <Chip
-          key={key}
-          label={key || '(미분류)'}
-          size="small"
-          deleteIcon={<CloseIcon />}
-          onDelete={() => onToggleSection(key)}
-          sx={chipSx}
-        />
-      ))}
+        {Array.from(sectionFilter).map((key) => (
+          <motion.div
+            key={`section-chip-${key}`}
+            layout
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+          >
+            <Chip
+              label={key || '(미분류)'}
+              size="small"
+              deleteIcon={<CloseIcon />}
+              onDelete={() => onToggleSection(key)}
+              sx={chipSx}
+            />
+          </motion.div>
+        ))}
 
-      {!showIncomplete && (
-        <Chip
-          label="미완료 숨김"
-          size="small"
-          deleteIcon={<CloseIcon />}
-          onDelete={onToggleIncomplete}
-          sx={chipSx}
-        />
-      )}
+        {!showIncomplete && (
+          <motion.div
+            key="incomplete-chip"
+            layout
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+          >
+            <Chip
+              label="미완료 숨김"
+              size="small"
+              deleteIcon={<CloseIcon />}
+              onDelete={onToggleIncomplete}
+              sx={chipSx}
+            />
+          </motion.div>
+        )}
 
-      {hasProgress && (
-        <Chip
-          label={`진행도 ${progressRange[0]}–${progressRange[1]}%`}
-          size="small"
-          deleteIcon={<CloseIcon />}
-          onDelete={onResetProgress}
-          sx={chipSx}
-        />
-      )}
+        {hasProgress && (
+          <motion.div
+            key="progress-chip"
+            layout
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+          >
+            <Chip
+              label={`진행도 ${progressRange[0]}–${progressRange[1]}%`}
+              size="small"
+              deleteIcon={<CloseIcon />}
+              onDelete={onResetProgress}
+              sx={chipSx}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Button
         size="small"

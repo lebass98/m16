@@ -111,6 +111,8 @@ body {
   background: transparent;
 }
 
+/* Static CSS float blobs disabled to replace with motion-driven interactive blobs */
+/*
 body::before {
   content: "";
   position: fixed;
@@ -174,6 +176,7 @@ html::after {
   will-change: transform;
   transform: translate3d(0, 0, 0);
 }
+*/
 
 #root {
   width: 100%;

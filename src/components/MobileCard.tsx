@@ -1,5 +1,6 @@
 import { Card, Box, Typography, IconButton, Checkbox } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import { motion } from 'framer-motion';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import type { TableItem } from '../types';
@@ -27,21 +28,37 @@ export default function MobileCard({ item, cardNumber, latestDate, hideUi, isBoo
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
 
+  const baseDelay = Math.max(0, cardNumber - 1) * 55;
+
   return (
-    <Card variant="outlined" sx={{
-      ...glassPanelSx,
-      overflow: 'hidden',
-      width: '100%',
-      height: '100%',
-      minHeight: 0,
-      display: 'flex',
-      flexDirection: 'column',
-      transition: 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease',
-      '&:hover': {
-        transform: 'translateY(-4px) scale(1.005)',
-        boxShadow: isDark ? '0 16px 48px 0 rgba(0,0,0,0.5)' : '0 16px 48px 0 rgba(31, 38, 135, 0.15)',
-      },
-    }}>
+    <Card
+      component={motion.div}
+      variant="outlined"
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{
+        type: 'spring',
+        stiffness: 260,
+        damping: 30,
+        delay: baseDelay / 1000,
+      }}
+      whileHover={{
+        y: -4,
+        scale: 1.005,
+        transition: { type: 'spring', stiffness: 300, damping: 20 },
+      }}
+      sx={{
+        ...glassPanelSx,
+        overflow: 'hidden',
+        width: '100%',
+        height: '100%',
+        minHeight: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        '&:hover': {
+          boxShadow: isDark ? '0 16px 48px 0 rgba(0,0,0,0.5)' : '0 16px 48px 0 rgba(31, 38, 135, 0.15)',
+        },
+      }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', p: '8px 12px', bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255, 255, 255, 0.4)', borderBottom: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(255, 255, 255, 0.5)', flexShrink: 0 }}>
         {selectMode && onToggleSelect ? (
           <Checkbox
