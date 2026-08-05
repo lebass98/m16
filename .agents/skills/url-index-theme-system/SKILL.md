@@ -1,31 +1,21 @@
 ---
 name: url-index-theme-system
-description: URL Index 프로젝트의 Minimals UI 기반 커스텀 테마 토큰, 다크 모드, 컬러 프리셋, RTL 및 폰트 스케일 시스템 구축 가이드
+description: src/theme/ 및 GlassCard.tsx 기반 스킬 가이드 - Minimals UI 기반 커스텀 테마 토큰, 다크 모드, 컬러 프리셋, RTL 및 폰트 스케일 시스템 구축 가이드
 ---
 
-# 🎨 URL Index 테마 시스템 스킬 가이드
+# 🎨 `src/theme/` 테마 시스템 파일 스킬 가이드
 
 본 스킬은 `url-index` 프로젝트의 MUI(Material UI) 기반 커스텀 테마 아키텍처, 다크/라이트 모드 동적 전환, 컬러 프리셋, RTL(Right-to-Left) 지원 및 글래스모피즘(Glassmorphism) 스타일링 시스템을 다룹니다.
 
 ---
 
-## 🏛️ 테마 구조 (`src/theme/`)
-
-```
-src/theme/
-├── theme-provider.tsx        # MUI ThemeProvider 감싸는 최상위 프로바이더
-├── presets.ts                # 컬러 프리셋 (Default, Cyan, Purple, Blue, Orange, Red)
-├── fonts.ts                  # 지원 폰트 패밀리 목록 (Pretendard, Inter 등)
-├── theme-config.ts           # 테마 기본 설정 상수
-├── tokens.ts                 # 커스텀 디자인 토큰 (CSS 변수 생성)
-├── create-theme.ts           # MUI Theme 생성 팩토리 함수
-└── core/                     # MUI 핵심 스타일 오버라이드
-    ├── palette.ts            # 색상 팔레트 (Light / Dark)
-    ├── typography.ts         # 타이포그래피 스타일 규격
-    ├── shadows.ts            # 커스텀 그림자 및 글래스모피즘 효과
-    ├── custom-shadows.ts     # 컴포넌트 전용 커스텀 섀도우
-    └── components.tsx        # MUI 기본 컴포넌트 (Button, Card, Paper 등) 오버라이드
-```
+## 📌 주요 담당 파일
+- **테마 프로바이더**: `src/theme/theme-provider.tsx`
+- **컬러 프리셋**: `src/theme/presets.ts`
+- **폰트 정의**: `src/theme/fonts.ts`
+- **폰트 스케일 유틸**: `src/utils/applyFontScale.ts`
+- **글래스 컴포넌트**: `src/components/GlassCard.tsx`
+- **설정 드로어**: `src/components/SettingsDrawer.tsx`
 
 ---
 
@@ -86,12 +76,6 @@ export const GlassCard = styled(Paper)(({ theme }) => ({
   boxShadow: theme.customShadows.z8,
 }));
 ```
-
----
-
-## 4. 🔄 RTL (Right-to-Left) 레이아웃 전환 지원
-
-`stylis-plugin-rtl` 및 emotion cache 설정을 통해 다국어 확장 및 RTL 모드를 손쉽게 전환할 수 있습니다.
 
 ---
 
