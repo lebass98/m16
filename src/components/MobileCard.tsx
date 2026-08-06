@@ -9,6 +9,7 @@ import PreviewFrame from './PreviewFrame';
 import { glassPanelSx } from '../theme/tokens';
 
 interface Props {
+  id?: string;
   item: TableItem;
   cardNumber: number;
   latestDate: string;
@@ -24,7 +25,7 @@ interface Props {
 
 const emphasisSx = { fontWeight: 700, color: '#ff706e' };
 
-export default function MobileCard({ item, cardNumber, latestDate, hideUi, isBookmarked = false, onToggleBookmark, selectMode = false, isSelected = false, onToggleSelect }: Props) {
+export default function MobileCard({ id, item, cardNumber, latestDate, hideUi, isBookmarked = false, onToggleBookmark, selectMode = false, isSelected = false, onToggleSelect }: Props) {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
 
@@ -32,6 +33,7 @@ export default function MobileCard({ item, cardNumber, latestDate, hideUi, isBoo
 
   return (
     <Card
+      id={id}
       component={motion.div}
       variant="outlined"
       initial={{ opacity: 0, y: 20, scale: 0.95 }}

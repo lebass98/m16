@@ -3,7 +3,7 @@ import { Box, Typography, Button, Paper, MobileStepper, useTheme } from '@mui/ma
 import { motion } from 'framer-motion';
 
 interface OnboardingStep {
-  targetId: string;
+  targetIds: string[];
   title: string;
   content: string;
   placement: 'bottom' | 'top' | 'left' | 'right' | 'center';
@@ -11,43 +11,43 @@ interface OnboardingStep {
 
 const STEPS: OnboardingStep[] = [
   {
-    targetId: 'onboarding-site-selector',
+    targetIds: ['onboarding-site-selector', 'onboarding-site-selector-mobile'],
     title: '1. 워크스페이스 전환',
     content: '현재 표시 중인 프로젝트를 클릭하여 다른 프로젝트로 전환할 수 있습니다. 여러 기기의 진척도와 가이드를 모아볼 수 있는 다른 워크스페이스를 선택해 보세요.',
     placement: 'bottom',
   },
   {
-    targetId: 'onboarding-sidebar-nav',
+    targetIds: ['onboarding-sidebar-nav', 'onboarding-sidebar-nav-mobile'],
     title: '2. 카테고리 & 섹션 필터',
-    content: "사이드바의 '섹션' 목록을 클릭하여 관심 있는 특정 카테고리만 보이도록 페이지 목록을 필터링할 수 있습니다.",
+    content: "사이드바 또는 모바일 메뉴의 '섹션' 목록을 클릭하여 관심 있는 특정 카테고리만 보이도록 페이지 목록을 필터링할 수 있습니다.",
     placement: 'right',
   },
   {
-    targetId: 'onboarding-filter-bar',
+    targetIds: ['onboarding-filter-bar', 'onboarding-site-selector-mobile'],
     title: '3. 진행율 범위 & 상세 검색',
     content: '진행율 범위 슬라이더로 작업 수준별로 검색하거나 우측 상단 돋보기 버튼을 클릭해 특정 페이지를 빠르게 찾을 수 있습니다.',
     placement: 'bottom',
   },
   {
-    targetId: 'onboarding-recipe-card',
+    targetIds: ['onboarding-recipe-card', 'onboarding-recipe-card-mobile'],
     title: '4. 카드 정보 및 액션 버튼',
     content: '각 카드는 기기별 진행도와 최근 업데이트일을 보여줍니다. 북마크 등록, 바로가기 링크 열기, 대화형 전체화면 미리보기 돋보기 버튼을 제공합니다.',
     placement: 'bottom',
   },
   {
-    targetId: 'onboarding-right-panel',
+    targetIds: ['onboarding-right-panel', 'onboarding-site-selector-mobile'],
     title: '5. 종합 진행도 및 활동 내역',
     content: '워크스페이스의 PC/모바일 종합 달성률 통계와 최근 방문한 페이지 목록 및 북마크 요약을 제공하여 전체 현황을 빠르게 진단합니다.',
     placement: 'left',
   },
   {
-    targetId: 'onboarding-settings-button',
+    targetIds: ['onboarding-settings-button'],
     title: '6. 설정 메뉴',
     content: '설정 아이콘을 눌러 화면 모드, 콘텐츠 필터, 테마 색상(프리셋), 폰트 등 앱의 디자인과 기능을 입맛에 맞게 변경할 수 있습니다.',
     placement: 'bottom',
   },
   {
-    targetId: 'onboarding-settings-drawer',
+    targetIds: ['onboarding-settings-drawer'],
     title: '7. 설정 패널 & 화면 개인화',
     content: '설정 패널에서는 다크 모드, 우측 사이드바 숨김, 6가지 테마 컬러(프리셋) 선택, 폰트 종류 및 본문 글자 크기 조정 등 다양한 화면 개인화 옵션을 실시간으로 구성할 수 있습니다.',
     placement: 'left',
@@ -66,42 +66,62 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
   const [rect, setRect] = useState<DOMRect | null>(null);
   const scrollDebounceRef = useRef<number | null>(null);
 
-  const updateSpotlight = useCallback(() => {
-    const currentStep = STEPS[step];
-    // Find all elements with the target ID to handle duplicates (e.g. settings button in mobile/desktop headers)
-    const elements = document.querySelectorAll(`[id="${currentStep.targetId}"]`);
-    for (let i = 0; i < elements.length; i++) {
-      const el = elements[i] as HTMLElement;
-      const elRect = el.getBoundingClientRect();
-      if (elRect.width > 0 && elRect.height > 0) {
-        setRect(elRect);
-        return;
+  // 현재 화면에서 실제 렌더링(width > 0 && height > 0)된 타겟 엘리먼트를 찾음 (우선순위 순)
+  const findVisibleTarget = useCallback((targetIds: string[]): { element: HTMLElement; rect: DOMRect } | null => {
+    for (const id of targetIds) {
+      const elements = document.querySelectorAll(`[id="${id}"]`);
+      for (let i = 0; i < elements.length; i++) {
+        const el = elements[i] as HTMLElement;
+        const r = el.getBoundingClientRect();
+        if (r.width > 0 && r.height > 0) {
+          return { element: el, rect: r };
+        }
       }
     }
-    setRect(null);
-  }, [step]);
+    return null;
+  }, []);
 
-  // Handle step change & scroll
+  const updateSpotlight = useCallback(() => {
+    const currentStep = STEPS[step];
+    if (!currentStep) return;
+    const target = findVisibleTarget(currentStep.targetIds);
+    if (target) {
+      setRect(target.rect);
+    } else {
+      setRect(null);
+    }
+  }, [step, findVisibleTarget]);
+
+  // Handle step change & smooth transition continuous tracking loop (600ms)
   useEffect(() => {
     if (!active) return;
 
     const currentStep = STEPS[step];
-    const el = document.getElementById(currentStep.targetId);
-    if (el) {
-      el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    if (!currentStep) return;
+
+    const target = findVisibleTarget(currentStep.targetIds);
+    if (target?.element) {
+      target.element.scrollIntoView({ block: 'center', behavior: 'smooth' });
     }
 
-    // Set a short delay for scrolling to complete before capturing dimensions
-    const timer = window.setTimeout(() => {
+    let animationFrameId: number;
+    const startTime = performance.now();
+
+    const loop = () => {
       updateSpotlight();
-    }, 400);
+      if (performance.now() - startTime < 650) {
+        animationFrameId = requestAnimationFrame(loop);
+      }
+    };
+
+    animationFrameId = requestAnimationFrame(loop);
 
     return () => {
-      window.clearTimeout(timer);
+      cancelAnimationFrame(animationFrameId);
     };
-  }, [step, active, updateSpotlight]);
+  }, [step, active, updateSpotlight, findVisibleTarget]);
 
-  // Handle resize and scroll updates
+  // Handle resize and scroll updates dynamically
   useEffect(() => {
     if (!active) return;
 
@@ -126,17 +146,17 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
     };
   }, [active, updateSpotlight]);
 
-  // Step change side effects are now handled in the parent component (App.tsx) via useEffect hooks
-
   if (!active) return null;
 
   const currentStep = STEPS[step];
 
-  // Determine card styles dynamically
+  // Determine card styles dynamically with smart placement & viewport overflow checks
   const getCardStyle = (): React.CSSProperties => {
-    const cardWidth = 340;
+    const isMobile = window.innerWidth < 600;
+    const cardWidth = isMobile ? Math.min(320, window.innerWidth - 32) : 340;
     const cardHeight = 220; // approximate height for positioning logic
     const gap = 16;
+    const margin = 16;
 
     if (!rect) {
       return {
@@ -151,18 +171,42 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
 
     let top = 0;
     let left = 0;
-    const placement = currentStep.placement;
+    let preferredPlacement = currentStep.placement;
 
-    if (placement === 'bottom') {
+    // 모바일 환경이거나 공간이 좁을 경우 placement 자동 보정
+    if (isMobile && (preferredPlacement === 'left' || preferredPlacement === 'right')) {
+      preferredPlacement = 'bottom';
+    }
+
+    // Viewport overflow check & auto flip
+    if (preferredPlacement === 'bottom') {
+      if (rect.bottom + gap + cardHeight > window.innerHeight - margin) {
+        preferredPlacement = rect.top - gap - cardHeight > margin ? 'top' : 'center';
+      }
+    } else if (preferredPlacement === 'top') {
+      if (rect.top - gap - cardHeight < margin) {
+        preferredPlacement = rect.bottom + gap + cardHeight < window.innerHeight - margin ? 'bottom' : 'center';
+      }
+    } else if (preferredPlacement === 'left') {
+      if (rect.left - gap - cardWidth < margin) {
+        preferredPlacement = rect.right + gap + cardWidth < window.innerWidth - margin ? 'right' : 'bottom';
+      }
+    } else if (preferredPlacement === 'right') {
+      if (rect.right + gap + cardWidth > window.innerWidth - margin) {
+        preferredPlacement = rect.left - gap - cardWidth > margin ? 'left' : 'bottom';
+      }
+    }
+
+    if (preferredPlacement === 'bottom') {
       top = rect.bottom + gap;
       left = rect.left + rect.width / 2 - cardWidth / 2;
-    } else if (placement === 'top') {
+    } else if (preferredPlacement === 'top') {
       top = rect.top - cardHeight - gap;
       left = rect.left + rect.width / 2 - cardWidth / 2;
-    } else if (placement === 'left') {
+    } else if (preferredPlacement === 'left') {
       top = rect.top + rect.height / 2 - cardHeight / 2;
       left = rect.left - cardWidth - gap;
-    } else if (placement === 'right') {
+    } else if (preferredPlacement === 'right') {
       top = rect.top + rect.height / 2 - cardHeight / 2;
       left = rect.right + gap;
     } else {
@@ -170,8 +214,7 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
       left = window.innerWidth / 2 - cardWidth / 2;
     }
 
-    // Viewport overflow check and safe boundary keeping
-    const margin = 16;
+    // Safe boundary keeping
     left = Math.max(margin, Math.min(window.innerWidth - cardWidth - margin, left));
     top = Math.max(margin, Math.min(window.innerHeight - cardHeight - margin, top));
 
@@ -243,21 +286,9 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
               clickY >= rect.top - padding &&
               clickY <= rect.bottom + padding
             ) {
-              // Clicked inside the highlighted target element.
-              // Find the visible element and trigger click.
-              const currentStep = STEPS[step];
-              const elements = document.querySelectorAll(`[id="${currentStep.targetId}"]`);
-              let targetEl: HTMLElement | null = null;
-              for (let i = 0; i < elements.length; i++) {
-                const el = elements[i] as HTMLElement;
-                const elRect = el.getBoundingClientRect();
-                if (elRect.width > 0 && elRect.height > 0) {
-                  targetEl = el;
-                  break;
-                }
-              }
-              if (targetEl) {
-                targetEl.click();
+              const target = findVisibleTarget(currentStep.targetIds);
+              if (target?.element) {
+                target.element.click();
               }
               return;
             }
@@ -298,7 +329,7 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
           flexDirection: 'column',
           gap: '12px',
           boxSizing: 'border-box',
-          pointerEvents: 'auto', // Allow buttons inside to be clicked
+          pointerEvents: 'auto',
         }}
       >
         <Typography sx={{ fontSize: 16, fontWeight: 700, color: 'text.primary', letterSpacing: '-0.01em' }}>

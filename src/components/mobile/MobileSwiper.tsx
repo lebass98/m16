@@ -91,6 +91,7 @@ export default function MobileSwiper({
               {flatCards.map((card, i) => (
                 <Box key={i} className="card-enter" sx={{ flexShrink: 0, width: '100%', height: '100%', p: '12px', display: 'flex', flexDirection: 'column', boxSizing: 'border-box', scrollSnapAlign: 'center', animationDelay: `${i * 0.05}s` }}>
                   <MobileCard
+                    id={i === 0 ? "onboarding-recipe-card-mobile" : undefined}
                     item={card.item}
                     cardNumber={card.cardIdx + 1}
                     latestDate={latestDate}

@@ -100,6 +100,7 @@ export default function MobileTopBar({
       {/* 좌: 햄버거 */}
       <Tooltip title="메뉴 열기" arrow>
         <IconButton
+          id="onboarding-sidebar-nav-mobile"
           onClick={onOpenDrawer}
           aria-label="좌측 메뉴 열기"
           sx={btnSx}

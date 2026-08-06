@@ -16,6 +16,7 @@ interface Props {
 export default function MobileSiteBanner({ siteTitle, totalCount, hideUi, onOpenSiteModal }: Props) {
   return (
     <Box
+      id="onboarding-site-selector-mobile"
       role="button"
       tabIndex={0}
       onClick={onOpenSiteModal}
