@@ -170,7 +170,7 @@ export default function MobileTopBar({
         )}
 
         <Tooltip title="검색 (/ 또는 Cmd+K)" arrow>
-          <IconButton onClick={onOpenSearch} aria-label="검색 열기" sx={btnSx}>
+          <IconButton id="onboarding-search-button-mobile" onClick={onOpenSearch} aria-label="검색 열기" sx={btnSx}>
             <SearchIcon sx={{ fontSize: 20 }} />
           </IconButton>
         </Tooltip>

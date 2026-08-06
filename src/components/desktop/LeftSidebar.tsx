@@ -36,7 +36,6 @@ export default function LeftSidebar({
       <Box
         component="nav"
         className="app-left-nav"
-        id="onboarding-sidebar-nav"
         aria-label="사이트 네비게이션"
         sx={{ width: effectiveCollapsed ? 88 : 260, transition: 'width 0.25s ease', flexShrink: 0, bgcolor: 'background.paper', backdropFilter: 'var(--glass-blur)', WebkitBackdropFilter: 'var(--glass-blur)', color: 'text.primary', display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, height: '100vh', overflowY: 'auto', overflowX: 'hidden', borderRight: '1px solid rgba(255,255,255,0.18)' }}
       >
@@ -103,7 +102,7 @@ export default function LeftSidebar({
           </Tooltip>
 
           {!effectiveCollapsed && (
-            <Box component="ul" role="list" aria-label="섹션 필터" sx={{ listStyle: 'none', m: 0, p: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <Box id="onboarding-sidebar-nav" component="ul" role="list" aria-label="섹션 필터" sx={{ listStyle: 'none', m: 0, p: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
               <Typography component="li" sx={{ fontSize: 11, color: 'text.secondary', letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, px: '12px', py: '10px', mt: '14px' }}>섹션</Typography>
               {depth1Categories.map(({ key, count }, i) => {
                 const isActive = sectionFilter.has(key);

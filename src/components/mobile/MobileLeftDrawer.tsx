@@ -105,6 +105,7 @@ export default function MobileLeftDrawer({
           <Typography sx={{ fontSize: 14, fontWeight: 'inherit', color: 'inherit', flex: 1 }}>Pages</Typography>
         </Box>
         <Box
+          id="onboarding-dashboard-mobile"
           role="button"
           tabIndex={0}
           onClick={() => { onOpenDashboard(); onClose(); }}
@@ -118,7 +119,7 @@ export default function MobileLeftDrawer({
       </Box>
 
       {/* 섹션 필터 */}
-      <Box sx={{ px: '16px', mt: '8px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+      <Box id="onboarding-sidebar-nav-drawer" sx={{ px: '16px', mt: '8px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
         <Typography sx={{ fontSize: 11, color: 'text.secondary', letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, px: '12px', py: '8px' }}>섹션</Typography>
         {depth1Categories.length === 0 ? (
           <Typography sx={{ fontSize: 12, color: 'text.disabled', px: '12px', py: '6px' }}>섹션 없음</Typography>

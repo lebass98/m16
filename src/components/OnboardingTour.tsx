@@ -17,25 +17,25 @@ const STEPS: OnboardingStep[] = [
     placement: 'bottom',
   },
   {
-    targetIds: ['onboarding-sidebar-nav', 'onboarding-sidebar-nav-mobile'],
+    targetIds: ['onboarding-sidebar-nav', 'onboarding-sidebar-nav-drawer', 'onboarding-sidebar-nav-mobile'],
     title: '2. 카테고리 & 섹션 필터',
     content: "사이드바 또는 모바일 메뉴의 '섹션' 목록을 클릭하여 관심 있는 특정 카테고리만 보이도록 페이지 목록을 필터링할 수 있습니다.",
     placement: 'right',
   },
   {
-    targetIds: ['onboarding-filter-bar', 'onboarding-site-selector-mobile'],
+    targetIds: ['onboarding-filter-bar', 'onboarding-search-button-mobile'],
     title: '3. 진행율 범위 & 상세 검색',
     content: '진행율 범위 슬라이더로 작업 수준별로 검색하거나 우측 상단 돋보기 버튼을 클릭해 특정 페이지를 빠르게 찾을 수 있습니다.',
     placement: 'bottom',
   },
   {
-    targetIds: ['onboarding-recipe-card', 'onboarding-recipe-card-mobile'],
+    targetIds: ['onboarding-recipe-card', 'onboarding-recipe-card-mobile', 'onboarding-card-list'],
     title: '4. 카드 정보 및 액션 버튼',
     content: '각 카드는 기기별 진행도와 최근 업데이트일을 보여줍니다. 북마크 등록, 바로가기 링크 열기, 대화형 전체화면 미리보기 돋보기 버튼을 제공합니다.',
     placement: 'bottom',
   },
   {
-    targetIds: ['onboarding-right-panel', 'onboarding-site-selector-mobile'],
+    targetIds: ['onboarding-right-panel', 'onboarding-dashboard-mobile', 'onboarding-site-selector-mobile'],
     title: '5. 종합 진행도 및 활동 내역',
     content: '워크스페이스의 PC/모바일 종합 달성률 통계와 최근 방문한 페이지 목록 및 북마크 요약을 제공하여 전체 현황을 빠르게 진단합니다.',
     placement: 'left',
@@ -47,7 +47,7 @@ const STEPS: OnboardingStep[] = [
     placement: 'bottom',
   },
   {
-    targetIds: ['onboarding-settings-drawer'],
+    targetIds: ['onboarding-settings-drawer-inner', 'onboarding-settings-drawer'],
     title: '7. 설정 패널 & 화면 개인화',
     content: '설정 패널에서는 다크 모드, 우측 사이드바 숨김, 6가지 테마 컬러(프리셋) 선택, 폰트 종류 및 본문 글자 크기 조정 등 다양한 화면 개인화 옵션을 실시간으로 구성할 수 있습니다.',
     placement: 'left',
@@ -66,7 +66,7 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
   const [rect, setRect] = useState<DOMRect | null>(null);
   const scrollDebounceRef = useRef<number | null>(null);
 
-  // 현재 화면에서 실제 렌더링(width > 0 && height > 0)된 타겟 엘리먼트를 찾음 (우선순위 순)
+  // 현재 화면에서 실제 렌더링(width > 0 && height > 0)된 타겟 엘리먼트를 탐색 (우선순위 순)
   const findVisibleTarget = useCallback((targetIds: string[]): { element: HTMLElement; rect: DOMRect } | null => {
     for (const id of targetIds) {
       const elements = document.querySelectorAll(`[id="${id}"]`);
@@ -92,7 +92,7 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
     }
   }, [step, findVisibleTarget]);
 
-  // Handle step change & smooth transition continuous tracking loop (600ms)
+  // Step 변경 시 scrollIntoView & 650ms 동안 continuous animation tracking loop
   useEffect(() => {
     if (!active) return;
 
@@ -121,7 +121,7 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
     };
   }, [step, active, updateSpotlight, findVisibleTarget]);
 
-  // Handle resize and scroll updates dynamically
+  // Handle resize and scroll updates
   useEffect(() => {
     if (!active) return;
 
@@ -150,11 +150,11 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
 
   const currentStep = STEPS[step];
 
-  // Determine card styles dynamically with smart placement & viewport overflow checks
+  // Dynamic Card style calculation with Smart placement & boundary checking
   const getCardStyle = (): React.CSSProperties => {
     const isMobile = window.innerWidth < 600;
     const cardWidth = isMobile ? Math.min(320, window.innerWidth - 32) : 340;
-    const cardHeight = 220; // approximate height for positioning logic
+    const cardHeight = 220;
     const gap = 16;
     const margin = 16;
 
@@ -172,6 +172,19 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
     let top = 0;
     let left = 0;
     let preferredPlacement = currentStep.placement;
+
+    // 설정 드로어 스텝 특별 정렬 (드로어 좌측 밀착)
+    if (currentStep.targetIds.includes('onboarding-settings-drawer-inner') || currentStep.targetIds.includes('onboarding-settings-drawer')) {
+      top = Math.max(margin, Math.min(window.innerHeight - cardHeight - margin, rect.top + 10));
+      left = Math.max(margin, rect.left - cardWidth - gap);
+      return {
+        position: 'fixed',
+        top: `${top}px`,
+        left: `${left}px`,
+        width: `${cardWidth}px`,
+        zIndex: 10001,
+      };
+    }
 
     // 모바일 환경이거나 공간이 좁을 경우 placement 자동 보정
     if (isMobile && (preferredPlacement === 'left' || preferredPlacement === 'right')) {
@@ -279,7 +292,6 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
             const clickX = e.clientX;
             const clickY = e.clientY;
             const padding = 8;
-            // Check if click was inside the spotlight window (with padding)
             if (
               clickX >= rect.left - padding &&
               clickX <= rect.right + padding &&
@@ -306,6 +318,7 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
       {/* Spotlight highlight window */}
       <Box
         component={motion.div}
+        initial={false}
         animate={getSpotlightStyle() as any}
         transition={{ type: 'spring', stiffness: 260, damping: 30 }}
       />
@@ -314,6 +327,7 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
       <Paper
         component={motion.div}
         elevation={16}
+        initial={false}
         animate={getCardStyle() as any}
         transition={{ type: 'spring', stiffness: 260, damping: 30 }}
         sx={{

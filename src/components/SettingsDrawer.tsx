@@ -226,7 +226,7 @@ export default function SettingsDrawer({
       }}
     >
       {/* 헤더 */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: '20px', py: '16px', flexShrink: 0 }}>
+      <Box id="onboarding-settings-drawer-inner" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: '20px', py: '16px', flexShrink: 0 }}>
         <Typography sx={{ fontSize: 18, fontWeight: 700, color: 'text.primary' }}>Settings</Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <Tooltip title="전체화면" arrow>
