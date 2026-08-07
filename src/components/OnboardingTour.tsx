@@ -14,7 +14,7 @@ const STEPS: OnboardingStep[] = [
     targetIds: ['onboarding-site-selector', 'onboarding-site-selector-mobile'],
     title: '1. 워크스페이스 전환',
     content: '현재 표시 중인 프로젝트를 클릭하여 다른 프로젝트로 전환할 수 있습니다. 여러 기기의 진척도와 가이드를 모아볼 수 있는 다른 워크스페이스를 선택해 보세요.',
-    placement: 'bottom',
+    placement: 'right',
   },
   {
     targetIds: ['onboarding-sidebar-nav', 'onboarding-sidebar-nav-drawer', 'onboarding-sidebar-nav-mobile'],
@@ -153,10 +153,11 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
   // Dynamic Card style calculation with Smart placement & boundary checking
   const getCardStyle = (): React.CSSProperties => {
     const isMobile = window.innerWidth < 600;
-    const cardWidth = isMobile ? Math.min(320, window.innerWidth - 32) : 340;
+    const cardWidth = isMobile ? Math.min(320, window.innerWidth - 48) : 340;
     const cardHeight = 220;
     const gap = 16;
-    const margin = 16;
+    const minMarginLeft = 24;
+    const minMarginTop = 24;
 
     if (!rect) {
       return {
@@ -173,10 +174,37 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
     let left = 0;
     let preferredPlacement = currentStep.placement;
 
+    // Step 0: 워크스페이스 전환 (사이드바 상단 타겟) 특별 케이스 -> 좌상단 구석 찌그러짐 방지, 화면 중앙/우측 배치
+    if (currentStep.targetIds.includes('onboarding-site-selector') || currentStep.targetIds.includes('onboarding-site-selector-mobile')) {
+      if (!isMobile) {
+        // 데스크탑: 사이드바 우측 (본문 화면 중앙 방향)에 여유 있게 배치
+        left = Math.max(260, rect.right + gap);
+        top = Math.max(24, Math.min(window.innerHeight - cardHeight - minMarginTop, rect.top));
+        return {
+          position: 'fixed',
+          top: `${top}px`,
+          left: `${left}px`,
+          width: `${cardWidth}px`,
+          zIndex: 10001,
+        };
+      } else {
+        // 모바일: 모바일 사이트 배너 아래 수평 중앙 배치
+        left = Math.max(minMarginLeft, (window.innerWidth - cardWidth) / 2);
+        top = Math.max(minMarginTop, rect.bottom + gap);
+        return {
+          position: 'fixed',
+          top: `${top}px`,
+          left: `${left}px`,
+          width: `${cardWidth}px`,
+          zIndex: 10001,
+        };
+      }
+    }
+
     // 설정 드로어 스텝 특별 정렬 (드로어 좌측 밀착)
     if (currentStep.targetIds.includes('onboarding-settings-drawer-inner') || currentStep.targetIds.includes('onboarding-settings-drawer')) {
-      top = Math.max(margin, Math.min(window.innerHeight - cardHeight - margin, rect.top + 10));
-      left = Math.max(margin, rect.left - cardWidth - gap);
+      top = Math.max(minMarginTop, Math.min(window.innerHeight - cardHeight - minMarginTop, rect.top + 10));
+      left = Math.max(minMarginLeft, rect.left - cardWidth - gap);
       return {
         position: 'fixed',
         top: `${top}px`,
@@ -193,20 +221,20 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
 
     // Viewport overflow check & auto flip
     if (preferredPlacement === 'bottom') {
-      if (rect.bottom + gap + cardHeight > window.innerHeight - margin) {
-        preferredPlacement = rect.top - gap - cardHeight > margin ? 'top' : 'center';
+      if (rect.bottom + gap + cardHeight > window.innerHeight - minMarginTop) {
+        preferredPlacement = rect.top - gap - cardHeight > minMarginTop ? 'top' : 'center';
       }
     } else if (preferredPlacement === 'top') {
-      if (rect.top - gap - cardHeight < margin) {
-        preferredPlacement = rect.bottom + gap + cardHeight < window.innerHeight - margin ? 'bottom' : 'center';
+      if (rect.top - gap - cardHeight < minMarginTop) {
+        preferredPlacement = rect.bottom + gap + cardHeight < window.innerHeight - minMarginTop ? 'bottom' : 'center';
       }
     } else if (preferredPlacement === 'left') {
-      if (rect.left - gap - cardWidth < margin) {
-        preferredPlacement = rect.right + gap + cardWidth < window.innerWidth - margin ? 'right' : 'bottom';
+      if (rect.left - gap - cardWidth < minMarginLeft) {
+        preferredPlacement = rect.right + gap + cardWidth < window.innerWidth - minMarginLeft ? 'right' : 'bottom';
       }
     } else if (preferredPlacement === 'right') {
-      if (rect.right + gap + cardWidth > window.innerWidth - margin) {
-        preferredPlacement = rect.left - gap - cardWidth > margin ? 'left' : 'bottom';
+      if (rect.right + gap + cardWidth > window.innerWidth - minMarginLeft) {
+        preferredPlacement = rect.left - gap - cardWidth > minMarginLeft ? 'left' : 'bottom';
       }
     }
 
@@ -227,9 +255,9 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
       left = window.innerWidth / 2 - cardWidth / 2;
     }
 
-    // Safe boundary keeping
-    left = Math.max(margin, Math.min(window.innerWidth - cardWidth - margin, left));
-    top = Math.max(margin, Math.min(window.innerHeight - cardHeight - margin, top));
+    // Safe boundary keeping with generous margin
+    left = Math.max(minMarginLeft, Math.min(window.innerWidth - cardWidth - minMarginLeft, left));
+    top = Math.max(minMarginTop, Math.min(window.innerHeight - cardHeight - minMarginTop, top));
 
     return {
       position: 'fixed',
