@@ -74,7 +74,7 @@ export default function RightPanel({
       }}
     >
       {/* 통계 카드 */}
-      <GlassCard className="reveal-up" style={{ animationDelay: '80ms' }} sx={{ position: 'relative', overflow: 'hidden' }}>
+      <GlassCard id="onboarding-right-panel-stats" className="reveal-up" style={{ animationDelay: '80ms' }} sx={{ position: 'relative', overflow: 'hidden' }}>
         <Box sx={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: '50%', bgcolor: 'rgb(var(--palette-primary-mainChannel) / 0.08)' }} />
         <Typography sx={{ position: 'relative', fontSize: 14, color: 'text.secondary', fontWeight: 600, mb: '4px' }}>Overall progress</Typography>
         <Box sx={{ position: 'relative', display: 'flex', alignItems: 'baseline', gap: '8px', mb: '8px' }}>

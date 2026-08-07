@@ -35,7 +35,7 @@ const STEPS: OnboardingStep[] = [
     placement: 'bottom',
   },
   {
-    targetIds: ['onboarding-right-panel', 'onboarding-dashboard-mobile', 'onboarding-site-selector-mobile'],
+    targetIds: ['onboarding-right-panel-stats', 'onboarding-right-panel', 'onboarding-dashboard-mobile', 'onboarding-site-selector-mobile'],
     title: '5. 종합 진행도 및 활동 내역',
     content: '워크스페이스의 PC/모바일 종합 달성률 통계와 최근 방문한 페이지 목록 및 북마크 요약을 제공하여 전체 현황을 빠르게 진단합니다.',
     placement: 'left',
@@ -217,12 +217,12 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
       }
     }
 
-    // Step 4 (5번 종합 진행도 스텝): 우측 패널 타겟 특별 정렬 -> 화면 오른쪽 밖 이탈 100% 방지
-    if (currentStep.targetIds.includes('onboarding-right-panel')) {
-      if (!isMobile) {
-        // 데스크탑: RightPanel 좌측 안쪽 본문 공간에 지정 (우측 밖 이탈 0%)
+    // Step 4 (5번 종합 진행도 스텝): 우측 패널 통계 상자 좌측 안쪽 분리 배치 -> 겹침 0%, 화면 우측 밖 이탈 100% 방지
+    if (currentStep.targetIds.includes('onboarding-right-panel-stats') || currentStep.targetIds.includes('onboarding-right-panel')) {
+      if (!isMobile && rect.width > 0) {
+        // 데스크탑: RightPanel 통계 박스 좌측 (rect.left - cardWidth - gap) 안쪽 공간에 시원하게 배치 (겹침 0%)
         left = Math.max(minMarginLeft, Math.min(window.innerWidth - cardWidth - 24, rect.left - cardWidth - gap));
-        top = Math.max(minMarginTop, Math.min(window.innerHeight - cardHeight - minMarginBottom, rect.top + 30));
+        top = Math.max(minMarginTop, Math.min(window.innerHeight - cardHeight - minMarginBottom, rect.top));
         return {
           position: 'fixed',
           top: `${top}px`,
