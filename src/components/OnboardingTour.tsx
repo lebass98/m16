@@ -150,14 +150,14 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
 
   const currentStep = STEPS[step];
 
-  // Dynamic Card style calculation with Smart placement & generous top margin
+  // Dynamic Card style calculation with Zero Overlap placement & generous top margin
   const getCardStyle = (): React.CSSProperties => {
     const isMobile = window.innerWidth < 600;
     const cardWidth = isMobile ? Math.min(320, window.innerWidth - 48) : 340;
     const cardHeight = 240; // 여유 있는 높이 기준값
-    const gap = 16;
+    const gap = 20; // 타겟과 겹치지 않도록 이격거리 20px
     const minMarginLeft = 24;
-    const minMarginTop = 80; // 화면 상단 잘림 100% 방지 (최소 80px 오프셋 확보)
+    const minMarginTop = 100; // 상단 잘림 100% 방지 (최소 100px 오프셋 확보)
     const minMarginBottom = 24;
 
     if (!rect) {
@@ -175,12 +175,12 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
     let left = 0;
     let preferredPlacement = currentStep.placement;
 
-    // Step 0: 워크스페이스 전환 (사이드바 상단 타겟) -> 상단 잘림 방지 및 우측 본문 중앙 배치
+    // Step 0: 워크스페이스 전환 -> 사이드바 우측 완벽 이격 배치 (타겟 겹침 0%)
     if (currentStep.targetIds.includes('onboarding-site-selector') || currentStep.targetIds.includes('onboarding-site-selector-mobile')) {
       if (!isMobile) {
-        // 데스크탑: 사이드바 우측 (left: 276px), 상단 80px 이상 위치에 여유 있게 배치
-        left = Math.max(260, rect.right + gap);
-        top = Math.max(minMarginTop, rect.bottom - 20);
+        // 데스크탑: 사이드바 우측 (left = rect.right + 20px), 상단 100px 이상 배치
+        left = Math.max(264, rect.right + gap);
+        top = Math.max(minMarginTop, rect.top);
         return {
           position: 'fixed',
           top: `${top}px`,
@@ -189,7 +189,7 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
           zIndex: 10001,
         };
       } else {
-        // 모바일: 모바일 사이트 배너 아래 수평 중앙, 상단 80px 이상 배치
+        // 모바일: 모바일 사이트 배너 아래 수평 중앙, 상단 100px 이상 배치
         left = Math.max(minMarginLeft, (window.innerWidth - cardWidth) / 2);
         top = Math.max(minMarginTop, rect.bottom + gap);
         return {
@@ -202,9 +202,24 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
       }
     }
 
-    // 설정 드로어 스텝 특별 정렬 (드로어 좌측 밀착)
+    // Step 1: 카테고리 & 섹션 필터 -> 사이드바 우측 이격 배치
+    if (currentStep.targetIds.includes('onboarding-sidebar-nav')) {
+      if (!isMobile) {
+        left = Math.max(264, rect.right + gap);
+        top = Math.max(minMarginTop, Math.min(window.innerHeight - cardHeight - minMarginBottom, rect.top));
+        return {
+          position: 'fixed',
+          top: `${top}px`,
+          left: `${left}px`,
+          width: `${cardWidth}px`,
+          zIndex: 10001,
+        };
+      }
+    }
+
+    // 설정 드로어 스텝 특별 정렬 (드로어 좌측 이격 배치)
     if (currentStep.targetIds.includes('onboarding-settings-drawer-inner') || currentStep.targetIds.includes('onboarding-settings-drawer')) {
-      top = Math.max(minMarginTop, Math.min(window.innerHeight - cardHeight - minMarginBottom, rect.top + 20));
+      top = Math.max(minMarginTop, Math.min(window.innerHeight - cardHeight - minMarginBottom, rect.top + 10));
       left = Math.max(minMarginLeft, rect.left - cardWidth - gap);
       return {
         position: 'fixed',
@@ -256,7 +271,7 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
       left = window.innerWidth / 2 - cardWidth / 2;
     }
 
-    // Safe boundary keeping with generous top margin (min 80px)
+    // Safe boundary keeping with generous top margin (min 100px)
     left = Math.max(minMarginLeft, Math.min(window.innerWidth - cardWidth - minMarginLeft, left));
     top = Math.max(minMarginTop, Math.min(window.innerHeight - cardHeight - minMarginBottom, top));
 
@@ -347,18 +362,20 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
       {/* Spotlight highlight window */}
       <Box
         component={motion.div}
-        initial={false}
-        animate={getSpotlightStyle() as any}
-        transition={{ type: 'spring', stiffness: 260, damping: 30 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.2 }}
+        style={getSpotlightStyle()}
       />
 
       {/* Popover content card */}
       <Paper
         component={motion.div}
         elevation={16}
-        initial={false}
-        animate={getCardStyle() as any}
-        transition={{ type: 'spring', stiffness: 260, damping: 30 }}
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 350, damping: 28 }}
+        style={getCardStyle()}
         sx={{
           p: '20px',
           borderRadius: '16px',
