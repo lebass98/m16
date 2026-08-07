@@ -150,14 +150,14 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
 
   const currentStep = STEPS[step];
 
-  // Dynamic Card style calculation with Zero Overlap placement & Hard Boundary Guard
+  // Dynamic Card style calculation with Zero Overlap placement & Hard Viewport Clamping Guard
   const getCardStyle = (): React.CSSProperties => {
     const isMobile = window.innerWidth < 600;
     const cardWidth = isMobile ? Math.min(320, window.innerWidth - 48) : 340;
-    const cardHeight = 240; // 여유 있는 높이 기준값
+    const cardHeight = 250; // 실제 카드 높이
     const gap = 20; // 타겟과 겹치지 않도록 이격거리 20px
     const minMarginLeft = 24;
-    const minMarginTop = 100; // 상단 잘림 100% 방지 (최소 100px 오프셋 확보)
+    const minMarginTop = 80; // 화면 상단 잘림 방지 (최소 80px 여백 보장)
     const minMarginBottom = 24;
 
     if (!rect) {
@@ -175,123 +175,77 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
     let left = 0;
     let preferredPlacement = currentStep.placement;
 
-    // Step 0: 워크스페이스 전환 -> 사이드바 우측 완벽 이격 배치 (타겟 겹침 0%)
+    // 1. 스텝별 선호 위치(left, top) 계산 (조기 return 완전 제거!)
     if (currentStep.targetIds.includes('onboarding-site-selector') || currentStep.targetIds.includes('onboarding-site-selector-mobile')) {
       if (!isMobile) {
-        // 데스크탑: 사이드바 우측 (left = rect.right + 20px), 상단 100px 이상 배치
-        left = Math.max(264, rect.right + gap);
+        left = rect.right + gap;
         top = Math.max(minMarginTop, rect.top);
-        return {
-          position: 'fixed',
-          top: `${top}px`,
-          left: `${left}px`,
-          width: `${cardWidth}px`,
-          zIndex: 10001,
-        };
       } else {
-        // 모바일: 모바일 사이트 배너 아래 수평 중앙, 상단 100px 이상 배치
-        left = Math.max(minMarginLeft, (window.innerWidth - cardWidth) / 2);
-        top = Math.max(minMarginTop, rect.bottom + gap);
-        return {
-          position: 'fixed',
-          top: `${top}px`,
-          left: `${left}px`,
-          width: `${cardWidth}px`,
-          zIndex: 10001,
-        };
+        left = (window.innerWidth - cardWidth) / 2;
+        top = rect.bottom + gap;
       }
-    }
-
-    // Step 1: 카테고리 & 섹션 필터 -> 사이드바 우측 이격 배치
-    if (currentStep.targetIds.includes('onboarding-sidebar-nav')) {
+    } else if (currentStep.targetIds.includes('onboarding-sidebar-nav')) {
       if (!isMobile) {
-        left = Math.max(264, rect.right + gap);
-        top = Math.max(minMarginTop, Math.min(window.innerHeight - cardHeight - minMarginBottom, rect.top));
-        return {
-          position: 'fixed',
-          top: `${top}px`,
-          left: `${left}px`,
-          width: `${cardWidth}px`,
-          zIndex: 10001,
-        };
+        left = rect.right + gap;
+        top = Math.max(minMarginTop, rect.top);
       }
-    }
-
-    // Step 4 (5번 종합 진행도 스텝): 우측 패널 통계 상자 좌측 안쪽 분리 배치 -> 겹침 0%, 화면 우측 밖 이탈 100% 방지
-    if (currentStep.targetIds.includes('onboarding-right-panel-stats') || currentStep.targetIds.includes('onboarding-right-panel')) {
+    } else if (currentStep.targetIds.includes('onboarding-right-panel-stats') || currentStep.targetIds.includes('onboarding-right-panel')) {
       if (!isMobile && rect.width > 0) {
-        // 데스크탑: RightPanel 통계 박스 좌측 (rect.left - cardWidth - gap) 안쪽 공간에 시원하게 배치 (겹침 0%)
-        left = Math.max(minMarginLeft, Math.min(window.innerWidth - cardWidth - 24, rect.left - cardWidth - gap));
-        top = Math.max(minMarginTop, Math.min(window.innerHeight - cardHeight - minMarginBottom, rect.top));
-        return {
-          position: 'fixed',
-          top: `${top}px`,
-          left: `${left}px`,
-          width: `${cardWidth}px`,
-          zIndex: 10001,
-        };
+        left = rect.left - cardWidth - gap;
+        top = Math.max(minMarginTop, rect.top);
       }
-    }
-
-    // 설정 드로어 스텝 특별 정렬 (드로어 좌측 이격 배치)
-    if (currentStep.targetIds.includes('onboarding-settings-drawer-inner') || currentStep.targetIds.includes('onboarding-settings-drawer')) {
-      top = Math.max(minMarginTop, Math.min(window.innerHeight - cardHeight - minMarginBottom, rect.top + 10));
-      left = Math.max(minMarginLeft, rect.left - cardWidth - gap);
-      return {
-        position: 'fixed',
-        top: `${top}px`,
-        left: `${left}px`,
-        width: `${cardWidth}px`,
-        zIndex: 10001,
-      };
-    }
-
-    // 모바일 환경이거나 공간이 좁을 경우 placement 자동 보정
-    if (isMobile && (preferredPlacement === 'left' || preferredPlacement === 'right')) {
-      preferredPlacement = 'bottom';
-    }
-
-    // Viewport overflow check & auto flip
-    if (preferredPlacement === 'bottom') {
-      if (rect.bottom + gap + cardHeight > window.innerHeight - minMarginBottom) {
-        preferredPlacement = rect.top - gap - cardHeight > minMarginTop ? 'top' : 'center';
-      }
-    } else if (preferredPlacement === 'top') {
-      if (rect.top - gap - cardHeight < minMarginTop) {
-        preferredPlacement = rect.bottom + gap + cardHeight < window.innerHeight - minMarginBottom ? 'bottom' : 'center';
-      }
-    } else if (preferredPlacement === 'left') {
-      if (rect.left - gap - cardWidth < minMarginLeft) {
-        // 타겟이 오른쪽에 있을 때 'right'로 플립하면 화면 오른쪽 밖으로 나가므로 'bottom' 또는 'left' 안쪽 유지
-        preferredPlacement = rect.bottom + gap + cardHeight < window.innerHeight - minMarginBottom ? 'bottom' : 'left';
-      }
-    } else if (preferredPlacement === 'right') {
-      if (rect.right + gap + cardWidth > window.innerWidth - minMarginLeft) {
-        preferredPlacement = rect.left - gap - cardWidth > minMarginLeft ? 'left' : 'bottom';
-      }
-    }
-
-    if (preferredPlacement === 'bottom') {
-      top = rect.bottom + gap;
-      left = rect.left + rect.width / 2 - cardWidth / 2;
-    } else if (preferredPlacement === 'top') {
-      top = rect.top - cardHeight - gap;
-      left = rect.left + rect.width / 2 - cardWidth / 2;
-    } else if (preferredPlacement === 'left') {
-      top = rect.top + rect.height / 2 - cardHeight / 2;
+    } else if (currentStep.targetIds.includes('onboarding-settings-drawer-inner') || currentStep.targetIds.includes('onboarding-settings-drawer')) {
       left = rect.left - cardWidth - gap;
-    } else if (preferredPlacement === 'right') {
-      top = rect.top + rect.height / 2 - cardHeight / 2;
-      left = rect.right + gap;
+      top = Math.max(minMarginTop, rect.top + 10);
     } else {
-      top = window.innerHeight / 2 - cardHeight / 2;
-      left = window.innerWidth / 2 - cardWidth / 2;
+      // 모바일 환경이거나 공간이 좁을 경우 placement 자동 보정
+      if (isMobile && (preferredPlacement === 'left' || preferredPlacement === 'right')) {
+        preferredPlacement = 'bottom';
+      }
+
+      // Viewport overflow check & auto flip
+      if (preferredPlacement === 'bottom') {
+        if (rect.bottom + gap + cardHeight > window.innerHeight - minMarginBottom) {
+          preferredPlacement = rect.top - gap - cardHeight > minMarginTop ? 'top' : 'center';
+        }
+      } else if (preferredPlacement === 'top') {
+        if (rect.top - gap - cardHeight < minMarginTop) {
+          preferredPlacement = rect.bottom + gap + cardHeight < window.innerHeight - minMarginBottom ? 'bottom' : 'center';
+        }
+      } else if (preferredPlacement === 'left') {
+        if (rect.left - gap - cardWidth < minMarginLeft) {
+          preferredPlacement = rect.bottom + gap + cardHeight < window.innerHeight - minMarginBottom ? 'bottom' : 'left';
+        }
+      } else if (preferredPlacement === 'right') {
+        if (rect.right + gap + cardWidth > window.innerWidth - minMarginLeft) {
+          preferredPlacement = rect.left - gap - cardWidth > minMarginLeft ? 'left' : 'bottom';
+        }
+      }
+
+      if (preferredPlacement === 'bottom') {
+        top = rect.bottom + gap;
+        left = rect.left + rect.width / 2 - cardWidth / 2;
+      } else if (preferredPlacement === 'top') {
+        top = rect.top - cardHeight - gap;
+        left = rect.left + rect.width / 2 - cardWidth / 2;
+      } else if (preferredPlacement === 'left') {
+        top = rect.top + rect.height / 2 - cardHeight / 2;
+        left = rect.left - cardWidth - gap;
+      } else if (preferredPlacement === 'right') {
+        top = rect.top + rect.height / 2 - cardHeight / 2;
+        left = rect.right + gap;
+      } else {
+        top = window.innerHeight / 2 - cardHeight / 2;
+        left = window.innerWidth / 2 - cardWidth / 2;
+      }
     }
 
-    // Hard boundary keeping - 카드가 우측/좌측/상단/하단 화면 밖으로 절대 못 나가도록 강력 가드
-    const maxAllowedLeft = Math.max(minMarginLeft, window.innerWidth - cardWidth - 24);
-    left = Math.max(minMarginLeft, Math.min(maxAllowedLeft, left));
-    top = Math.max(minMarginTop, Math.min(window.innerHeight - cardHeight - minMarginBottom, top));
+    // 2. ★★★ 100% 화면 내부 완벽 감금 가드 (Absolute Hard Clamping Guard) ★★★
+    const maxLeft = Math.max(minMarginLeft, window.innerWidth - cardWidth - 24);
+    const maxTop = Math.max(minMarginTop, window.innerHeight - cardHeight - minMarginBottom);
+
+    left = Math.max(minMarginLeft, Math.min(maxLeft, left));
+    top = Math.max(minMarginTop, Math.min(maxTop, top));
 
     return {
       position: 'fixed',
@@ -397,6 +351,8 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
         sx={{
           p: '20px',
           borderRadius: '16px',
+          maxHeight: 'calc(100vh - 100px)',
+          overflowY: 'auto',
           bgcolor: theme.palette.mode === 'dark' ? 'rgba(28, 28, 28, 0.88)' : 'rgba(255, 255, 255, 0.88)',
           backdropFilter: 'blur(24px) saturate(180%)',
           WebkitBackdropFilter: 'blur(24px) saturate(180%)',
