@@ -171,11 +171,43 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
       };
     }
 
+    // ★★★ 5번 온보딩 스텝 (step === 4) - Auto-Flip 및 하단 계산 우회 전용 직통 분기 ★★★
+    if (step === 4) {
+      let step5Top = 0;
+      let step5Left = 0;
+
+      if (!isMobile && rect.width > 0) {
+        // 우측 패널 시작점 바로 좌측 20px 옆 (rect.left - cardWidth - 20)
+        // 상단 오프셋 (rect.top + 20 -> 약 Y: 110px)
+        step5Left = rect.left - cardWidth - 20;
+        step5Top = Math.max(90, rect.top + 20);
+
+        // 오버랩 방지 제한 가드
+        const maxStep5Left = rect.left - cardWidth - 16;
+        step5Left = Math.min(maxStep5Left, step5Left);
+      } else {
+        step5Left = (window.innerWidth - cardWidth) / 2;
+        step5Top = rect.bottom + gap;
+      }
+
+      // Viewport Clamping
+      step5Left = Math.max(minMarginLeft, Math.min(window.innerWidth - cardWidth - 24, step5Left));
+      step5Top = Math.max(minMarginTop, Math.min(window.innerHeight - cardHeight - minMarginBottom, step5Top));
+
+      return {
+        position: 'fixed',
+        top: `${step5Top}px`,
+        left: `${step5Left}px`,
+        width: `${cardWidth}px`,
+        zIndex: 10001,
+      };
+    }
+
     let top = 0;
     let left = 0;
     let preferredPlacement = currentStep.placement;
 
-    // 1. 스텝별 선호 위치(left, top) 계산 (조기 return 완전 제거!)
+    // 1. 스텝별 선호 위치(left, top) 계산
     if (currentStep.targetIds.includes('onboarding-site-selector') || currentStep.targetIds.includes('onboarding-site-selector-mobile')) {
       if (!isMobile) {
         left = rect.right + gap;
@@ -188,21 +220,6 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
       if (!isMobile) {
         left = rect.right + gap;
         top = Math.max(minMarginTop, rect.top);
-      }
-    } else if (currentStep.targetIds.includes('onboarding-right-panel') || currentStep.targetIds.includes('onboarding-right-panel-stats')) {
-      if (!isMobile && rect.width > 0) {
-        // 사용자 정답 스크린샷 100% 동일 구도 구현:
-        // X축: 우측 패널 시작점 바로 좌측 20px 옆 (rect.left - cardWidth - 20)
-        // Y축: 우측 패널 상단 오프셋 (rect.top + 20 -> 약 110px)
-        left = rect.left - cardWidth - gap;
-        top = Math.max(90, rect.top + 20);
-
-        // 우측 패널 오버랩 절대 방지 제한 가드
-        const maxStep5Left = rect.left - cardWidth - 16;
-        left = Math.min(maxStep5Left, left);
-      } else {
-        left = (window.innerWidth - cardWidth) / 2;
-        top = rect.bottom + gap;
       }
     } else if (currentStep.targetIds.includes('onboarding-settings-button')) {
       if (!isMobile) {
