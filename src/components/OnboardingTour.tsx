@@ -194,9 +194,14 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
         left = rect.left - cardWidth - gap;
         top = Math.max(minMarginTop, rect.top);
       }
+    } else if (currentStep.targetIds.includes('onboarding-settings-button')) {
+      if (!isMobile) {
+        left = rect.left - cardWidth - gap;
+        top = Math.max(minMarginTop, rect.bottom + gap);
+      }
     } else if (currentStep.targetIds.includes('onboarding-settings-drawer-inner') || currentStep.targetIds.includes('onboarding-settings-drawer')) {
       left = rect.left - cardWidth - gap;
-      top = Math.max(minMarginTop, rect.top + 10);
+      top = Math.max(minMarginTop, rect.top + 20);
     } else {
       // 모바일 환경이거나 공간이 좁을 경우 placement 자동 보정
       if (isMobile && (preferredPlacement === 'left' || preferredPlacement === 'right')) {
