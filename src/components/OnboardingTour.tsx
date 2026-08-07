@@ -191,12 +191,12 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
       }
     } else if (currentStep.targetIds.includes('onboarding-right-panel') || currentStep.targetIds.includes('onboarding-right-panel-stats')) {
       if (!isMobile && rect.width > 0) {
-        // 스크린샷 기반 완전 분리: 우측 패널 좌측 밖 24px (rect.left - cardWidth - 24) 정밀 안착
-        left = rect.left - cardWidth - gap;
-        top = Math.max(120, rect.top + 60);
+        // 사용자 명시 지시: 가려지지 않게 왼쪽으로 시원하게 대폭 이동! (rect.left - cardWidth - 80px)
+        left = Math.max(minMarginLeft, rect.left - cardWidth - 80);
+        top = Math.max(120, rect.top + 20);
 
-        // 5번 스텝 전용 maxLeft 가드: 카드가 우측 패널(rect.left) 안으로 1px도 밀려 들어가지 못하도록 철통 차단
-        const maxStep5Left = rect.left - cardWidth - 20;
+        // 5번 스텝 전용 가드: 카드의 우측 끝이 우측 패널(rect.left)보다 최소 60px 왼쪽에 위치하도록 확실히 제한
+        const maxStep5Left = rect.left - cardWidth - 60;
         left = Math.min(maxStep5Left, left);
       } else {
         left = (window.innerWidth - cardWidth) / 2;
