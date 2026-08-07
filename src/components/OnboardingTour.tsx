@@ -35,7 +35,7 @@ const STEPS: OnboardingStep[] = [
     placement: 'bottom',
   },
   {
-    targetIds: ['onboarding-right-panel-stats', 'onboarding-right-panel', 'onboarding-dashboard-mobile', 'onboarding-site-selector-mobile'],
+    targetIds: ['onboarding-right-panel', 'onboarding-right-panel-stats', 'onboarding-dashboard-mobile', 'onboarding-site-selector-mobile'],
     title: '5. 종합 진행도 및 활동 내역',
     content: '워크스페이스의 PC/모바일 종합 달성률 통계와 최근 방문한 페이지 목록 및 북마크 요약을 제공하여 전체 현황을 빠르게 진단합니다.',
     placement: 'left',
@@ -189,14 +189,18 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
         left = rect.right + gap;
         top = Math.max(minMarginTop, rect.top);
       }
-    } else if (currentStep.targetIds.includes('onboarding-right-panel-stats') || currentStep.targetIds.includes('onboarding-right-panel')) {
+    } else if (currentStep.targetIds.includes('onboarding-right-panel') || currentStep.targetIds.includes('onboarding-right-panel-stats')) {
       if (!isMobile && rect.width > 0) {
-        // 사용자 직접 개발자 도구 확인 반영: top = 280px 고정!
+        // 스크린샷 기반 완전 분리: 우측 패널 좌측 밖 24px (rect.left - cardWidth - 24) 정밀 안착
         left = rect.left - cardWidth - gap;
-        top = 280;
+        top = Math.max(120, rect.top + 60);
+
+        // 5번 스텝 전용 maxLeft 가드: 카드가 우측 패널(rect.left) 안으로 1px도 밀려 들어가지 못하도록 철통 차단
+        const maxStep5Left = rect.left - cardWidth - 20;
+        left = Math.min(maxStep5Left, left);
       } else {
         left = (window.innerWidth - cardWidth) / 2;
-        top = 280;
+        top = rect.bottom + gap;
       }
     } else if (currentStep.targetIds.includes('onboarding-settings-button')) {
       if (!isMobile) {
