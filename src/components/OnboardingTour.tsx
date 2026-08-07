@@ -150,14 +150,15 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
 
   const currentStep = STEPS[step];
 
-  // Dynamic Card style calculation with Smart placement & boundary checking
+  // Dynamic Card style calculation with Smart placement & generous top margin
   const getCardStyle = (): React.CSSProperties => {
     const isMobile = window.innerWidth < 600;
     const cardWidth = isMobile ? Math.min(320, window.innerWidth - 48) : 340;
-    const cardHeight = 220;
+    const cardHeight = 240; // 여유 있는 높이 기준값
     const gap = 16;
     const minMarginLeft = 24;
-    const minMarginTop = 24;
+    const minMarginTop = 80; // 화면 상단 잘림 100% 방지 (최소 80px 오프셋 확보)
+    const minMarginBottom = 24;
 
     if (!rect) {
       return {
@@ -174,12 +175,12 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
     let left = 0;
     let preferredPlacement = currentStep.placement;
 
-    // Step 0: 워크스페이스 전환 (사이드바 상단 타겟) 특별 케이스 -> 좌상단 구석 찌그러짐 방지, 화면 중앙/우측 배치
+    // Step 0: 워크스페이스 전환 (사이드바 상단 타겟) -> 상단 잘림 방지 및 우측 본문 중앙 배치
     if (currentStep.targetIds.includes('onboarding-site-selector') || currentStep.targetIds.includes('onboarding-site-selector-mobile')) {
       if (!isMobile) {
-        // 데스크탑: 사이드바 우측 (본문 화면 중앙 방향)에 여유 있게 배치
+        // 데스크탑: 사이드바 우측 (left: 276px), 상단 80px 이상 위치에 여유 있게 배치
         left = Math.max(260, rect.right + gap);
-        top = Math.max(24, Math.min(window.innerHeight - cardHeight - minMarginTop, rect.top));
+        top = Math.max(minMarginTop, rect.bottom - 20);
         return {
           position: 'fixed',
           top: `${top}px`,
@@ -188,7 +189,7 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
           zIndex: 10001,
         };
       } else {
-        // 모바일: 모바일 사이트 배너 아래 수평 중앙 배치
+        // 모바일: 모바일 사이트 배너 아래 수평 중앙, 상단 80px 이상 배치
         left = Math.max(minMarginLeft, (window.innerWidth - cardWidth) / 2);
         top = Math.max(minMarginTop, rect.bottom + gap);
         return {
@@ -203,7 +204,7 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
 
     // 설정 드로어 스텝 특별 정렬 (드로어 좌측 밀착)
     if (currentStep.targetIds.includes('onboarding-settings-drawer-inner') || currentStep.targetIds.includes('onboarding-settings-drawer')) {
-      top = Math.max(minMarginTop, Math.min(window.innerHeight - cardHeight - minMarginTop, rect.top + 10));
+      top = Math.max(minMarginTop, Math.min(window.innerHeight - cardHeight - minMarginBottom, rect.top + 20));
       left = Math.max(minMarginLeft, rect.left - cardWidth - gap);
       return {
         position: 'fixed',
@@ -221,12 +222,12 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
 
     // Viewport overflow check & auto flip
     if (preferredPlacement === 'bottom') {
-      if (rect.bottom + gap + cardHeight > window.innerHeight - minMarginTop) {
+      if (rect.bottom + gap + cardHeight > window.innerHeight - minMarginBottom) {
         preferredPlacement = rect.top - gap - cardHeight > minMarginTop ? 'top' : 'center';
       }
     } else if (preferredPlacement === 'top') {
       if (rect.top - gap - cardHeight < minMarginTop) {
-        preferredPlacement = rect.bottom + gap + cardHeight < window.innerHeight - minMarginTop ? 'bottom' : 'center';
+        preferredPlacement = rect.bottom + gap + cardHeight < window.innerHeight - minMarginBottom ? 'bottom' : 'center';
       }
     } else if (preferredPlacement === 'left') {
       if (rect.left - gap - cardWidth < minMarginLeft) {
@@ -255,9 +256,9 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
       left = window.innerWidth / 2 - cardWidth / 2;
     }
 
-    // Safe boundary keeping with generous margin
+    // Safe boundary keeping with generous top margin (min 80px)
     left = Math.max(minMarginLeft, Math.min(window.innerWidth - cardWidth - minMarginLeft, left));
-    top = Math.max(minMarginTop, Math.min(window.innerHeight - cardHeight - minMarginTop, top));
+    top = Math.max(minMarginTop, Math.min(window.innerHeight - cardHeight - minMarginBottom, top));
 
     return {
       position: 'fixed',
