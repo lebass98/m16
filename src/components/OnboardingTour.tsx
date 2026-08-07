@@ -160,44 +160,40 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
     const minMarginTop = 80; // 화면 상단 잘림 방지 (최소 80px 여백 보장)
     const minMarginBottom = 24;
 
+    // ★★★ 5번 온보딩 스텝 (step === 4) - rect 탐색 여부와 무관하게 10000% 우측 패널 상단 좌측 20px 옆 강제 고정! ★★★
+    if (step === 4) {
+      let step5Top = 110;
+      let step5Left = window.innerWidth - 320 - cardWidth - 20;
+
+      if (rect && rect.width > 0) {
+        step5Left = rect.left - cardWidth - 20;
+        step5Top = Math.max(90, rect.top + 20);
+      }
+
+      if (isMobile) {
+        step5Left = (window.innerWidth - cardWidth) / 2;
+        step5Top = rect ? rect.bottom + gap : 280;
+      } else {
+        // 화면 내부 보정
+        step5Left = Math.max(minMarginLeft, Math.min(window.innerWidth - cardWidth - 24, step5Left));
+        step5Top = Math.max(minMarginTop, Math.min(window.innerHeight - cardHeight - minMarginBottom, step5Top));
+      }
+
+      return {
+        position: 'fixed',
+        top: `${step5Top}px`,
+        left: `${step5Left}px`,
+        width: `${cardWidth}px`,
+        zIndex: 10001,
+      };
+    }
+
     if (!rect) {
       return {
         position: 'fixed',
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-        width: `${cardWidth}px`,
-        zIndex: 10001,
-      };
-    }
-
-    // ★★★ 5번 온보딩 스텝 (step === 4) - Auto-Flip 및 하단 계산 우회 전용 직통 분기 ★★★
-    if (step === 4) {
-      let step5Top = 0;
-      let step5Left = 0;
-
-      if (!isMobile && rect.width > 0) {
-        // 우측 패널 시작점 바로 좌측 20px 옆 (rect.left - cardWidth - 20)
-        // 상단 오프셋 (rect.top + 20 -> 약 Y: 110px)
-        step5Left = rect.left - cardWidth - 20;
-        step5Top = Math.max(90, rect.top + 20);
-
-        // 오버랩 방지 제한 가드
-        const maxStep5Left = rect.left - cardWidth - 16;
-        step5Left = Math.min(maxStep5Left, step5Left);
-      } else {
-        step5Left = (window.innerWidth - cardWidth) / 2;
-        step5Top = rect.bottom + gap;
-      }
-
-      // Viewport Clamping
-      step5Left = Math.max(minMarginLeft, Math.min(window.innerWidth - cardWidth - 24, step5Left));
-      step5Top = Math.max(minMarginTop, Math.min(window.innerHeight - cardHeight - minMarginBottom, step5Top));
-
-      return {
-        position: 'fixed',
-        top: `${step5Top}px`,
-        left: `${step5Left}px`,
         width: `${cardWidth}px`,
         zIndex: 10001,
       };
