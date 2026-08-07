@@ -191,12 +191,12 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
       }
     } else if (currentStep.targetIds.includes('onboarding-right-panel-stats') || currentStep.targetIds.includes('onboarding-right-panel')) {
       if (!isMobile && rect.width > 0) {
-        // 통계 상자 하단 아래 60px 오프셋 (rect.bottom + 60)으로 대폭 하향하여 스포트라이트 영역과 여유 있는 겹침 0% 보장
+        // 통계 상자 좌측 24px 이격, 상단 Y축 90px 고정 (우측 통계 상자와 좌우 수평 나란히 정렬, 본문/타겟 겹침 0%)
         left = rect.left - cardWidth - gap;
-        top = Math.max(280, rect.bottom + 60);
+        top = Math.max(90, rect.top);
       } else {
         left = (window.innerWidth - cardWidth) / 2;
-        top = Math.max(280, rect.bottom + 60);
+        top = rect.bottom + gap;
       }
     } else if (currentStep.targetIds.includes('onboarding-settings-button')) {
       if (!isMobile) {
