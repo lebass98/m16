@@ -150,7 +150,7 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
 
   const currentStep = STEPS[step];
 
-  // Dynamic Card style calculation with Zero Overlap placement & generous top margin
+  // Dynamic Card style calculation with Zero Overlap placement & Hard Boundary Guard
   const getCardStyle = (): React.CSSProperties => {
     const isMobile = window.innerWidth < 600;
     const cardWidth = isMobile ? Math.min(320, window.innerWidth - 48) : 340;
@@ -217,6 +217,22 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
       }
     }
 
+    // Step 4 (5번 종합 진행도 스텝): 우측 패널 타겟 특별 정렬 -> 화면 오른쪽 밖 이탈 100% 방지
+    if (currentStep.targetIds.includes('onboarding-right-panel')) {
+      if (!isMobile) {
+        // 데스크탑: RightPanel 좌측 안쪽 본문 공간에 지정 (우측 밖 이탈 0%)
+        left = Math.max(minMarginLeft, Math.min(window.innerWidth - cardWidth - 24, rect.left - cardWidth - gap));
+        top = Math.max(minMarginTop, Math.min(window.innerHeight - cardHeight - minMarginBottom, rect.top + 30));
+        return {
+          position: 'fixed',
+          top: `${top}px`,
+          left: `${left}px`,
+          width: `${cardWidth}px`,
+          zIndex: 10001,
+        };
+      }
+    }
+
     // 설정 드로어 스텝 특별 정렬 (드로어 좌측 이격 배치)
     if (currentStep.targetIds.includes('onboarding-settings-drawer-inner') || currentStep.targetIds.includes('onboarding-settings-drawer')) {
       top = Math.max(minMarginTop, Math.min(window.innerHeight - cardHeight - minMarginBottom, rect.top + 10));
@@ -246,7 +262,8 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
       }
     } else if (preferredPlacement === 'left') {
       if (rect.left - gap - cardWidth < minMarginLeft) {
-        preferredPlacement = rect.right + gap + cardWidth < window.innerWidth - minMarginLeft ? 'right' : 'bottom';
+        // 타겟이 오른쪽에 있을 때 'right'로 플립하면 화면 오른쪽 밖으로 나가므로 'bottom' 또는 'left' 안쪽 유지
+        preferredPlacement = rect.bottom + gap + cardHeight < window.innerHeight - minMarginBottom ? 'bottom' : 'left';
       }
     } else if (preferredPlacement === 'right') {
       if (rect.right + gap + cardWidth > window.innerWidth - minMarginLeft) {
@@ -271,8 +288,9 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
       left = window.innerWidth / 2 - cardWidth / 2;
     }
 
-    // Safe boundary keeping with generous top margin (min 100px)
-    left = Math.max(minMarginLeft, Math.min(window.innerWidth - cardWidth - minMarginLeft, left));
+    // Hard boundary keeping - 카드가 우측/좌측/상단/하단 화면 밖으로 절대 못 나가도록 강력 가드
+    const maxAllowedLeft = Math.max(minMarginLeft, window.innerWidth - cardWidth - 24);
+    left = Math.max(minMarginLeft, Math.min(maxAllowedLeft, left));
     top = Math.max(minMarginTop, Math.min(window.innerHeight - cardHeight - minMarginBottom, top));
 
     return {
