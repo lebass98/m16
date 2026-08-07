@@ -191,12 +191,12 @@ export default function OnboardingTour({ active, step, setStep, onClose }: Onboa
       }
     } else if (currentStep.targetIds.includes('onboarding-right-panel-stats') || currentStep.targetIds.includes('onboarding-right-panel')) {
       if (!isMobile && rect.width > 0) {
-        // 사용자 요청: 진행도 통계 카드(이미지) 바로 "밑(하단, rect.bottom + gap)"으로 설명창 카드 배치!
-        top = rect.bottom + gap;
-        left = Math.max(minMarginLeft, rect.left - 20);
+        // 진행도 통계 카드/우측 패널의 좌측 밖 24px 이격 (rect.left - cardWidth - gap)으로 완전 분리 정렬 (겹침 0%)
+        left = rect.left - cardWidth - gap;
+        top = Math.max(90, rect.top);
       } else {
-        top = rect.bottom + gap;
         left = (window.innerWidth - cardWidth) / 2;
+        top = rect.bottom + gap;
       }
     } else if (currentStep.targetIds.includes('onboarding-settings-button')) {
       if (!isMobile) {
